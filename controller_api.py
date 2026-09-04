@@ -11,6 +11,8 @@ API Version: 1
 
 import asyncio
 import json
+import os
+import shutil
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from pathlib import Path
@@ -253,6 +255,16 @@ def create_app(controller):
         version="1.0",
     )
 
+    @app.middleware("http")
+    async def disable_api_caching(request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/v1/"):
+            response.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, max-age=0"
+            )
+            response.headers["Pragma"] = "no-cache"
+        return response
+
     liveview_bridge = LiveViewBridge()
 
     app.router.add_event_handler(
@@ -274,6 +286,40 @@ def create_app(controller):
         archive_available = controller.archive_dir.is_dir()
         catalog_available = controller.catalog_db_path.is_file()
 
+        archive_mount_present = os.path.ismount(
+            controller.archive_root
+        )
+
+        disk_total_bytes = None
+        disk_used_bytes = None
+        disk_free_bytes = None
+
+        if controller.archive_root.exists():
+            try:
+                disk_usage = shutil.disk_usage(
+                    controller.archive_root
+                )
+                disk_total_bytes = disk_usage.total
+                disk_used_bytes = disk_usage.used
+                disk_free_bytes = disk_usage.free
+            except OSError:
+                pass
+
+        internet_reachable = False
+
+        if controller.session is not None:
+            try:
+                async with controller.session.get(
+                    "https://connectivitycheck.gstatic.com/generate_204",
+                    timeout=ClientTimeout(total=3),
+                ) as response:
+                    internet_reachable = response.status in {
+                        200,
+                        204,
+                    }
+            except Exception:
+                internet_reachable = False
+
         return {
             "status": (
                 "ok"
@@ -283,6 +329,7 @@ def create_app(controller):
             "controller": "blink-controller",
             "api_version": "1",
             "blink_connected": connected,
+            "internet_reachable": internet_reachable,
             "blink_cloud_reachable": (
                 controller.blink_cloud_reachable
             ),
@@ -291,6 +338,11 @@ def create_app(controller):
             ),
             "last_poll_error": controller.last_poll_error,
             "archive_available": archive_available,
+            "archive_mount_present": archive_mount_present,
+            "archive_path": str(controller.archive_root),
+            "disk_total_bytes": disk_total_bytes,
+            "disk_used_bytes": disk_used_bytes,
+            "disk_free_bytes": disk_free_bytes,
             "catalog_available": catalog_available,
             "camera_count": camera_count,
         }
@@ -319,8 +371,14 @@ def create_app(controller):
                     "serial": camera.serial,
                     "firmware_version": camera.version,
                     "motion_enabled": camera.motion_enabled,
-                    "online": camera.online,
+                    "online": bool(camera.online and camera.sync.available),
                     "battery": camera.battery,
+                    "battery_level": camera.battery_level,
+                    "battery_voltage": camera.battery_voltage,
+                    "temperature_f": camera.temperature,
+                    "temperature_c": camera.temperature_c,
+                    "wifi_signal": camera.wifi_strength,
+                    "sync_signal": camera.sync_signal_strength,
                 }
             )
 
@@ -377,10 +435,23 @@ def create_app(controller):
         if refresh or not thumbnail_path.is_file():
 
             try:
-                await camera.get_thumbnail()
-                await camera.image_to_file(
-                    str(thumbnail_path)
-                )
+                if refresh:
+                    await camera.snap_picture()
+
+                    image_bytes = camera.image_from_cache
+                    if image_bytes:
+                        await asyncio.to_thread(
+                            thumbnail_path.write_bytes,
+                            image_bytes,
+                        )
+                    else:
+                        await camera.image_to_file(
+                            str(thumbnail_path)
+                        )
+                else:
+                    await camera.image_to_file(
+                        str(thumbnail_path)
+                    )
 
             except Exception as exc:
                 raise HTTPException(
@@ -546,7 +617,7 @@ def create_app(controller):
         }
 
     @app.get("/api/v1/systems")
-    async def systems():
+    async def systems(refresh: bool = Query(default=False)):
         """Return Blink systems known to the Pi Controller."""
 
         if controller.blink is None:
@@ -554,6 +625,13 @@ def create_app(controller):
                 status_code=503,
                 detail="Blink controller is not connected",
             )
+
+        if refresh:
+            try:
+                await controller.refresh_blink_status()
+            except Exception as exc:
+                controller.blink_cloud_reachable = False
+                controller.last_poll_error = str(exc)
 
         result = []
 
@@ -571,7 +649,7 @@ def create_app(controller):
                     "id": system_id,
                     "name": (system.name or dictionary_key).strip(),
                     "armed": system.arm,
-                    "online": system.online,
+                    "online": bool(system.online and system.available),
                     "camera_count": camera_count,
                 }
             )
@@ -583,6 +661,40 @@ def create_app(controller):
                 key=lambda system: system["name"].lower(),
             ),
         }
+
+    @app.get("/api/v1/status/events")
+    async def status_events():
+        """Stream revisioned Blink status-change notifications."""
+
+        async def event_stream():
+            last_revision = -1
+
+            while True:
+                revision = controller.status_revision
+                if revision != last_revision:
+                    last_revision = revision
+                    payload = json.dumps({"revision": revision})
+                    yield f"event: status\ndata: {payload}\n\n"
+
+                try:
+                    async with controller.status_changed:
+                        await asyncio.wait_for(
+                            controller.status_changed.wait_for(
+                                lambda: controller.status_revision != last_revision
+                            ),
+                            timeout=20,
+                        )
+                except asyncio.TimeoutError:
+                    yield ": keepalive\n\n"
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
+        )
 
     @app.put("/api/v1/systems/{system_id}/arm")
     async def set_system_arm(system_id: str, request: SystemArmRequest):
@@ -629,11 +741,21 @@ def create_app(controller):
         # state comes back from Blink rather than from our request.
         await system.get_network_info()
 
+        confirmed_state = system.arm
+        if confirmed_state is None or bool(confirmed_state) != request.armed:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Blink did not confirm the requested Armed setting. "
+                    "The Sync Module may be offline."
+                ),
+            )
+
         return {
             "id": str(system.network_id),
             "name": system.name.strip(),
             "previous_armed": previous_state,
-            "armed": system.arm,
+            "armed": confirmed_state,
         }
 
     @app.put("/api/v1/devices/{device_id}/motion")

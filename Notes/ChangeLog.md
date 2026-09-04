@@ -28,3 +28,22 @@ Repository maintenance:
 
 - Added `.gitignore` rules for local environments, Visual Studio files,
   credentials, generated reports, and user-specific project settings.
+
+## 2026-09-04 — Device control and event-driven health reporting
+
+Added and verified:
+
+- Extended system and camera inventory fields for the BlinkDRS Systems/Devices screen.
+- Confirmed camera motion and system armed-setting endpoints.
+- Fresh camera snapshot retrieval for thumbnail refresh.
+- Expanded controller health reporting for internet, Blink Cloud, archive mount, disk capacity, catalog, and poll failures.
+- Authoritative Blink refresh before status reporting.
+- Offline Sync Module handling that also marks its cameras unavailable.
+- Automatic topology reinitialization when a Sync Module returns after starting offline.
+- Revisioned server-sent status events with keepalive messages for BlinkDRS.
+- Explicit no-cache headers for controller API responses.
+
+Hardware tests completed:
+
+- Sync Module unplug and recovery without restarting BlinkDRS or the Pi service.
+- Pi power loss, full reboot, controller restart, event-stream reconnection, and normal service recovery.

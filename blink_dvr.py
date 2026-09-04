@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -427,6 +428,11 @@ class BlinkController:
         self.catalog_db_path = CATALOG_DB
         self.archive_root = ARCHIVE_ROOT
         self.archive_lock = asyncio.Lock()
+        self.status_refresh_lock = asyncio.Lock()
+        self.status_changed = asyncio.Condition()
+        self.status_revision = 0
+        self.status_signature = None
+        self.last_status_refresh_monotonic = 0.0
         self.blink_cloud_reachable = None
         self.last_poll_success_at = None
         self.last_poll_error = None
@@ -454,6 +460,8 @@ class BlinkController:
 
         async with self.archive_lock:
 
+            await self.refresh_blink_status()
+
             downloaded = await download_new_clips(
                 self.blink
             )
@@ -464,6 +472,69 @@ class BlinkController:
                 )
 
             cleanup_old_clips()
+
+    async def refresh_blink_status(self, minimum_age_seconds=10):
+        """Refresh Blink system and camera state, with a short shared throttle."""
+
+        if self.blink is None:
+            return False
+
+        async with self.status_refresh_lock:
+            age = time.monotonic() - self.last_status_refresh_monotonic
+            if age < minimum_age_seconds:
+                return True
+
+            refreshed = await self.blink.refresh(force=True)
+
+            # BlinkPy's ordinary refresh updates existing objects, but it does
+            # not rebuild a Sync Module or its cameras when the controller was
+            # started while that module was offline. Re-run setup whenever a
+            # system remains unavailable so a returning module and its camera
+            # inventory can be discovered without restarting this service.
+            if any(
+                not bool(system.online and system.available)
+                for system in self.blink.sync.values()
+            ):
+                refreshed = await self.blink.setup_post_verify()
+
+            await self.publish_status_if_changed()
+            self.last_status_refresh_monotonic = time.monotonic()
+            return bool(refreshed)
+
+    async def publish_status_if_changed(self):
+        """Notify API event subscribers when authoritative Blink state changes."""
+
+        systems = sorted(
+            (
+                str(system.network_id),
+                bool(system.online and system.available),
+                system.arm,
+            )
+            for system in self.blink.sync.values()
+        )
+        cameras = sorted(
+            (
+                str(camera.camera_id),
+                str(camera.sync.network_id),
+                bool(camera.online and camera.sync.available),
+                camera.motion_enabled,
+            )
+            for camera in self.blink.cameras.values()
+        )
+        signature = json.dumps(
+            {"systems": systems, "cameras": cameras},
+            sort_keys=True,
+            default=str,
+        )
+
+        if signature == self.status_signature:
+            return False
+
+        self.status_signature = signature
+        async with self.status_changed:
+            self.status_revision += 1
+            self.status_changed.notify_all()
+        return True
 
     async def run_api(self):
         """Run the Controller API in the same process and event loop."""
