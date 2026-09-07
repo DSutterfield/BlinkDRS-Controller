@@ -1,3 +1,20 @@
+# 2026-09-07 - Live View measurements and startup cleanup
+
+- Added startup and bounded media-delivery gap diagnostics.
+- Bounded FFmpeg input analysis; measured payload-to-JPEG delay fell from about
+  6.2 seconds to about 2.2 seconds in Pergola tests.
+- Restored expected TLS-close handling in the TCP-safe receiver and added
+  connection milestones and descriptive startup timeout messages.
+- Syntax, receiver regression tests, deployment health, and two consecutive
+  start/stop tests passed. Playback gaps and Blink command-done errors remain
+  under investigation. Single-thread decoding was tested and reverted.
+
+# 2026-09-07 - Controller project rename
+
+- Adopted BlinkDRS-Controller for the repository, solution, and checkout folders.
+- Updated Pi service paths, Python launchers, Windows shortcuts, and BlinkDRS SSH configuration.
+- Preserved controller behavior, archive storage, and existing local changes.
+
 # Change Log
 
 ## 2026-07-24 — Initial project documentation

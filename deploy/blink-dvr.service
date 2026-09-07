@@ -1,5 +1,5 @@
 [Unit]
-Description=Blink DVR Controller
+Description=BlinkDRS Controller
 Wants=network-online.target
 After=network-online.target
 
@@ -7,8 +7,8 @@ After=network-online.target
 Type=simple
 User=dan
 Group=dan
-WorkingDirectory=/home/dan/BlinkCamWindowsDashboard
-ExecStart=/home/dan/BlinkCamWindowsDashboard/.venv/bin/python /home/dan/BlinkCamWindowsDashboard/blink_dvr.py
+WorkingDirectory=/home/dan/BlinkDRS-Controller
+ExecStart=/home/dan/BlinkDRS-Controller/.venv/bin/python /home/dan/BlinkDRS-Controller/blink_dvr.py
 Restart=on-failure
 RestartSec=5
 

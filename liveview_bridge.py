@@ -31,8 +31,11 @@ import asyncio
 import contextlib
 import json
 import shutil
+import ssl
 import subprocess
 import threading
+import time
+from liveview_diagnostics import StartupDiagnostics
 import os
 from collections import deque
 from pathlib import Path
@@ -57,6 +60,7 @@ class LiveViewBridge:
     """Own one Blink live-view session and publish its latest JPEG frame."""
 
     def __init__(self) -> None:
+        self._startup = None
         self._loop = asyncio.new_event_loop()
         self._loop_ready = threading.Event()
         self._control_lock = threading.Lock()
@@ -156,17 +160,23 @@ class LiveViewBridge:
             key=str.casefold,
         )
 
-    def start(self, camera_name: str) -> dict:
+    def start(self, camera_name: str, request_started_at=None) -> dict:
         """Start live view and wait until FFmpeg produces its first JPEG frame."""
         if not camera_name or not camera_name.strip():
             raise ValueError("A camera name is required.")
 
+        started_at = time.monotonic() if request_started_at is None else request_started_at
         with self._control_lock:
             future = asyncio.run_coroutine_threadsafe(
-                self._start_async(camera_name.strip()),
+                self._start_async(camera_name.strip(), started_at),
                 self._loop,
             )
-            return future.result(timeout=FIRST_FRAME_TIMEOUT_SECONDS + 20)
+            try:
+                return future.result(timeout=FIRST_FRAME_TIMEOUT_SECONDS + 20)
+            except Exception:
+                if self._startup is not None:
+                    self._startup.log("failed")
+                raise
 
     def _find_camera(self, camera_name: str):
         """Find a camera by dictionary key or camera.name, ignoring case/spaces."""
@@ -188,10 +198,13 @@ class LiveViewBridge:
 
         return None
 
-    async def _start_async(self, camera_name: str) -> dict:
+    async def _start_async(self, camera_name: str, started_at=None) -> dict:
         # Stop only the previous stream. Keep the Blink connection alive.
         await self._stop_async()
+        self._startup = StartupDiagnostics(started_at)
+        self._startup.mark("previous_stream_stopped")
         await self._ensure_blink_async()
+        self._startup.mark("blink_connection_ready")
 
         ffmpeg_path = shutil.which("ffmpeg")
         if not ffmpeg_path:
@@ -216,14 +229,26 @@ class LiveViewBridge:
                     f"Discovered cameras: {available}"
                 )
 
+            self._startup.mark("blink_command_requested")
             self._stream = await camera.init_livestream()
+            self._startup.mark("blink_command_accepted")
 
             # 2026-08-14 - Dan/Sage:
             # Keep BlinkPy's normal feed(), but replace its recv() implementation
             # with our TCP-safe IMMI receiver.
             self._stream.recv = self._recv_blink_stream
+            original_auth = self._stream.auth
+            diagnostics = self._startup
+
+            async def traced_auth():
+                diagnostics.mark("stream_connection_requested")
+                await original_auth()
+                diagnostics.mark("stream_auth_sent")
+
+            self._stream.auth = traced_auth
 
             await self._stream.start()
+            self._startup.mark("local_listener_ready")
 
             with self._frame_condition:
                 self._camera_name = camera_name
@@ -262,6 +287,12 @@ class LiveViewBridge:
                     "-loglevel",
                     "info",
                     "-nostats",
+                    # Bound stream discovery for live input; retain normal
+                    # packet buffering so initial video/audio is not discarded.
+                    "-analyzeduration",
+                    "1000000",
+                    "-probesize",
+                    "1048576",
                     "-f",
                     "mpegts",
                     "-i",
@@ -320,6 +351,7 @@ class LiveViewBridge:
             finally:
                 os.close(audio_write_fd)
 
+            self._startup.mark("ffmpeg_started")
             self._frame_task = asyncio.create_task(
                 self._read_ffmpeg_frames(),
                 name="ReadLiveViewFrames",
@@ -347,7 +379,10 @@ class LiveViewBridge:
                 timeout=FIRST_FRAME_TIMEOUT_SECONDS,
             )
 
+            self._startup.mark("start_response_ready")
+            self._startup.log("ready")
             return {
+                "diagnostics": self._startup.snapshot(),
                 "ok": True,
                 "camera": camera_name,
                 "frame_rate": MJPEG_FRAME_RATE,
@@ -355,7 +390,16 @@ class LiveViewBridge:
 
         except Exception as exc:
             details = self._format_ffmpeg_messages()
-            self._set_error(f"{type(exc).__name__}: {exc}{details}")
+            message = str(exc)
+            if isinstance(exc, TimeoutError) and not message:
+                marks = self._startup.snapshot()["elapsed_ms"]
+                if "first_transport_payload" in marks:
+                    message = "Media arrived, but no decoded video frame was ready within 30 seconds."
+                elif "stream_auth_sent" in marks:
+                    message = "Stream connection opened, but no valid media payload arrived within 30 seconds."
+                else:
+                    message = "Stream connection/authentication did not complete within 30 seconds."
+            self._set_error(f"{type(exc).__name__}: {message}{details}")
             await self._stop_async(preserve_error=True)
             raise RuntimeError(self._last_error) from exc
 
@@ -384,6 +428,7 @@ class LiveViewBridge:
                 except asyncio.IncompleteReadError:
                     break
 
+                self._startup.mark("first_protocol_header")
                 msgtype = header[0]
                 payload_length = int.from_bytes(
                     header[5:9],
@@ -406,12 +451,21 @@ class LiveViewBridge:
                 if not data or data[0] != 0x47:
                     continue
 
+                self._startup.mark("first_transport_payload")
+                self._startup.pulse("camera_payload", len(data))
                 for writer in stream.clients:
                     if not writer.is_closing():
                         writer.write(data)
                         await writer.drain()
+                self._startup.pulse("transport_forwarded", len(data))
 
                 await asyncio.sleep(0)
+
+        except ssl.SSLError as exc:
+            # BlinkPy treats this specific TLS close notification as normal.
+            # Let feed() finish send/poll cleanup instead of exiting gather early.
+            if exc.reason != "APPLICATION_DATA_AFTER_CLOSE_NOTIFY":
+                raise
 
         finally:
             if (
@@ -444,6 +498,7 @@ class LiveViewBridge:
 
                 with self._audio_condition:
                     self._audio_chunks.append(chunk)
+                    self._startup.pulse("decoded_audio", len(chunk))
                     self._audio_condition.notify_all()
 
         except asyncio.CancelledError:
@@ -514,6 +569,9 @@ class LiveViewBridge:
             raise
 
     def _publish_frame(self, frame: bytes) -> None:
+        if self._startup is not None:
+            self._startup.mark("first_decoded_jpeg")
+            self._startup.pulse("decoded_video", len(frame))
         with self._frame_condition:
             self._latest_frame = frame
             self._frame_number += 1
@@ -601,6 +659,7 @@ class LiveViewBridge:
                 "active": self._active,
                 "camera": self._camera_name,
                 "frames": self._frame_number,
+                "diagnostics": self._startup.snapshot() if self._startup else None,
                 "error": self._last_error,
                 "ffmpeg_messages": list(self._ffmpeg_messages),
             }
@@ -616,6 +675,8 @@ class LiveViewBridge:
 
     async def _stop_async(self, preserve_error: bool = False) -> None:
         """Stop FFmpeg and the active Blink stream, retaining Blink login."""
+        if self._active and self._startup is not None:
+            self._startup.log("playback_stopping")
         with self._frame_condition:
             self._active = False
             self._frame_condition.notify_all()

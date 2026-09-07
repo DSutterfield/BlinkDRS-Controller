@@ -10,6 +10,7 @@ API Version: 1
 """
 
 import asyncio
+import time
 import json
 import os
 import shutil
@@ -481,6 +482,7 @@ def create_app(controller):
         request: LiveViewStartRequest,
     ):
         """Start live view and wait for the first decoded frame."""
+        request_started_at = time.monotonic()
 
         camera_name = request.name.strip()
 
@@ -494,6 +496,7 @@ def create_app(controller):
             return await asyncio.to_thread(
                 liveview_bridge.start,
                 camera_name,
+                request_started_at,
             )
 
         except Exception as exc:

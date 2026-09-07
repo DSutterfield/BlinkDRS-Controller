@@ -4,7 +4,7 @@
     <File Path="Notes/Developer_Notes.md" />
     <File Path="Notes/Local_Modifications.md" />
   </Folder>
-  <Project Path="BlinkCamWindowsDashboard.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52" Id="3c758e0d-4647-4947-a642-05763c672df7">
+  <Project Path="BlinkDRS-Controller.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52" Id="3c758e0d-4647-4947-a642-05763c672df7">
     <Build Project="false" />
   </Project>
 </Solution>

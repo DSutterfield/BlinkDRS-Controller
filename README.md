@@ -1,6 +1,6 @@
-# Blink DVR
+# BlinkDRS Controller
 
-A local web dashboard and DVR for Blink home security cameras. Auto-downloads motion clips to your own storage, gives you a three-pane web interface to browse them, and lets you arm/disarm cameras without the Blink app.
+The Raspberry Pi controller for the BlinkDRS project. It downloads and catalogs Blink clips, provides the API used by the BlinkDRS Windows application, and handles camera controls and Live View. The original browser dashboard remains available as a legacy interface.
 
 Built because Blink doesn't have a desktop app and the official cameras don't expose a local API.
 
@@ -11,7 +11,7 @@ Built because Blink doesn't have a desktop app and the official cameras don't ex
 
 - **A Blink subscription is REQUIRED.** Blink's free tier doesn't store clips on their servers, which means there's nothing for this script to download. You need either the **Blink Plus Plan** (~$10/month, unlimited cameras) or **Blink Basic Plan** (~$3/month per camera). A 30-day free trial is available — start there to test before committing.
 
-- **Live streaming is not yet implemented in this dashboard, but it IS possible.** Blink uses a proprietary protocol called IMMIS (MPEG-TS over TCP) that has been reverse-engineered by the community. As of `blinkpy` 0.25+, livestream proxying is supported via the library's `BlinkLiveStream` class — see projects like [blinkbridge](https://github.com/roger-/blinkbridge) for a working RTSP bridge implementation. Adding native live view to this dashboard is on the roadmap.
+- **Live View is implemented for BlinkDRS, but it uses Blink's unofficial cloud protocol.** The Pi Controller receives Blink's MPEG-TS stream, decodes video for the Windows application, and provides incoming camera audio. Blink or BlinkPy changes may require corresponding controller changes.
 
 - **No authentication on the web dashboard.** Anyone on your local network can access it. Don't expose port 5000 to the internet without adding authentication or putting it behind a VPN.
 
@@ -33,6 +33,11 @@ Built because Blink doesn't have a desktop app and the official cameras don't ex
 - Live thumbnail capture per camera
 - Loop playback toggle
 - Dark UI, vanilla JS, no frameworks
+
+The current Pi Controller also supports the separate BlinkDRS Windows
+application through `controller_api.py`, including health and device status,
+recorded clips, Live View video and incoming audio, system/camera controls, and
+revisioned status events. The browser dashboard remains legacy functionality.
 
 ---
 
@@ -70,7 +75,7 @@ You should see `Python 3.12.x` or similar. If it says "command not found" or sho
 Clone this repo (if you have Git installed):
 
 ```bat
-git clone https://github.com/YOUR_USERNAME/blink-dvr.git C:\BlinkDVR
+git clone https://github.com/DSutterfield/BlinkDRS-Controller.git C:\Users\YOUR_NAME\source\repos\BlinkDRS-Controller
 ```
 
 Or download the ZIP from GitHub and extract to `C:\BlinkDVR`.
@@ -301,24 +306,20 @@ Another app is using port 5000. Either close that app, or edit `web_app.py` and 
 ## Architecture
 
 ```
-Blink Cloud Servers
-        ↓
-   (polled every 60 sec)
-        ↓
-   blink_dvr.py  ─────────►  H:\BlinkClips\*.mp4
-                                       ▲
-                                       │ reads
-                                       │
-                              web_app.py (Flask, port 5000)
-                                       ▲
-                                       │ HTTP
-                                       │
-                              Browser dashboard
+Blink cameras ⇄ Blink Cloud ⇄ BlinkPy / blink_dvr.py
+                                      │
+                         clips + SQLite catalog
+                                      │
+                             controller_api.py
+                                      │ HTTP/SSE
+                                      ▼
+                              BlinkDRS for Windows
 ```
 
-`blink_dvr.py` and `web_app.py` are independent processes that don't talk to each other. The poller writes files; the web app reads files. Either can run without the other.
-
-The dashboard's "ARM / DISARM" and "Enable / Disable" buttons make API calls to Blink directly through `web_app.py` — they don't go through `blink_dvr.py`.
+`blink_dvr.py` owns the long-lived Blink session, clip poller, and embedded
+Controller API. Live View is bridged through `liveview_bridge.py`. The legacy
+`web_app.py` browser dashboard can still run independently, but it is not the
+primary BlinkDRS interface.
 
 ---
 
@@ -327,6 +328,8 @@ The dashboard's "ARM / DISARM" and "Enable / Disable" buttons make API calls to 
 | File | What It Does |
 |---|---|
 | `blink_dvr.py` | The clip-downloader poller. Runs continuously. |
+| `controller_api.py` | API used by BlinkDRS for clips, status, settings, and Live View. |
+| `liveview_bridge.py` | Bridges Blink Live View into decoded video frames and incoming audio. |
 | `web_app.py` | Flask web server for the dashboard. |
 | `first_login.py` | One-time interactive 2FA login. |
 | `arm_control.py` | CLI tool for system / camera arm-disarm. |
@@ -342,16 +345,19 @@ The dashboard's "ARM / DISARM" and "Enable / Disable" buttons make API calls to 
 
 ---
 
-## Roadmap / Adding to the Project
+## Roadmap
 
-The code is intentionally simple and self-contained. Some natural extensions:
+The authoritative project plan is `ROADMAP.md` in the BlinkDRS Windows
+repository. Current priorities are:
 
-- **Live view via IMMIS / MPEG-TS streaming** using `blinkpy`'s built-in `BlinkLiveStream` class (planned)
-- **RTSP feed integration** for additional non-Blink cameras (Reolink, Tapo, Wyze, etc.) in the same dashboard
-- **Auto-refresh** the clip list every 30 seconds so new ones appear without clicking
-- **Per-camera filter dropdown** to view clips from one camera at a time
-- **HTTP basic auth** to lock the dashboard down even on local network
-- **Discord / Telegram notifications** when motion clips arrive
+- Measure and improve Live View startup time and motion smoothness.
+- Add Start/Stop recording during Live View, saving local clips into the normal
+  archive and catalog with trigger type `Live View`.
+- Notify BlinkDRS when the clip catalog changes so Recorded Clips updates
+  automatically without blind polling.
+- Investigate two-way talk after the Live View transport is improved.
+- Research direct local camera streaming without assuming Blink hardware exposes
+  a supported local route.
 
 ---
 
@@ -390,3 +396,11 @@ THE SOFTWARE.
 ```
 
 If you don't want to bother with a LICENSE file separately, this is fine inline. If you want a separate `LICENSE` file (which is GitHub's convention and shows the license badge nicely), copy the text from "MIT License" through the end into a file called `LICENSE` (no extension) in your repo root.
+
+## Project identity and deployment
+
+- Repository and Visual Studio solution: `BlinkDRS-Controller`.
+- Windows companion application: `BlinkDRS`.
+- Pi checkout: `/home/dan/BlinkDRS-Controller`.
+- Service: `blink-dvr.service`; its working directory and Python launcher use the Pi checkout above.
+- Archive storage remains configured separately from the controller checkout.
