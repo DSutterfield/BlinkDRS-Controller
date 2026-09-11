@@ -1171,7 +1171,7 @@ def create_app(controller):
 
         playback_path = (
             playback_cache_dir
-            / f"{video_path.stem}.loudnorm-v1.mp4"
+            / f"{video_path.stem}.loudnorm-v2.mp4"
         )
 
         # Rebuild the cached playback file if it does not exist or if the
@@ -1186,7 +1186,7 @@ def create_app(controller):
 
             temp_path = (
                 playback_cache_dir
-                / f"{video_path.stem}.loudnorm-v1.tmp.mp4"
+                / f"{video_path.stem}.loudnorm-v2.tmp.mp4"
             )
 
             if temp_path.exists():
@@ -1209,6 +1209,9 @@ def create_app(controller):
                 "64k",
                 "-af",
                 "loudnorm=I=-16:TP=-1.5:LRA=11",
+                # loudnorm upsamples internally; Windows AAC playback requires <=48 kHz.
+                "-ar",
+                "48000",
                 "-movflags",
                 "+faststart",
                 str(temp_path),
