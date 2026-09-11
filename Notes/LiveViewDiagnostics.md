@@ -121,3 +121,16 @@ Controller clear_audio now checks the optional session before clearing queued au
 and returns the current video cursor/session through audio response headers.
 Pi backup: /home/dan/.blinkdrs/audio-cursor-20260911-115403.
 Successful Windows session: 3e76d71e9d0b438db2bf37079d1fefd6.
+
+
+# Startup reliability — September 11, 2026
+
+Implemented and deployed prompt startup failure detection when the Blink feed or video decoder ends before startup completes. A simultaneous first-frame/producer-end event is treated as failure, and the temporary first-frame waiter is always cleaned up. Cancellation during stream setup triggers normal stream cleanup. Playback buffers and audio calibration are unchanged.
+
+Seven isolated checks passed: normal readiness, feed EOF, feed exception, decoder EOF, simultaneous frame/EOF, no-frame timeout, and waiter cancellation without leaked tasks. They ran on Windows and the Pi. Live startup checks on Living Room and Pergola passed before and after deployment, validating JPEG delivery, audio headers/data, stop, and idle state without saving media.
+
+Before update: Living Room 3.245 s, Pergola 5.615 s to Controller readiness. After service restart/update: Living Room 14.153 s, of which 11.092 s was Blink connection initialization; Pergola 4.406 s. These are Controller first-frame times, not Windows first-picture times.
+
+Available journal contains 20 successful startup records and no failure records. The historical intermittent no-media failure was not reproduced; its root cause remains unresolved. Startup's outer synchronous timeout/cancellation behavior and cold Blink connection setup remain candidates for further investigation. No automatic retry or shorter timeout was added.
+
+Pi backup: `/home/dan/.blinkdrs/startup-failfast-20260911-123308`. Controller source and regression checks are saved locally. Continue using the validated Windows launcher; no Windows rebuild is needed for this Pi-only change.

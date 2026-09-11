@@ -376,10 +376,7 @@ class LiveViewBridge:
                 name="FeedBlinkLiveView",
             )
 
-            await asyncio.wait_for(
-                self._first_frame_event.wait(),
-                timeout=FIRST_FRAME_TIMEOUT_SECONDS,
-            )
+            await self._wait_for_first_frame()
 
             self._startup.mark("start_response_ready")
             self._startup.log("ready")
@@ -389,6 +386,11 @@ class LiveViewBridge:
                 "camera": camera_name,
                 "frame_rate": MJPEG_FRAME_RATE,
             }
+
+        except asyncio.CancelledError:
+            # A cancelled startup must not leave a camera/decoder running.
+            await self._stop_async()
+            raise
 
         except Exception as exc:
             details = self._format_ffmpeg_messages()
@@ -404,6 +406,34 @@ class LiveViewBridge:
             self._set_error(f"{type(exc).__name__}: {message}{details}")
             await self._stop_async(preserve_error=True)
             raise RuntimeError(self._last_error) from exc
+
+    async def _wait_for_first_frame(self) -> None:
+        """Fail promptly when a producer ends instead of waiting for the deadline."""
+        ready = asyncio.create_task(self._first_frame_event.wait())
+        producers = {self._feed_task: "Blink stream", self._frame_task: "Video decoder"}
+        try:
+            done, _ = await asyncio.wait(
+                {ready, *producers}, timeout=FIRST_FRAME_TIMEOUT_SECONDS,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            # A producer can end in the same loop turn as its first frame.
+            # Do not report a dead stream as a successful startup.
+            for task, label in producers.items():
+                if task.done():
+                    if task.cancelled():
+                        raise RuntimeError(f"{label} was cancelled during startup.")
+                    failure = task.exception()
+                    if failure is not None:
+                        raise RuntimeError(f"{label} failed during startup: {type(failure).__name__}") from failure
+                    raise RuntimeError(self._last_error or f"{label} ended before startup completed.")
+            if ready not in done:
+                raise TimeoutError()
+            if not self._active or self._latest_frame is None:
+                raise RuntimeError(self._last_error or "Live View stopped during startup.")
+        finally:
+            ready.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await ready
 
     async def _recv_blink_stream(self) -> None:
         """
