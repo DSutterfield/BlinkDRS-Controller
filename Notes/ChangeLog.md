@@ -1,3 +1,13 @@
+# 2026-09-11 - Consecutive Live View frames
+
+- Retain up to 20 decoded JPEGs and serve the next available frame after a
+  client sequence, validating the Live View session ID. Preserve the legacy
+  latest-frame endpoint for existing clients; clear history on start and stop.
+- Bound wait time and reject stale/stopped sessions. Synthetic history tests,
+  live consecutive-frame checks, and legacy endpoint checks passed.
+- Windows buffered presentation passed a long Pergola viewing test with smoother
+  motion and subjectively close sound alignment. Further validation remains open.
+
 # 2026-09-07 - Live View measurements and startup cleanup
 
 - Added startup and bounded media-delivery gap diagnostics.

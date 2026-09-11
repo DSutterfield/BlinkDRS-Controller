@@ -77,6 +77,7 @@ class LiveViewBridge:
         self._active = False
         self._latest_frame: bytes | None = None
         self._frame_number = 0
+        self._frame_history = deque(maxlen=20)
         self._last_error: str | None = None
         self._ffmpeg_messages: deque[str] = deque(maxlen=25)
         self._audio_chunks: deque[bytes] = deque(maxlen=256)
@@ -255,6 +256,7 @@ class LiveViewBridge:
                 self._active = True
                 self._latest_frame = None
                 self._frame_number = 0
+                self._frame_history.clear()
                 self._last_error = None
                 self._ffmpeg_messages.clear()
                 self._frame_condition.notify_all()
@@ -575,6 +577,7 @@ class LiveViewBridge:
         with self._frame_condition:
             self._latest_frame = frame
             self._frame_number += 1
+            self._frame_history.append((self._frame_number, frame))
             self._active = True
             self._frame_condition.notify_all()
 
@@ -613,6 +616,21 @@ class LiveViewBridge:
                 + frame
                 + b"\r\n"
             )
+
+    def next_frame(self, after: int, session_id: str, timeout: float = 1):
+        """Return the next retained frame; never cross Live View sessions."""
+        with self._frame_condition:
+            def same_session():
+                return self._startup and self._startup.snapshot()["session_id"] == session_id
+            self._frame_condition.wait_for(
+                lambda: not same_session() or not self._active or self._frame_number > after,
+                timeout=timeout,
+            )
+            if not same_session():
+                raise ValueError("Live View session changed; restart Live View.")
+            if not self._active:
+                raise ValueError("Live View is no longer active.")
+            return next((item for item in self._frame_history if item[0] > after), None)
 
     def latest_frame(self, timeout: float = 5) -> bytes | None:
         """Return the latest JPEG, waiting briefly when no frame exists yet."""
@@ -738,6 +756,7 @@ class LiveViewBridge:
             self._camera_name = None
             self._latest_frame = None
             self._frame_number = 0
+            self._frame_history.clear()
             if not preserve_error:
                 self._last_error = None
             self._frame_condition.notify_all()

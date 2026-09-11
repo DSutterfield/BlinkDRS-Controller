@@ -507,8 +507,24 @@ def create_app(controller):
 
 
     @app.get("/api/v1/liveview/frame")
-    async def liveview_frame():
+    async def liveview_frame(after: int | None = Query(default=None, ge=0), session_id: str | None = None):
         """Return the latest decoded Live View JPEG frame."""
+
+        if after is not None:
+            if not session_id:
+                raise HTTPException(status_code=422, detail="session_id is required with after")
+            try:
+                item = await asyncio.to_thread(liveview_bridge.next_frame, after, session_id, 1.0)
+            except ValueError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+            if item is None:
+                return Response(status_code=204, headers={"Cache-Control": "no-store"})
+            number, frame = item
+            return Response(content=frame, media_type="image/jpeg", headers={
+                "Cache-Control": "no-store", "X-Frame-Number": str(number),
+                "X-LiveView-Session": session_id,
+            })
+
 
         status = liveview_bridge.status()
 
