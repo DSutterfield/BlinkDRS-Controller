@@ -12,6 +12,8 @@ Validation: Windows build zero warnings/errors; WPF minimum-width layout and loc
 
 Real Living Room tests produced an 11.78-second clip on manual recording stop and a 6.74-second clip when Live View stopped. Both contain audio and appear as Recorded Live. The first was fully decoded by FFmpeg without errors; Live View continued after manual recording stop. Earlier successful testing also left a 12.18-second clip. Failed test files were not cataloged. The production setting remains 150 seconds. Automatic cutoff was tested at a shorter limit in a temporary synthetic archive; a full 150-second real-camera cutoff was not run.
 
-Use `Start-BlinkDRS.cmd` (the older validated launcher is updated too). User playback/visual acceptance and other-camera recording quality remain to validate. The existing intermittent Live View startup issue and Mini-versus-Outdoor audio-offset investigation remain open.
+Use `Start-BlinkDRS.cmd` (the older validated launcher is updated too). User confirmed expected playback on a couple of cameras and accepted the teal Recorded Live border/label. Broader camera-model coverage remains to validate. The existing intermittent Live View startup issue and Mini-versus-Outdoor audio-offset investigation remain open.
 
 Pi backups: initial feature `/home/dan/.blinkdrs/live-recording-20260911-125747`; latest stream correction `/home/dan/.blinkdrs/recording-relay-20260911-131211`.
+
+Playback correction: normalization previously produced 96 kHz AAC, outside Windows decoder support. Output is now explicitly 48 kHz AAC with loudnorm-v2 cache names. The existing Front Door clip passed the playback endpoint and full decode checks; its original archive hash was unchanged. Recorded Clips mute was also enabled during diagnosis. Deployed backup: `/home/dan/.blinkdrs/playback-audio-20260911-132808`.
