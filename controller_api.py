@@ -20,6 +20,7 @@ from pathlib import Path
 from fastapi.responses import FileResponse, Response
 from fastapi.responses import StreamingResponse
 from liveview_bridge import LiveViewBridge
+from live_recording import install_recording_api
 from catalog_store import (
     delete_clip_by_catalog_id,
     get_clip_by_catalog_id,
@@ -127,11 +128,6 @@ async def coordinate_clip_delete(controller, catalog_id):
     deletion is positively confirmed with a successful HTTP response.
     """
 
-    if controller.blink is None:
-        raise RuntimeError(
-            "Blink controller is not connected"
-        )
-
     async with controller.archive_lock:
 
         clip = get_clip_by_catalog_id(
@@ -149,9 +145,21 @@ async def coordinate_clip_delete(controller, catalog_id):
         )
 
         if not blink_media_id:
-            raise ValueError(
-                "Clip has no Blink media ID"
-            )
+            if clip.get("source") != "recorded_live":
+                raise ValueError("Clip has no Blink media ID")
+            stage = stage_clip_for_delete(controller.archive_root, clip)
+            try:
+                if not delete_clip_by_catalog_id(controller.catalog_db_path, catalog_id):
+                    raise RuntimeError("Local catalog row could not be deleted")
+            except Exception:
+                restore_staged_clip(stage)
+                raise
+            set_stage_state(stage, "catalog_deleted")
+            finalize_staged_clip(stage)
+            return {"deleted": True, "catalog_id": catalog_id, "filename": clip["filename"], "blink_media_id": None}
+
+        if controller.blink is None:
+            raise RuntimeError("Blink controller is not connected")
 
         stage = stage_clip_for_delete(
             controller.archive_root,
@@ -268,10 +276,11 @@ def create_app(controller):
 
     liveview_bridge = LiveViewBridge()
 
-    app.router.add_event_handler(
-        "shutdown",
-        liveview_bridge.shutdown,
-    )
+    recorder, recording_lock = install_recording_api(app, controller, liveview_bridge)
+    async def shutdown_liveview():
+        await recorder.stop()
+        await asyncio.to_thread(liveview_bridge.shutdown)
+    app.router.add_event_handler("shutdown", shutdown_liveview)
 
     @app.get("/api/v1/health")
     async def health():
@@ -482,29 +491,30 @@ def create_app(controller):
         request: LiveViewStartRequest,
     ):
         """Start live view and wait for the first decoded frame."""
-        request_started_at = time.monotonic()
+        async with recording_lock:
+            await recorder.stop()
+            request_started_at = time.monotonic()
 
-        camera_name = request.name.strip()
+            camera_name = request.name.strip()
 
-        if not camera_name:
-            raise HTTPException(
-                status_code=400,
-                detail="A camera name is required",
-            )
+            if not camera_name:
+                raise HTTPException(
+                    status_code=400,
+                    detail="A camera name is required",
+                )
 
-        try:
-            return await asyncio.to_thread(
-                liveview_bridge.start,
-                camera_name,
-                request_started_at,
-            )
+            try:
+                return await asyncio.to_thread(
+                    liveview_bridge.start,
+                    camera_name,
+                    request_started_at,
+                )
 
-        except Exception as exc:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Live View start failed: {exc}",
-            ) from exc
-
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Live View start failed: {exc}",
+                ) from exc
 
     @app.get("/api/v1/liveview/frame")
     async def liveview_frame(after: int | None = Query(default=None, ge=0), session_id: str | None = None):
@@ -622,23 +632,25 @@ def create_app(controller):
 
     @app.post("/api/v1/liveview/stop")
     async def liveview_stop():
-        """Stop the active Live View session."""
+        async with recording_lock:
+            await recorder.stop()
+            """Stop the active Live View session."""
 
-        try:
-            await asyncio.to_thread(
-                liveview_bridge.stop,
-            )
+            try:
+                await asyncio.to_thread(
+                    liveview_bridge.stop,
+                )
 
-        except Exception as exc:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Live View stop failed: {exc}",
-            ) from exc
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Live View stop failed: {exc}",
+                ) from exc
 
-        return {
-            "ok": True,
-            "active": False,
-        }
+            return {
+                "ok": True,
+                "active": False,
+            }
 
     @app.get("/api/v1/systems")
     async def systems(refresh: bool = Query(default=False)):
@@ -967,12 +979,6 @@ def create_app(controller):
     @app.delete("/api/v1/clips/catalog/{catalog_id}")
     async def delete_recorded_clip(catalog_id: int):
         """Delete one recorded clip from Blink and the local archive."""
-
-        if controller.blink is None:
-            raise HTTPException(
-                status_code=503,
-                detail="Blink controller is not connected",
-            )
 
         try:
             return await coordinate_clip_delete(

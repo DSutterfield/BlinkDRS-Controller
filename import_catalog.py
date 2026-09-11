@@ -68,12 +68,23 @@ def trigger_type(data):
     return "motion"
 
 
+def local_recording_metadata(path):
+    sidecar = path.with_suffix(".json")
+    if path.name.startswith("live-") and sidecar.is_file():
+        data = json.loads(sidecar.read_text())
+        if data.get("local_recording") == 1:
+            return data
+    return None
+
+
 def build_recovery_maps():
     mp4_by_key = {}
     prefix_info = {}
     events = {}
 
     for mp4_path in CLIPS_DIR.glob("*.mp4"):
+        if local_recording_metadata(mp4_path):
+            continue
         prefix, stamp, _ = parse_archive_name(mp4_path)
 
         key = (prefix, stamp)
@@ -83,6 +94,8 @@ def build_recovery_maps():
         mp4_by_key[key] = mp4_path
 
     for sidecar_path in CLIPS_DIR.glob("*.json"):
+        if local_recording_metadata(sidecar_path):
+            continue
         data = json.loads(sidecar_path.read_text())
 
         prefix, _, _ = parse_archive_name(sidecar_path)
@@ -505,6 +518,12 @@ def main():
 
                 if number % 250 == 0:
                     print(f"Imported {number} clips...")
+
+        from live_recording import catalog_recording
+        for video in CLIPS_DIR.glob("live-*.mp4"):
+            metadata = local_recording_metadata(video)
+            if metadata:
+                catalog_recording(args.db, ARCHIVE_ROOT, video, metadata)
 
         systems = conn.execute(
             "SELECT COUNT(*) FROM systems"

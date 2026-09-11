@@ -239,6 +239,10 @@ def sync_clip(
     Otherwise the MP4 is preserved as metadata_status='local_only'.
     """
 
+    if metadata and metadata.get("local_recording") == 1:
+        from live_recording import catalog_recording
+        return catalog_recording(db_path, archive_root, mp4_path, metadata)
+
     archive_root = Path(archive_root)
     thumbs_dir = Path(thumbs_dir)
     mp4_path = Path(mp4_path)
@@ -589,6 +593,7 @@ def get_clip_by_catalog_id(db_path, catalog_id):
             SELECT
                 id,
                 blink_media_id,
+                source,
                 filename,
                 sidecar_path,
                 thumbnail_path,

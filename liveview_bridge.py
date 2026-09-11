@@ -36,6 +36,7 @@ import subprocess
 import threading
 import time
 from liveview_diagnostics import StartupDiagnostics
+from recording_relay import RecordingRelay
 import os
 from collections import deque
 from pathlib import Path
@@ -61,6 +62,7 @@ class LiveViewBridge:
 
     def __init__(self) -> None:
         self._startup = None
+        self._recording_relay = None
         self._loop = asyncio.new_event_loop()
         self._loop_ready = threading.Event()
         self._control_lock = threading.Lock()
@@ -273,6 +275,10 @@ class LiveViewBridge:
                 0,
             )
 
+            self._recording_relay = RecordingRelay()
+            await self._recording_relay.start()
+            recording_write_fd = self._recording_relay.write_fd
+
             audio_read_fd, audio_write_fd = os.pipe()
 
             os.set_blocking(
@@ -344,14 +350,26 @@ class LiveViewBridge:
                     "mp3",
                     f"pipe:{audio_write_fd}",
 
+                    # Blink can omit decoder setup/keyframes for a late subscriber.
+                    # Encode a self-contained recording stream with regular keyframes;
+                    # preserve source timing and copy audio without re-encoding.
+                    "-map", "0:v:0", "-map", "0:a:0?",
+                    "-c:v", "libx264", "-preset", "ultrafast",
+                    "-tune", "zerolatency", "-crf", "23", "-g", "15",
+                    "-x264-params", "repeat-headers=1:scenecut=0", "-c:a", "copy",
+                    "-mpegts_flags", "resend_headers",
+                    "-muxdelay", "0", "-f", "mpegts",
+                    f"pipe:{recording_write_fd}",
+
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                     creationflags=creationflags,
-                    pass_fds=(audio_write_fd,),
+                    pass_fds=(audio_write_fd, recording_write_fd),
                 )
 
             finally:
                 os.close(audio_write_fd)
+                self._recording_relay.close_parent_writer()
 
             self._startup.mark("ffmpeg_started")
             self._frame_task = asyncio.create_task(
@@ -485,10 +503,14 @@ class LiveViewBridge:
 
                 self._startup.mark("first_transport_payload")
                 self._startup.pulse("camera_payload", len(data))
-                for writer in stream.clients:
+                for writer in tuple(stream.clients):
                     if not writer.is_closing():
-                        writer.write(data)
-                        await writer.drain()
+                        try:
+                            writer.write(data)
+                            await asyncio.wait_for(writer.drain(), timeout=2)
+                        except (ConnectionError, OSError, asyncio.TimeoutError):
+                            # A stopped/failed recorder must not take down Live View.
+                            writer.close()
                 self._startup.pulse("transport_forwarded", len(data))
 
                 await asyncio.sleep(0)
@@ -703,6 +725,13 @@ class LiveViewBridge:
                 self._audio_condition.notify_all()
                 return self._frame_number, current
 
+    def recording_source(self, session_id):
+        with self._frame_condition:
+            current = self._startup.snapshot()["session_id"] if self._startup else None
+            if not self._active or current != session_id or self._stream is None:
+                raise ValueError("Live View session changed or stopped.")
+            return {"url": self._recording_relay.url, "camera": self._camera_name}
+
     def status(self) -> dict:
         """Return thread-safe bridge status and FFmpeg diagnostics."""
 
@@ -770,6 +799,10 @@ class LiveViewBridge:
                     Exception,
                 ):
                     await task
+
+        if self._recording_relay is not None:
+            await self._recording_relay.stop()
+            self._recording_relay = None
 
         if self._audio_read_fd is not None:
             with contextlib.suppress(OSError):
