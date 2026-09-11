@@ -101,3 +101,23 @@ reserve can delay the first picture. Latest verified user run: 6.798-second
 first picture, zero low-buffer observations, no audio error, maximum 1.742-second
 inter-decode gap; user reported smooth playback. Confirm longer playback,
 another camera, and audio/video alignment before declaring the work complete.
+
+
+## 2026-09-11 - Living Room audio/video alignment
+
+- Begin video reception at the session-checked cursor supplied when audio subscribes.
+- Apply a one-second audio prefix to Living Room Camera (trimmed, case-insensitive
+  name match), preserving the 1.5-second real-audio reserve and video smoothing.
+- Display the active delay in Live View and record it in audio diagnostics.
+- Corrected test passed Dan's headphone clap check: audio appears aligned with video.
+  Verified delay 1000 ms; first picture 4.293 s; 324 image assignments at a mean
+  205.515 ms interval; audio task 68.300 s with no recorded exception.
+- Windows build, video buffer/session checks, controller cursor checks, and
+  synthetic audio sample preservation checks passed. Pi update deployed with backup.
+- Fixed calibration is not timestamp-based synchronization. Longer sessions,
+  other-camera alignment, background noise, and intermittent startup remain open.
+
+Controller clear_audio now checks the optional session before clearing queued audio
+and returns the current video cursor/session through audio response headers.
+Pi backup: /home/dan/.blinkdrs/audio-cursor-20260911-115403.
+Successful Windows session: 3e76d71e9d0b438db2bf37079d1fefd6.
