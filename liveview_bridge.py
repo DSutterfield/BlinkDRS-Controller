@@ -662,12 +662,16 @@ class LiveViewBridge:
 
             return None
 
-    def clear_audio(self) -> None:
-        """Discard queued Live View audio."""
-
-        with self._audio_condition:
-            self._audio_chunks.clear()
-            self._audio_condition.notify_all()
+    def clear_audio(self, session_id=None):
+        """Start audio at the current point and report its video cursor."""
+        with self._frame_condition:
+            current = self._startup.snapshot()["session_id"] if self._startup else None
+            if not self._active or (session_id is not None and session_id != current):
+                raise ValueError("Live View session changed or stopped.")
+            with self._audio_condition:
+                self._audio_chunks.clear()
+                self._audio_condition.notify_all()
+                return self._frame_number, current
 
     def status(self) -> dict:
         """Return thread-safe bridge status and FFmpeg diagnostics."""

@@ -561,7 +561,7 @@ def create_app(controller):
         )
 
     @app.get("/api/v1/liveview/audio")
-    async def liveview_audio():
+    async def liveview_audio(session_id: str | None = None):
         """Stream the active Live View camera microphone audio."""
 
         status = liveview_bridge.status()
@@ -577,7 +577,10 @@ def create_app(controller):
 
         # Start listening at the current moment rather than
         # playing audio accumulated since Live View started.
-        liveview_bridge.clear_audio()
+        try:
+            video_cursor, audio_session = liveview_bridge.clear_audio(session_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
 
         async def audio_stream():
 
@@ -601,6 +604,8 @@ def create_app(controller):
             audio_stream(),
             media_type="audio/mpeg",
             headers={
+                "X-Video-Start-After": str(video_cursor),
+                "X-LiveView-Session": audio_session,
                 "Cache-Control": (
                     "no-store, no-cache, "
                     "must-revalidate, max-age=0"
