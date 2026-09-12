@@ -22,6 +22,7 @@ from fastapi.responses import StreamingResponse
 from liveview_bridge import LiveViewBridge
 from live_recording import install_recording_api
 from catalog_store import (
+    open_catalog_notifications,
     delete_clip_by_catalog_id,
     get_clip_by_catalog_id,
     get_clip_by_media_id,
@@ -703,25 +704,30 @@ def create_app(controller):
         """Stream revisioned Blink status-change notifications."""
 
         async def event_stream():
-            last_revision = -1
-
-            while True:
-                revision = controller.status_revision
-                if revision != last_revision:
-                    last_revision = revision
-                    payload = json.dumps({"revision": revision})
-                    yield f"event: status\ndata: {payload}\n\n"
-
-                try:
-                    async with controller.status_changed:
-                        await asyncio.wait_for(
-                            controller.status_changed.wait_for(
-                                lambda: controller.status_revision != last_revision
-                            ),
-                            timeout=20,
-                        )
-                except asyncio.TimeoutError:
-                    yield ": keepalive\n\n"
+            last_revision = None
+            catalog = open_catalog_notifications(controller.catalog_db_path)
+            try:
+                while True:
+                    catalog_revision = catalog.execute(
+                        "SELECT revision FROM catalog_notifications WHERE id=1"
+                    ).fetchone()[0]
+                    revision = (controller.status_revision, catalog_revision)
+                    if revision != last_revision:
+                        last_revision = revision
+                        payload = json.dumps({"revision": revision[0],
+                                              "catalog_revision": revision[1]})
+                        yield f"event: status\ndata: {payload}\n\n"
+                    try:
+                        async with controller.status_changed:
+                            await asyncio.wait_for(
+                                controller.status_changed.wait_for(
+                                    lambda: controller.status_revision != revision[0]),
+                                timeout=2)
+                    except asyncio.TimeoutError:
+                        # Inspect a committed revision, not the full archive or Blink Cloud.
+                        yield ": keepalive\n\n"
+            finally:
+                catalog.close()
 
         return StreamingResponse(
             event_stream(),
@@ -850,6 +856,7 @@ def create_app(controller):
     def clips(
         limit: int = Query(default=100, ge=1, le=500),
         offset: int = Query(default=0, ge=0),
+        include_damaged: bool = False,
     ):
         """Return locally archived recorded clips from SQLite."""
 
@@ -864,6 +871,7 @@ def create_app(controller):
                 db_path=controller.catalog_db_path,
                 limit=limit,
                 offset=offset,
+                include_damaged=include_damaged,
             )
         except Exception as exc:
             raise HTTPException(

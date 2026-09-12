@@ -9,6 +9,7 @@ exactly match the MP4 filename.
 import json
 import re
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -428,32 +429,34 @@ def sync_clip(
         conn.close()
 
 
-def list_clips(db_path, limit=100, offset=0):
+def list_clips(db_path, limit=100, offset=0, include_damaged=False):
     """Return locally available recorded clips from the SQLite catalog."""
 
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
 
     try:
+        ensure_clip_validation(conn)
+        visibility = "1 = 1" if include_damaged else "NOT EXISTS (SELECT 1 FROM clip_validation v WHERE v.catalog_id = clips.id AND v.status = 'damaged')"
         total = conn.execute(
-            """
+            f"""
             SELECT COUNT(*)
             FROM clips
-            WHERE local_present = 1
+            WHERE local_present = 1 AND {visibility}
             """
         ).fetchone()[0]
 
         unreviewed_total = conn.execute(
-            """
+            f"""
             SELECT COUNT(*)
             FROM clips
-            WHERE local_present = 1
+            WHERE local_present = 1 AND {visibility}
               AND COALESCE(watched, 0) = 0
             """
         ).fetchone()[0]
 
         rows = conn.execute(
-            """
+            f"""
             SELECT
                 id,
                 blink_media_id,
@@ -469,9 +472,10 @@ def list_clips(db_path, limit=100, offset=0):
                 cv_detection_json,
                 duration_ms,
                 time_zone,
-                thumbnail_path
+                thumbnail_path,
+                COALESCE((SELECT status FROM clip_validation v WHERE v.catalog_id = clips.id), 'unchecked') AS validation_status
             FROM clips
-            WHERE local_present = 1
+            WHERE local_present = 1 AND {visibility}
             ORDER BY captured_at DESC
             LIMIT ? OFFSET ?
             """,
@@ -494,6 +498,7 @@ def list_clips(db_path, limit=100, offset=0):
             clips.append(
                 {
                     "catalog_id": row["id"],
+                    "validation_status": row["validation_status"],
                     "id": row["blink_media_id"],
                     "filename": row["filename"],
                     "device_name": row["device_name_snapshot"],
@@ -630,3 +635,64 @@ def delete_clip_by_catalog_id(db_path, catalog_id):
 
     finally:
         conn.close()
+
+
+def ensure_clip_validation(conn):
+    """Add independent validation records without modifying archive metadata."""
+    conn.execute("""CREATE TABLE IF NOT EXISTS clip_validation (
+        catalog_id INTEGER PRIMARY KEY REFERENCES clips(id) ON DELETE CASCADE,
+        status TEXT NOT NULL CHECK(status IN ('valid', 'damaged', 'unchecked')),
+        reason TEXT NOT NULL,
+        sha256 TEXT NOT NULL,
+        checked_at TEXT NOT NULL
+    )""")
+
+
+def set_clip_validation(db_path, catalog_id, status, reason, sha256):
+    """Save an explicit result; unchecked restores visibility for research."""
+    if status not in ('valid', 'damaged', 'unchecked'):
+        raise ValueError('Invalid clip validation status')
+    with closing(sqlite3.connect(db_path)) as conn, conn:
+        ensure_clip_validation(conn)
+        if not conn.execute('SELECT 1 FROM clips WHERE id=?', (catalog_id,)).fetchone():
+            raise ValueError('Unknown catalog ID')
+        conn.execute("""INSERT INTO clip_validation VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(catalog_id) DO UPDATE SET status=excluded.status,
+            reason=excluded.reason, sha256=excluded.sha256,
+            checked_at=excluded.checked_at""", (
+                catalog_id, status, reason, sha256,
+                datetime.now(timezone.utc).isoformat()))
+
+
+def open_catalog_notifications(db_path):
+    """Persist revisions atomically with catalog changes, including other processes."""
+    conn = sqlite3.connect(db_path)
+    ensure_clip_validation(conn)
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS catalog_notifications (
+            id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL);
+        INSERT OR IGNORE INTO catalog_notifications VALUES(1, 0);
+        CREATE TRIGGER IF NOT EXISTS clips_notify_insert AFTER INSERT ON clips
+        BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
+        CREATE TRIGGER IF NOT EXISTS clips_notify_delete AFTER DELETE ON clips
+        BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
+        CREATE TRIGGER IF NOT EXISTS clips_notify_update AFTER UPDATE ON clips
+        WHEN OLD.watched IS NOT NEW.watched
+          OR OLD.local_present IS NOT NEW.local_present
+          OR OLD.filename IS NOT NEW.filename
+          OR OLD.device_name_snapshot IS NOT NEW.device_name_snapshot
+          OR OLD.system_name_snapshot IS NOT NEW.system_name_snapshot
+          OR OLD.trigger_type IS NOT NEW.trigger_type
+          OR OLD.thumbnail_path IS NOT NEW.thumbnail_path
+          OR OLD.duration_ms IS NOT NEW.duration_ms
+          OR OLD.captured_at IS NOT NEW.captured_at
+        BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
+        CREATE TRIGGER IF NOT EXISTS validation_notify_insert AFTER INSERT ON clip_validation
+        BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
+        CREATE TRIGGER IF NOT EXISTS validation_notify_update AFTER UPDATE ON clip_validation
+        WHEN OLD.status IS NOT NEW.status
+        BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
+        CREATE TRIGGER IF NOT EXISTS validation_notify_delete AFTER DELETE ON clip_validation
+        BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
+    """)
+    return conn
