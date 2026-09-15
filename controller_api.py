@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.responses import StreamingResponse
 from liveview_bridge import LiveViewBridge
 from live_recording import install_recording_api
+from network_recovery import NetworkRecovery
 from catalog_store import (
     open_catalog_notifications,
     delete_clip_by_catalog_id,
@@ -278,7 +279,16 @@ def create_app(controller):
     liveview_bridge = LiveViewBridge()
 
     recorder, recording_lock = install_recording_api(app, controller, liveview_bridge)
+    network_recovery = NetworkRecovery(
+        Path(__file__).resolve().parent / "config" / "network_recovery_state.json",
+        busy=lambda: (liveview_bridge.status()["active"]
+                      or recording_lock.locked()
+                      or controller.archive_lock.locked()
+                      or recorder.status()["state"] in {"recording", "stopping"}),
+    )
+    app.state.network_recovery = network_recovery
     async def shutdown_liveview():
+        await network_recovery.close()
         await recorder.stop()
         await asyncio.to_thread(liveview_bridge.shutdown)
     app.router.add_event_handler("shutdown", shutdown_liveview)
@@ -316,20 +326,8 @@ def create_app(controller):
             except OSError:
                 pass
 
-        internet_reachable = False
-
-        if controller.session is not None:
-            try:
-                async with controller.session.get(
-                    "https://connectivitycheck.gstatic.com/generate_204",
-                    timeout=ClientTimeout(total=3),
-                ) as response:
-                    internet_reachable = response.status in {
-                        200,
-                        204,
-                    }
-            except Exception:
-                internet_reachable = False
+        recovery_status = network_recovery.status()
+        internet_reachable = recovery_status["internet_reachable"]
 
         return {
             "status": (
@@ -340,7 +338,8 @@ def create_app(controller):
             "controller": "blink-controller",
             "api_version": "1",
             "blink_connected": connected,
-            "internet_reachable": internet_reachable,
+            "internet_reachable": bool(internet_reachable),
+            "network_recovery": recovery_status,
             "blink_cloud_reachable": (
                 controller.blink_cloud_reachable
             ),
