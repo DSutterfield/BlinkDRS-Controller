@@ -37,6 +37,7 @@ import threading
 import time
 from liveview_diagnostics import StartupDiagnostics
 from recording_relay import RecordingRelay
+from fault_log import describe_error
 import os
 from collections import deque
 from pathlib import Path
@@ -60,7 +61,8 @@ MAX_PARSE_BUFFER_BYTES = 8 * 1024 * 1024
 class LiveViewBridge:
     """Own one Blink live-view session and publish its latest JPEG frame."""
 
-    def __init__(self) -> None:
+    def __init__(self, faults=None) -> None:
+        self._faults = faults
         self._startup = None
         self._recording_relay = None
         self._loop = asyncio.new_event_loop()
@@ -395,6 +397,9 @@ class LiveViewBridge:
             )
 
             await self._wait_for_first_frame()
+            if self._faults:
+                self._faults.safe_observe('liveview:' + camera_name, 'Live View: ' + camera_name, True,
+                                         message='Live View received video again.')
 
             self._startup.mark("start_response_ready")
             self._startup.log("ready")
@@ -866,6 +871,10 @@ class LiveViewBridge:
         return json.loads(CREDS_PATH.read_text(encoding="utf-8"))
 
     def _set_error(self, message: str) -> None:
+        if self._faults:
+            code, detail = describe_error(message, 'LIVEVIEW_ERROR')
+            self._faults.safe_observe('liveview:' + str(self._camera_name), 'Live View: ' + str(self._camera_name),
+                                     False, code, 'Live View stream failed. ' + detail)
         with self._frame_condition:
             self._last_error = message
             self._active = False

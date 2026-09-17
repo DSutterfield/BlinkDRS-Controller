@@ -22,6 +22,7 @@ from fastapi.responses import StreamingResponse
 from liveview_bridge import LiveViewBridge
 from live_recording import install_recording_api
 from network_recovery import NetworkRecovery
+from fault_api import install_fault_api
 from catalog_store import (
     open_catalog_notifications,
     delete_clip_by_catalog_id,
@@ -269,6 +270,16 @@ def create_app(controller):
     @app.middleware("http")
     async def disable_api_caching(request, call_next):
         response = await call_next(request)
+        route = request.scope.get('route')
+        route_path = getattr(route, 'path', '')
+        if route_path and 'fault-log' not in route_path:
+            key = 'api:' + request.method + ':' + route_path
+            if response.status_code >= 500 or response.status_code in (401, 403, 408, 429):
+                controller.faults.safe_observe(key, 'Pi API: ' + request.method + ' ' + route_path,
+                                              False, 'HTTP_' + str(response.status_code), 'Controller request failed.')
+            elif 200 <= response.status_code < 300 and key in controller.faults.states:
+                controller.faults.safe_observe(key, 'Pi API: ' + request.method + ' ' + route_path,
+                                              True, message='Controller request succeeded again.')
         if request.url.path.startswith("/api/v1/"):
             response.headers["Cache-Control"] = (
                 "no-store, no-cache, must-revalidate, max-age=0"
@@ -276,17 +287,19 @@ def create_app(controller):
             response.headers["Pragma"] = "no-cache"
         return response
 
-    liveview_bridge = LiveViewBridge()
+    liveview_bridge = LiveViewBridge(faults=controller.faults)
 
     recorder, recording_lock = install_recording_api(app, controller, liveview_bridge)
     network_recovery = NetworkRecovery(
         Path(__file__).resolve().parent / "config" / "network_recovery_state.json",
+        faults=controller.faults,
         busy=lambda: (liveview_bridge.status()["active"]
                       or recording_lock.locked()
                       or controller.archive_lock.locked()
                       or recorder.status()["state"] in {"recording", "stopping"}),
     )
     app.state.network_recovery = network_recovery
+    install_fault_api(app, controller, network_recovery, liveview_bridge)
     async def shutdown_liveview():
         await network_recovery.close()
         await recorder.stop()

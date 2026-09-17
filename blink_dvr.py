@@ -21,6 +21,7 @@ from blinkpy.blinkpy import Blink
 import uvicorn
 from controller_api import create_app
 from catalog_store import sync_clip
+from fault_log import FaultLog, BlinkErrorHandler, error_code
 
 ROOT = Path(__file__).parent
 CONFIG_PATH = ROOT / "config" / "settings.ini"
@@ -420,6 +421,12 @@ class BlinkController:
     """Long-lived Blink controller shared by DVR and API services."""
 
     def __init__(self):
+        self.faults = FaultLog(LOG_DIR, LOCAL_CONFIG_PATH)
+        if not config.has_section('fault_log'):
+            self.faults.save_days(self.faults.days)
+        self.faults.append('STARTED', 'Pi controller', '', 'Controller started. Events during downtime may not have been observed.')
+        self.blink_errors = BlinkErrorHandler(self.faults)
+        logging.getLogger('blinkpy').addHandler(self.blink_errors)
         self.session = None
         self.blink = None
         self.api_server = None
@@ -440,7 +447,13 @@ class BlinkController:
     async def start(self):
         """Create the HTTP session and connect to Blink."""
         self.session = ClientSession()
-        self.blink = await setup_blink(self.session)
+        try:
+            self.blink = await setup_blink(self.session)
+        except (Exception, SystemExit) as exc:
+            self.faults.safe_observe('blink-login', 'Blink login', False, error_code(exc), 'Blink connection could not start. Check login and connectivity.')
+            raise
+        self.faults.safe_observe('blink-login', 'Blink login', True)
+        self.faults.devices(self.blink)
 
         log.info(
             f"Connected. Found {len(self.blink.cameras)} cameras: "
@@ -460,7 +473,7 @@ class BlinkController:
 
         async with self.archive_lock:
 
-            await self.refresh_blink_status()
+            status_ok = await self.refresh_blink_status()
 
             downloaded = await download_new_clips(
                 self.blink
@@ -472,6 +485,7 @@ class BlinkController:
                 )
 
             cleanup_old_clips()
+            return status_ok
 
     async def refresh_blink_status(self, minimum_age_seconds=10):
         """Refresh Blink system and camera state, with a short shared throttle."""
@@ -484,7 +498,12 @@ class BlinkController:
             if age < minimum_age_seconds:
                 return True
 
-            refreshed = await self.blink.refresh(force=True)
+            revision = self.blink_errors.revision
+            try:
+                refreshed = await self.blink.refresh(force=True)
+            except Exception as exc:
+                self.faults.safe_observe('blink-status', 'Blink status connection', False, error_code(exc), 'Status refresh failed.')
+                raise
 
             # BlinkPy's ordinary refresh updates existing objects, but it does
             # not rebuild a Sync Module or its cameras when the controller was
@@ -497,9 +516,14 @@ class BlinkController:
             ):
                 refreshed = await self.blink.setup_post_verify()
 
+            trustworthy = bool(refreshed) and revision == self.blink_errors.revision
+            self.faults.safe_observe('blink-status', 'Blink status connection', trustworthy,
+                                    'STATUS_REFRESH_FAILED', 'Blink status refresh result.')
+            if trustworthy:
+                self.faults.devices(self.blink)
             await self.publish_status_if_changed()
             self.last_status_refresh_monotonic = time.monotonic()
-            return bool(refreshed)
+            return trustworthy
 
     async def publish_status_if_changed(self):
         """Notify API event subscribers when authoritative Blink state changes."""
@@ -561,7 +585,13 @@ class BlinkController:
         try:
             while True:
                 try:
-                    await self.poll_once()
+                    revision = self.blink_errors.revision
+                    status_ok = await self.poll_once()
+                    clean_poll = status_ok and revision == self.blink_errors.revision
+                    self.faults.safe_observe('poll', 'Blink polling connection', clean_poll,
+                                            'BLINK_LIBRARY_ERROR', 'Blink polling completed with a library warning or error.' if not clean_poll else 'Blink polling resumed.')
+                    if clean_poll:
+                        self.blink_errors.recovered()
 
                     self.blink_cloud_reachable = True
                     self.last_poll_success_at = (
@@ -576,6 +606,7 @@ class BlinkController:
                 except Exception as e:
                     self.blink_cloud_reachable = False
                     self.last_poll_error = str(e)
+                    self.faults.safe_observe('poll', 'Blink polling connection', False, error_code(e), 'Blink polling failed.')
 
                     log.exception(f"Error in poll cycle: {e}")
 

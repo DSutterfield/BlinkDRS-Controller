@@ -10,6 +10,7 @@ import logging
 import time
 import uuid
 from pathlib import Path
+from fault_log import error_code
 
 from aiohttp import ClientSession, ClientTimeout
 
@@ -71,7 +72,8 @@ async def reconnect_network():
 
 class NetworkRecovery:
     def __init__(self, state_path, busy=lambda: False, *, probe=internet_probe,
-                 reconnect=reconnect_network, sleep=asyncio.sleep, clock=time.time):
+                 reconnect=reconnect_network, sleep=asyncio.sleep, clock=time.time, faults=None):
+        self.faults = faults
         self.path = Path(state_path)
         self.busy = busy
         self.probe = probe
@@ -104,6 +106,11 @@ class NetworkRecovery:
 
     async def check(self):
         self.reachable = bool(await self.probe())
+        if self.faults:
+            self.faults.safe_observe('internet', 'Pi internet connection', self.reachable,
+                                    'CONNECTIVITY_CHECK_FAILED', 'Internet connectivity check result.')
+            if self.reachable:
+                self.faults.safe_observe('network-recovery', 'Pi network recovery', True)
         if self.reachable:
             if self.state not in ("healthy", "checking"):
                 self.report("recovered", "The Pi's internet connection is restored.")
@@ -161,7 +168,10 @@ class NetworkRecovery:
                         "Automatic reconnection will wait 15 minutes between attempts.")
         except asyncio.CancelledError:
             raise
-        except Exception:
+        except Exception as exc:
+            if self.faults:
+                self.faults.safe_observe('network-recovery', 'Pi network recovery', False,
+                                        error_code(exc), 'Automatic network recovery failed.')
             log.exception("Internet recovery failed")
             self.report("failed", "Automatic network recovery could not complete. "
                         "Check the Pi's network configuration and controller log. "
