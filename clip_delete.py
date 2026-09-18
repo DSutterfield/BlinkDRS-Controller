@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import shutil
 import uuid
+from archive_maintenance import clip_artifact_paths
 
 DELETE_MANIFEST_NAME = "delete-stage.json"
 
@@ -80,16 +81,9 @@ def stage_clip_for_delete(archive_root, clip):
 
     video_name = clip.get("filename")
 
-    candidates = [
-        (
-            "video",
-            str(Path("clips") / video_name)
-            if video_name
-            else None,
-        ),
-        ("sidecar", clip.get("sidecar_path")),
-        ("thumbnail", clip.get("thumbnail_path")),
-    ]
+    candidates = [("artifact", str(path.relative_to(archive_root)))
+                  for path in clip_artifact_paths(archive_root, video_name,
+                      clip.get("sidecar_path"), clip.get("thumbnail_path"))]
 
     if not video_name:
         raise ValueError("Clip has no video filename")

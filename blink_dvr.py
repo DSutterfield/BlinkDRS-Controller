@@ -21,6 +21,8 @@ from blinkpy.blinkpy import Blink
 import uvicorn
 from controller_api import create_app
 from catalog_store import sync_clip
+from clip_retention import load_clip_retention
+from archive_maintenance import cleanup_expired_clips, reconcile_local_presence
 from fault_log import FaultLog, BlinkErrorHandler, error_code
 
 ROOT = Path(__file__).parent
@@ -392,22 +394,7 @@ async def download_new_clips(blink):
     return len(new_files)
 
 def cleanup_old_clips():
-    from metadata_helper import metadata_path_for
-
-    if DELETE_AFTER_DAYS <= 0:
-        return 0
-    cutoff = datetime.now() - timedelta(days=DELETE_AFTER_DAYS)
-    count = 0
-    for mp4 in OUTPUT_DIR.rglob("*.mp4"):
-        if datetime.fromtimestamp(mp4.stat().st_mtime) < cutoff:
-            sidecar = metadata_path_for(mp4)
-            mp4.unlink()
-            if sidecar.exists():
-                sidecar.unlink()
-            count += 1
-    if count:
-        log.info(f"Cleaned up {count} old clips")
-    return count
+    return cleanup_expired_clips(CATALOG_DB, OUTPUT_DIR, load_clip_retention(LOCAL_CONFIG_PATH))
 
 class EmbeddedUvicornServer(uvicorn.Server):
     """Uvicorn server embedded inside the Blink Controller process."""
@@ -578,6 +565,7 @@ class BlinkController:
     async def run(self):
         """Run the Blink controller, DVR poller, and API continuously."""
 
+        reconcile_local_presence(CATALOG_DB, OUTPUT_DIR)
         await self.start()
 
         api_task = asyncio.create_task(self.run_api())

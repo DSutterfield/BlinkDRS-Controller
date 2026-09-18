@@ -622,6 +622,7 @@ def delete_clip_by_catalog_id(db_path, catalog_id):
     conn = sqlite3.connect(db_path)
 
     try:
+        conn.execute("PRAGMA foreign_keys = ON")
         with conn:
             cursor = conn.execute(
                 """
