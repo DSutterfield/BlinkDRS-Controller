@@ -1,0 +1,9 @@
+# Recorded playback queue repair - 2026-09-20
+
+Repeatedly moving backward before playback finishes could leave abandoned video-preparation requests running on the Pi. All video requests, including already-prepared files, waited for the shared archive lock. A sixteen-clip Windows test observed an 18.96-second transition, almost entirely in loading; six cancelled preparation requests delayed an already-prepared clip by 6.479 seconds.
+
+`clip_playback.py` now serves valid prepared copies without waiting for the archive lock. Requests that need preparation monitor client disconnection while waiting and converting. Cancellation kills and reaps ffmpeg and removes the incomplete file before releasing the lock. Preparation retains the archive lock for deletion/retention safety and uses the existing audio normalization settings, cache filenames, and HTTP range responses. Conversion has a 60-second limit. First-time preparation and archive contention for uncached clips can still add time.
+
+Validation: 11 playback tests plus 12 existing archive/retention checks passed on the Pi. The same six-cancelled-request reproduction then returned a cached clip in 0.023 seconds; all six abandoned clips remained uncached, and follow-up inspection found no ffmpeg workers or partial playback files. Sixteen backward transitions while playing 2.5 seconds per clip took 0.469-1.282 seconds including stopping the previous clip, with no accumulating delay. A fresh preparation returned HTTP 206 in 1.993 seconds and replayed in 0.005 seconds.
+
+Deployed controller_api.py, clip_playback.py, and tests/test_clip_playback.py; bytes verified and controller health confirmed. Backup: /home/dan/BlinkDRS-Controller/backups/playback-queue-20260920-141633. No recordings were reviewed or deleted by these tests. The Windows desktop shortcut was verified to target the existing current Release build; this follow-up fix runs on the Pi.
