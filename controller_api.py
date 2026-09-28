@@ -25,6 +25,7 @@ from network_recovery import NetworkRecovery
 from fault_api import install_fault_api
 from clip_retention import install_clip_retention_api
 from clip_playback import clip_video_response
+from device_settings import install_device_settings_api, settings_capability
 from catalog_store import (
     open_catalog_notifications,
     delete_clip_by_catalog_id,
@@ -133,7 +134,8 @@ async def coordinate_clip_delete(controller, catalog_id):
     deletion is positively confirmed with a successful HTTP response.
     """
 
-    async with controller.archive_lock:
+    # Keep lock order consistent with retention: archive, then playback.
+    async with controller.archive_lock, controller.playback_lock:
 
         clip = get_clip_by_catalog_id(
             db_path=controller.catalog_db_path,
@@ -292,12 +294,15 @@ def create_app(controller):
     liveview_bridge = LiveViewBridge(faults=controller.faults)
 
     recorder, recording_lock = install_recording_api(app, controller, liveview_bridge)
+    device_settings = install_device_settings_api(app, controller)
     network_recovery = NetworkRecovery(
         Path(__file__).resolve().parent / "config" / "network_recovery_state.json",
         faults=controller.faults,
         busy=lambda: (liveview_bridge.status()["active"]
                       or recording_lock.locked()
                       or controller.archive_lock.locked()
+                      or controller.playback_lock.locked()
+                      or device_settings.busy
                       or recorder.status()["state"] in {"recording", "stopping"}),
     )
     app.state.network_recovery = network_recovery
@@ -394,6 +399,7 @@ def create_app(controller):
                     "system_name": camera.sync.name,
                     "device_type": camera.product_type,
                     "class_name": camera.__class__.__name__,
+                    "camera_settings": settings_capability(camera),
                     "serial": camera.serial,
                     "firmware_version": camera.version,
                     "motion_enabled": camera.motion_enabled,
@@ -1161,7 +1167,7 @@ def create_app(controller):
     @app.get("/api/v1/clips/{filename}/video")
     async def clip_video(filename: str, request: Request):
         return await clip_video_response(
-            controller.archive_dir, controller.archive_lock, filename, request
+            controller.archive_dir, controller.playback_lock, filename, request
         )
 
     @app.get("/api/v1/clips/{filename}/thumbnail")

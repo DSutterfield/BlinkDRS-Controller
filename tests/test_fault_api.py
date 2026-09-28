@@ -59,7 +59,8 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         root = Path(self.temp.name)
         (root/'clips').mkdir()
         controller = NS(faults=self.faults, archive_root=root, archive_dir=root/'clips',
-                        catalog_db_path=root/'catalog.db', archive_lock=asyncio.Lock(), blink=None)
+                        catalog_db_path=root/'catalog.db', archive_lock=asyncio.Lock(),
+                        playback_lock=asyncio.Lock(), blink=None)
         app = create_app(controller)
         paths = app.openapi()['paths']
         self.assertIn('/api/v1/fault-log', paths)

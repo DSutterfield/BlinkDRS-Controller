@@ -38,7 +38,7 @@ class PlaybackTests(unittest.IsolatedAsyncioTestCase):
     async def response(self):
         return await clip_video_response(self.clips, self.lock, 'one.mp4', self.viewer)
 
-    async def test_cached_video_does_not_wait_for_archive_lock(self):
+    async def test_cached_video_does_not_wait_for_playback_lock(self):
         self.cache()
         await self.lock.acquire()
         try:
@@ -62,7 +62,7 @@ class PlaybackTests(unittest.IsolatedAsyncioTestCase):
         finally:
             self.lock.release()
 
-    async def test_stale_cache_rebuilt_under_archive_lock(self):
+    async def test_stale_cache_rebuilt_under_playback_lock(self):
         self.cache()
         os.utime(self.cached, (1, 1))
 

@@ -12,7 +12,7 @@ async def main():
     root=Path(folder);(root/'clips').mkdir()
     db=root/'catalog.db'
     with sqlite3.connect(db) as conn:conn.executescript(Path(sys.argv[2]).read_text())
-    c=SimpleNamespace(archive_root=root,catalog_db_path=db,archive_lock=asyncio.Lock(),status_changed=asyncio.Condition(),status_revision=0,blink=None)
+    c=SimpleNamespace(archive_root=root,catalog_db_path=db,archive_lock=asyncio.Lock(),playback_lock=asyncio.Lock(),status_changed=asyncio.Condition(),status_revision=0,blink=None)
     recorder=LiveRecorder(c)
     app=create_app(c)
     schema=app.openapi()

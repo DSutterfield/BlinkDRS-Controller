@@ -71,7 +71,7 @@ async def _while_connected(request, operation):
         await asyncio.gather(worker, watcher, return_exceptions=True)
 
 
-async def clip_video_response(archive_dir, archive_lock, filename, request):
+async def clip_video_response(archive_dir, playback_lock, filename, request):
     if ("/" in filename or "\\" in filename or Path(filename).name != filename
             or Path(filename).suffix.lower() != ".mp4"):
         raise HTTPException(400, "Invalid clip filename")
@@ -79,8 +79,8 @@ async def clip_video_response(archive_dir, archive_lock, filename, request):
     cached = source.parent.parent / "playback_cache" / (source.stem + ".loudnorm-v2.mp4")
 
     async def prepare():
-        # Retain the existing deletion/retention interlock for all cache writes.
-        async with archive_lock:
+        # Deletion/retention share this lock; cloud polling deliberately does not.
+        async with playback_lock:
             if not source.is_file():
                 raise HTTPException(404, "Clip video was not found")
             if not _current(source, cached):

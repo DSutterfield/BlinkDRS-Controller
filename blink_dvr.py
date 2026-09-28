@@ -422,6 +422,9 @@ class BlinkController:
         self.catalog_db_path = CATALOG_DB
         self.archive_root = ARCHIVE_ROOT
         self.archive_lock = asyncio.Lock()
+        # Local playback must not wait for a cloud polling/download cycle.
+        # Deletion and cleanup acquire archive_lock before playback_lock.
+        self.playback_lock = asyncio.Lock()
         self.status_refresh_lock = asyncio.Lock()
         self.status_changed = asyncio.Condition()
         self.status_revision = 0
@@ -471,7 +474,8 @@ class BlinkController:
                     f"Downloaded {downloaded} new clip(s)"
                 )
 
-            cleanup_old_clips()
+            async with self.playback_lock:
+                cleanup_old_clips()
             return status_ok
 
     async def refresh_blink_status(self, minimum_age_seconds=10):
