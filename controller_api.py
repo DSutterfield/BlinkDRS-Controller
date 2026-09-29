@@ -20,6 +20,7 @@ from pathlib import Path
 from fastapi.responses import FileResponse, Response
 from fastapi.responses import StreamingResponse
 from liveview_bridge import LiveViewBridge
+from liveview_diagnostics import StartupDiagnostics
 from live_recording import install_recording_api
 from network_recovery import NetworkRecovery
 from fault_api import install_fault_api
@@ -273,7 +274,15 @@ def create_app(controller):
 
     @app.middleware("http")
     async def disable_api_caching(request, call_next):
+        timing = None
+        if request.url.path == "/api/v1/liveview/start":
+            timing = StartupDiagnostics()
+            timing.mark("api_request_received")
+            request.state.live_startup = timing
         response = await call_next(request)
+        if timing is not None:
+            timing.mark("api_response_ready")
+            timing.log("api_response")
         route = request.scope.get('route')
         route_path = getattr(route, 'path', '')
         if route_path and 'fault-log' not in route_path:
@@ -511,11 +520,15 @@ def create_app(controller):
     @app.post("/api/v1/liveview/start")
     async def liveview_start(
         request: LiveViewStartRequest,
+        http_request: Request,
     ):
         """Start live view and wait for the first decoded frame."""
+        diagnostics = http_request.state.live_startup
+        diagnostics.mark("api_handler_entered")
         async with recording_lock:
+            diagnostics.mark("recording_lock_acquired")
             await recorder.stop()
-            request_started_at = time.monotonic()
+            diagnostics.mark("previous_recording_stopped")
 
             camera_name = request.name.strip()
 
@@ -529,7 +542,8 @@ def create_app(controller):
                 return await asyncio.to_thread(
                     liveview_bridge.start,
                     camera_name,
-                    request_started_at,
+                    None,
+                    diagnostics,
                 )
 
             except Exception as exc:

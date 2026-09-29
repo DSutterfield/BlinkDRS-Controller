@@ -16,7 +16,8 @@ from pathlib import Path
 
 from aiohttp import ClientSession
 from blinkpy.auth import Auth, BlinkTwoFARequiredError
-from blinkpy.blinkpy import Blink
+from responsive_blink import ResponsiveBlink as Blink
+from archive_io import archive_io, read_archive_sidecars, missing_sidecars
 
 import uvicorn
 from controller_api import create_app
@@ -203,12 +204,11 @@ async def download_new_clips(blink):
     thumbnail_cache_limit = 5
     thumbnails_cached = 0
 
-    for mp4 in sorted(
-        OUTPUT_DIR.glob("*.mp4"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    ):
-        sidecar = read_sidecar(mp4)
+    sidecars = await archive_io(read_archive_sidecars, OUTPUT_DIR)
+    for position, (mp4, sidecar) in enumerate(sidecars):
+        # Cached thumbnails may return without awaiting anything.
+        if position % 32 == 0:
+            await asyncio.sleep(0)
         if not sidecar:
             continue
 
@@ -242,9 +242,8 @@ async def download_new_clips(blink):
                 changed = True
 
             if changed:
-                metadata_path_for(mp4).write_text(
-                    json.dumps(sidecar, indent=2)
-                )
+                await archive_io(metadata_path_for(mp4).write_text,
+                                 json.dumps(sidecar, indent=2))
                 status_updates += 1
                 catalog_refresh.add(mp4)
 
@@ -265,17 +264,13 @@ async def download_new_clips(blink):
     # a sidecar. A transient Blink metadata failure must not leave a clip
     # permanently without metadata. Exact matching prevents neighboring
     # rapid-motion clips from being confused with one another.
-    missing_sidecars = [
-        mp4
-        for mp4 in OUTPUT_DIR.glob("*.mp4")
-        if not metadata_path_for(mp4).exists()
-    ]
+    missing_files = await archive_io(missing_sidecars, OUTPUT_DIR)
 
     recovered_sidecars = 0
 
-    if missing_sidecars:
+    if missing_files:
         for event in events:
-            matched = match_event_to_file(event, missing_sidecars)
+            matched = match_event_to_file(event, missing_files)
 
             if matched and not metadata_path_for(matched).exists():
                 write_sidecar(matched, event)
@@ -298,7 +293,7 @@ async def download_new_clips(blink):
             f"Cached {thumbnails_cached} recorded-clip thumbnail(s)"
         )
 
-    before = set(OUTPUT_DIR.rglob("*.mp4"))
+    before = await archive_io(lambda: set(OUTPUT_DIR.rglob("*.mp4")))
 
     await blink.download_videos(
         path=str(OUTPUT_DIR),
@@ -308,7 +303,7 @@ async def download_new_clips(blink):
         delay=1,
     )
 
-    after = set(OUTPUT_DIR.rglob("*.mp4"))
+    after = await archive_io(lambda: set(OUTPUT_DIR.rglob("*.mp4")))
     new_files = list(after - before)
 
     # If we got new clips, fetch their metadata and write sidecars
@@ -382,7 +377,7 @@ async def download_new_clips(blink):
         catalog_synced = 0
 
         for mp4 in sorted(catalog_refresh):
-            if sync_catalog_clip(mp4):
+            if await archive_io(sync_catalog_clip, mp4):
                 catalog_synced += 1
 
         if catalog_synced:
@@ -475,7 +470,7 @@ class BlinkController:
                 )
 
             async with self.playback_lock:
-                cleanup_old_clips()
+                await archive_io(cleanup_old_clips)
             return status_ok
 
     async def refresh_blink_status(self, minimum_age_seconds=10):

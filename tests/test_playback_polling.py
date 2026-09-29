@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from controller_api import create_app, coordinate_clip_delete
 from fault_log import FaultLog
+from archive_io import archive_io
 
 
 class Viewer:
@@ -49,7 +50,7 @@ class PollingPlaybackTests(unittest.IsolatedAsyncioTestCase):
         method = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == 'poll_once')
         self.download = AsyncMock(return_value=0)
         self.cleanup = Mock()
-        namespace = dict(download_new_clips=self.download, cleanup_old_clips=self.cleanup,
+        namespace = dict(archive_io=archive_io, download_new_clips=self.download, cleanup_old_clips=self.cleanup,
                          log=logging.getLogger('test'))
         exec(compile(ast.Module(body=[method], type_ignores=[]), 'blink_dvr.py', 'exec'), namespace)
         self.poll = lambda: namespace['poll_once'](self.controller)

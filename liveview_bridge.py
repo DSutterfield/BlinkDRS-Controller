@@ -53,6 +53,7 @@ CREDS_PATH = ROOT / "config" / "credentials.json"
 FIRST_FRAME_TIMEOUT_SECONDS = 30
 FFMPEG_STOP_TIMEOUT_SECONDS = 5
 MJPEG_FRAME_RATE = 5
+FFMPEG_ANALYZE_DURATION_US = 500000
 JPEG_START = b"\xff\xd8"
 JPEG_END = b"\xff\xd9"
 MAX_PARSE_BUFFER_BYTES = 8 * 1024 * 1024
@@ -165,7 +166,7 @@ class LiveViewBridge:
             key=str.casefold,
         )
 
-    def start(self, camera_name: str, request_started_at=None) -> dict:
+    def start(self, camera_name: str, request_started_at=None, diagnostics=None) -> dict:
         """Start live view and wait until FFmpeg produces its first JPEG frame."""
         if not camera_name or not camera_name.strip():
             raise ValueError("A camera name is required.")
@@ -173,7 +174,7 @@ class LiveViewBridge:
         started_at = time.monotonic() if request_started_at is None else request_started_at
         with self._control_lock:
             future = asyncio.run_coroutine_threadsafe(
-                self._start_async(camera_name.strip(), started_at),
+                self._start_async(camera_name.strip(), started_at, diagnostics),
                 self._loop,
             )
             try:
@@ -203,10 +204,10 @@ class LiveViewBridge:
 
         return None
 
-    async def _start_async(self, camera_name: str, started_at=None) -> dict:
+    async def _start_async(self, camera_name: str, started_at=None, diagnostics=None) -> dict:
         # Stop only the previous stream. Keep the Blink connection alive.
         await self._stop_async()
-        self._startup = StartupDiagnostics(started_at)
+        self._startup = diagnostics if diagnostics is not None else StartupDiagnostics(started_at)
         self._startup.mark("previous_stream_stopped")
         await self._ensure_blink_async()
         self._startup.mark("blink_connection_ready")
@@ -300,7 +301,7 @@ class LiveViewBridge:
                     # Bound stream discovery for live input; retain normal
                     # packet buffering so initial video/audio is not discarded.
                     "-analyzeduration",
-                    "1000000",
+                    str(FFMPEG_ANALYZE_DURATION_US),
                     "-probesize",
                     "1048576",
                     "-f",
@@ -392,7 +393,7 @@ class LiveViewBridge:
             # FFmpeg connects to the local TCP listener above. feed() then
             # authenticates with Blink and relays MPEG-TS packets to FFmpeg.
             self._feed_task = asyncio.create_task(
-                self._stream.feed(),
+                self._feed_blink_stream(),
                 name="FeedBlinkLiveView",
             )
 
@@ -457,6 +458,24 @@ class LiveViewBridge:
             ready.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await ready
+
+    async def _feed_blink_stream(self) -> None:
+        """Own all feed tasks so cancellation waits for Blink command-done."""
+        stream = self._stream
+        tasks = []
+        try:
+            await stream.auth()
+            tasks = [asyncio.create_task(operation()) for operation in
+                     (stream.recv, stream.send, stream.poll)]
+            await asyncio.gather(*tasks)
+        finally:
+            stream.stop()
+            # gather may raise as soon as one child is cancelled, while poll's
+            # finally is still sending command-done. Do not cancel it twice.
+            for task in tasks:
+                if not task.done() and not task.cancelling():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _recv_blink_stream(self) -> None:
         """
@@ -767,6 +786,19 @@ class LiveViewBridge:
             self._active = False
             self._frame_condition.notify_all()
 
+        stopping = self._startup if self._stream is not None else None
+        if stopping is not None:
+            stopping.mark("stop_requested")
+        # Close the transport first and wake sleeping send/poll tasks. Cancelling
+        # feed's gather still awaits poll's finally: Blink's command-done request.
+        if self._stream is not None:
+            with contextlib.suppress(Exception):
+                self._stream.stop()
+        if self._feed_task is not None and not self._feed_task.done():
+            self._feed_task.cancel()
+        if stopping is not None:
+            stopping.mark("stream_close_requested")
+
         if self._ffmpeg is not None and self._ffmpeg.returncode is None:
             self._ffmpeg.terminate()
             try:
@@ -778,11 +810,10 @@ class LiveViewBridge:
                 self._ffmpeg.kill()
                 await self._ffmpeg.wait()
 
-        if self._stream is not None:
-            with contextlib.suppress(Exception):
-                self._stream.stop()
+        if stopping is not None:
+            stopping.mark("decoder_stopped")
 
-        # Give Blinkpy time to send its final command-done notification.
+        # Retain the grace period for command-done, rather than polling sleeps.
         if self._feed_task is not None:
             try:
                 await asyncio.wait_for(self._feed_task, timeout=5)
@@ -791,6 +822,9 @@ class LiveViewBridge:
                     self._feed_task.cancel()
                     with contextlib.suppress(asyncio.CancelledError, Exception):
                         await self._feed_task
+
+        if stopping is not None:
+            stopping.mark("blink_feed_stopped")
 
         for task in (
             self._frame_task,
@@ -836,6 +870,10 @@ class LiveViewBridge:
         with self._audio_condition:
             self._audio_chunks.clear()
             self._audio_condition.notify_all()
+
+        if stopping is not None:
+            stopping.mark("stop_completed")
+            stopping.log("stopped")
 
     async def _shutdown_async(self) -> None:
         """Stop the stream and close the persistent Blink HTTP session."""
