@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.responses import StreamingResponse
 from liveview_bridge import LiveViewBridge
 from liveview_diagnostics import StartupDiagnostics
+from camera_signals import CameraSignals, sync_wifi_strength
 from live_recording import install_recording_api
 from network_recovery import NetworkRecovery
 from fault_api import install_fault_api
@@ -301,6 +302,7 @@ def create_app(controller):
         return response
 
     liveview_bridge = LiveViewBridge(faults=controller.faults)
+    camera_signals = CameraSignals()
 
     recorder, recording_lock = install_recording_api(app, controller, liveview_bridge)
     device_settings = install_device_settings_api(app, controller)
@@ -388,7 +390,7 @@ def create_app(controller):
         }
 
     @app.get("/api/v1/devices")
-    async def devices():
+    async def devices(signals: bool = False):
         """Return devices known to the Pi Controller."""
 
         if controller.blink is None:
@@ -399,6 +401,7 @@ def create_app(controller):
 
         result = []
 
+        signal_readings = await camera_signals.read(controller.blink) if signals else {}
         for dictionary_key, camera in controller.blink.cameras.items():
             result.append(
                 {
@@ -420,6 +423,7 @@ def create_app(controller):
                     "temperature_c": camera.temperature_c,
                     "wifi_signal": camera.wifi_strength,
                     "sync_signal": camera.sync_signal_strength,
+                    **signal_readings.get((str(camera.sync.network_id), str(camera.camera_id)), {}),
                 }
             )
 
@@ -722,6 +726,8 @@ def create_app(controller):
                     "name": (system.name or dictionary_key).strip(),
                     "armed": system.arm,
                     "online": bool(system.online and system.available),
+                    "firmware_version": getattr(system, "version", None),
+                    "wifi_signal": sync_wifi_strength(controller.blink, system),
                     "camera_count": camera_count,
                 }
             )

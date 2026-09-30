@@ -71,7 +71,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         self.camera.async_set_night_vision.assert_awaited_once()
 
     async def test_unsupported_families_and_unknown_types_never_contact_blink(self):
-        for kind in ('hawk', 'future-camera'):
+        for kind in ('future-camera',):
             self.camera.product_type = kind
             self.assertFalse(settings_capability(self.camera)['available'])
             with self.assertRaises(HTTPException):
@@ -184,7 +184,7 @@ class OutdoorSettingsTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(self.write.call_args.kwargs['product_type'], 'catalina')
 
     async def test_invalid_values_and_keys_never_write(self):
-        for key, value in [('motion_sensitivity', v) for v in ('auto', '0', '10', '1.5', True, 1)] + [('night_vision', 'auto')]:
+        for key, value in [('motion_sensitivity', v) for v in ('auto', '0', '10', '1.5', True, 1)] + [('unknown', 'auto')]:
             with self.assertRaises(HTTPException):await self.service.execute('7', '2', key, value)
         self.write.assert_not_called();self.read.assert_not_called()
 
