@@ -12,7 +12,19 @@ async def main():
     root=Path(folder);(root/'clips').mkdir()
     db=root/'catalog.db'
     with sqlite3.connect(db) as conn:conn.executescript(Path(sys.argv[2]).read_text())
-    c=SimpleNamespace(archive_root=root,catalog_db_path=db,archive_lock=asyncio.Lock(),playback_lock=asyncio.Lock(),status_changed=asyncio.Condition(),status_revision=0,blink=None)
+    c=SimpleNamespace(archive_root=root,catalog_db_path=db,archive_lock=asyncio.Lock(),playback_lock=asyncio.Lock(),status_changed=asyncio.Condition(),status_revision=0,blink=None,faults=SimpleNamespace(settings_path=root/"settings.local.ini"))
+    # Force archive reconciliation between thumbnail extraction and publication.
+    # A thumbnail exposed in clip_thumbs before its MP4 is treated as an orphan.
+    import live_recording
+    from archive_maintenance import reconcile_local_presence
+    original_thumbnail = live_recording.ensure_recording_thumbnail
+    async def thumbnail_with_cleanup(video, thumb):
+      ok = await original_thumbnail(video, thumb)
+      reconcile_local_presence(db, root/'clips')
+      if ok:
+        assert thumb.is_file(), 'Archive cleanup removed an unpublished thumbnail'
+      return ok
+    live_recording.ensure_recording_thumbnail = thumbnail_with_cleanup
     recorder=LiveRecorder(c)
     app=create_app(c)
     schema=app.openapi()
@@ -58,6 +70,8 @@ async def main():
       assert recorder.state['has_audio']
       clip=list_clips(db)['clips'][0]
       assert clip['trigger_type']=='Recorded Live' and clip['id'] is None
+      assert clip['thumbnail_available']
+      assert (root/'clip_thumbs'/(Path(clip['filename']).stem+'.jpg')).is_file()
       assert clip['duration_ms']<=6500,clip
       assert set_clip_watched(db,clip['catalog_id'],True)
       await recorder.recover()

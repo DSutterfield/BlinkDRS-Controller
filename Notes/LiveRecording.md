@@ -17,3 +17,41 @@ Use `Start-BlinkDRS.cmd` (the older validated launcher is updated too). User con
 Pi backups: initial feature `/home/dan/.blinkdrs/live-recording-20260911-125747`; latest stream correction `/home/dan/.blinkdrs/recording-relay-20260911-131211`.
 
 Playback correction: normalization previously produced 96 kHz AAC, outside Windows decoder support. Output is now explicitly 48 kHz AAC with loudnorm-v2 cache names. The existing Front Door clip passed the playback endpoint and full decode checks; its original archive hash was unchanged. Recorded Clips mute was also enabled during diagnosis. Deployed backup: `/home/dan/.blinkdrs/playback-audio-20260911-132808`.
+
+
+## October 1 duration-limit and thumbnail checks
+
+Dan's Pergola limit test produced a playable 128.381-second MP4 under the 150-second wall-clock safety limit. The same Live View session reported repeated payload gaps (largest 10.350 seconds) and repeated FFmpeg audio/video timestamp discontinuities of about 10.5 seconds. These are consistent with media duration diverging from wall-clock capture time; the exact contribution and stop reason cannot be reconstructed because the old manifest did not retain capture time or stop reason. Do not mark full-duration reliability complete. The 150-second safety timer remains unchanged.
+
+Closing Live View after about 10 seconds saved a playable 10.369-second MP4 with audio but no thumbnail. Re-extraction succeeded. The thumbnail was repaired and its catalog path updated. Generation now bounds decoder/filter/encoder threads, scales to 320 pixels wide, retries once, atomically publishes a nonempty JPEG, and logs extraction failures. Recordings now retain stop reason, capture wall seconds, maximum seconds and thumbnail availability in their manifest, plus finalization/FFmpeg diagnostics in the log.
+
+Isolated recording integration checks passed for settings bounds/persistence, retried start, stale stop, cutoff, manual stop, natural end, audio/video, local deletion, recovery and invalid-output exclusion. The old test controller stub needed its newer faults.settings_path supplied. Actual short-clip thumbnail extraction, existing-thumbnail preservation and invalid-input cleanup also passed. Deployed after verifying Live View idle and the prior source hash; service active. Backup: backups/recording-thumbnail-20261001-155058. Source hash: 937bf882ebeba212828432aaed4bad813fc9699295a0b105c0a6e3df7090c1d6.
+
+Next: repeat the 150-second camera test and compare wall time, saved media duration, stop reason and timestamp diagnostics; repeat close-window recording to verify thumbnail generation under live load.
+
+
+### Repeated user tests, October 1
+
+The repeated Pergola limit test stopped automatically with stop_reason=duration_limit after 150.001 wall seconds and saved 150.017 seconds of media (catalog 18865), with audio and a thumbnail. This validates real-camera cutoff in this run, not sustained reliability across models.
+
+Closing Live View during the second recording stopped it manually after 10.479 wall seconds and saved 8.912 seconds of media (catalog 18866), with audio and a thumbnail. Live View status was inactive without an error; retained decoder messages showed no timestamp-discontinuity errors. The 1.567-second wall/media difference remains to quantify, including recorder connection/keyframe startup and delivery timing; it is not evidence of thumbnail or publication failure. Broader camera coverage and resource testing remain open.
+
+
+### Mini 2 cross-model test and thumbnail cleanup race
+
+Dan repeated both tests on Well House (Mini 2). Cutoff was duration_limit at 150.001 wall seconds; original MP4 duration 149.825 seconds and normalized playback copy 149.900 seconds. Dan clarified that 148 seconds was a recalled estimate of a value slightly below 150 seconds, consistent with the measured duration; no playback-display discrepancy is established. Close-window recording was manual at 10.984 wall seconds with 10.698 seconds of media and audio.
+
+The short clip manifest logged thumbnail success, but the physical JPEG and catalog thumbnail reference were missing. Archive reconciliation removes JPEGs whose matching published MP4 does not yet exist. Thumbnail extraction occurred before acquiring archive_lock, exposing the JPEG to cleanup during publication. Generation now stays in .live_recording_pending; MP4 and thumbnail publish under archive_lock before catalog insertion. The regression forces reconciliation immediately after extraction: old source loses its JPEG and fails; fixed source preserves it and passes the recording integration suite. The Well House thumbnail was repaired.
+
+
+### User audio and stop-path confirmation, October 1
+
+Dan confirmed that Pergola's Stop Live View button and Stop Recording button each produced a clip. Sound was consistent between Live View and recorded playback; Stop Recording did not interrupt Live View sound. The latest short Well House close-window test produced an approximately 11-second clip with thumbnail, confirming normal-use publication after the cleanup race fix. These confirm the tested stop paths, audio continuity and thumbnail behavior. Visible clap alignment/drift testing and sustained Pi resource measurements remain unverified.
+
+
+October 1 deferral requested by Dan: put the visible sound/clap audio-video alignment test on hold because the living room is in use and there is no convenient test setup. Resume when a suitable environment is available. Today's successful cutoff, stop/save, thumbnail and audio-continuity checks remain recorded; precise alignment is not yet verified. No reminder is scheduled.
+
+
+### Resource baseline, October 1
+
+Completed a bounded Well House (Mini 2) idle/Live View/150-second recording/cooldown measurement. No swap or throttling; recording averaged 27.5% total CPU and peaked at 51.6 C with over 7 GB memory available. The cutoff saved 149.76 seconds with audio and thumbnail; shutdown released FFmpeg processes. See Notes/PiResources-2026-10-01.md for sampling scope, background traffic, metrics and limits. Longer soak/cross-model and Windows-egress measurements remain optional follow-ups.

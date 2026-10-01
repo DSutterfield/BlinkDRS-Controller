@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import json
 import math
+import logging
 import os
 from pathlib import Path
 import shutil
@@ -60,6 +61,38 @@ def catalog_recording(db, root, path, meta):
              str(path.relative_to(root)),str(path.with_suffix('.json').relative_to(root)),
              str(thumb.relative_to(root)) if thumb.is_file() else None,
              path.stat().st_size,meta['created_at'],int(bool(meta.get('watched',False))),meta['duration_ms']))
+
+
+async def ensure_recording_thumbnail(video, thumb):
+    """Bound decoder resources and publish only a completed nonempty JPEG."""
+    video, thumb = Path(video), Path(thumb)
+    if thumb.is_file() and thumb.stat().st_size > 0:
+        return True
+    thumb.parent.mkdir(parents=True, exist_ok=True)
+    temporary = thumb.with_name(thumb.stem + '.pending.jpg')
+    for attempt in range(2):
+        proc = await asyncio.create_subprocess_exec(
+            'ffmpeg', '-v', 'error', '-y', '-threads', '1', '-i', str(video),
+            '-map', '0:v:0', '-an', '-filter_threads', '1',
+            '-vf', 'scale=320:-2', '-frames:v', '1', '-threads', '1',
+            '-update', '1', str(temporary),
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+        try:
+            _, error = await asyncio.wait_for(proc.communicate(), 10)
+        except asyncio.TimeoutError:
+            proc.kill()
+            _, error = await proc.communicate()
+            error = b'Thumbnail generation timed out. ' + error
+        if proc.returncode == 0 and temporary.is_file() and temporary.stat().st_size > 0:
+            temporary.replace(thumb)
+            return True
+        temporary.unlink(missing_ok=True)
+        logging.getLogger(__name__).warning(
+            'Live recording thumbnail attempt %s failed for %s: %s',
+            attempt + 1, video.name, error.decode(errors='replace')[-1500:])
+        if attempt == 0:
+            await asyncio.sleep(0.25)
+    return False
 
 
 class LiveRecorder:
@@ -146,7 +179,10 @@ class LiveRecorder:
             done,_=await asyncio.wait({ended,stop},timeout=limit,return_when=asyncio.FIRST_COMPLETED)
             reason='manual' if stop in done else 'stream_ended' if ended in done else 'duration_limit'
             if time.monotonic()-self.started >= limit-0.2:reason='duration_limit'
+            capture_wall_seconds = round(time.monotonic() - self.started, 3)
             self.state.update(state='finalizing',stop_reason=reason)
+            meta.update(stop_reason=reason, capture_wall_seconds=capture_wall_seconds,
+                        max_duration_seconds=limit)
             if proc.returncode is None:
                 with contextlib.suppress(ConnectionError,BrokenPipeError):
                     proc.stdin.write(b'q\n');await proc.stdin.drain()
@@ -173,10 +209,16 @@ class LiveRecorder:
             thumbs=self.root/'clip_thumbs';thumbs.mkdir(exist_ok=True)
             thumb=thumbs/(temp.stem+'.jpg')
             # Thumbnail failure does not invalidate an otherwise playable recording.
-            thumbproc=await asyncio.create_subprocess_exec('ffmpeg','-v','error','-y','-i',str(temp),
-                '-frames:v','1',str(thumb),stdout=asyncio.subprocess.DEVNULL,stderr=asyncio.subprocess.DEVNULL)
-            try:await asyncio.wait_for(thumbproc.wait(),10)
-            except asyncio.TimeoutError:thumbproc.kill();await thumbproc.wait()
+            staged_thumb = temp.with_suffix(".jpg")
+            thumbnail_available = await ensure_recording_thumbnail(temp, staged_thumb)
+            meta['thumbnail_available'] = thumbnail_available
+            diagnostics = dict(stop_reason=reason, capture_wall_seconds=capture_wall_seconds,
+                               duration_seconds=round(duration, 3), max_duration_seconds=limit,
+                               thumbnail_available=thumbnail_available)
+            logging.getLogger(__name__).info('Live recording finalized %s: %s', temp.name, diagnostics)
+            if errors:
+                logging.getLogger(__name__).warning('Live recording FFmpeg diagnostics %s: %s',
+                                                   temp.name, ''.join(errors)[-1500:])
             async with self.controller.archive_lock:
                 final.parent.mkdir(exist_ok=True)
                 manifest=temp.with_suffix('.json')
@@ -184,8 +226,12 @@ class LiveRecorder:
                     json.dump(meta,f);f.flush();os.fsync(f.fileno())
                 manifest.replace(final.with_suffix('.json'))
                 temp.replace(final)
+                if thumbnail_available:
+                    staged_thumb.replace(thumb)
                 await asyncio.to_thread(catalog_recording,self.controller.catalog_db_path,self.root,final,meta)
-            self.state.update(state='saved',filename=final.name,duration_seconds=round(duration,2),has_audio=meta['has_audio'])
+            self.state.update(state='saved',filename=final.name,duration_seconds=round(duration,2),
+                              has_audio=meta['has_audio'],capture_wall_seconds=capture_wall_seconds,
+                              thumbnail_available=thumbnail_available)
             async with self.controller.status_changed:
                 self.controller.status_revision+=1
                 self.controller.status_changed.notify_all()
