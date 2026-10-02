@@ -23,3 +23,9 @@ PUT requires revision, mode (basic/advanced) and cells (strict binary integers).
 - Living Room and Well House calibration changes were restored to their original all-included masks; Mini 2 analytics returned to false. Doorbell's existing 40 excluded fine cells were retained.
 
 The Pi's old test_device_settings.py has an outdated assertion that newer supported families must be unsupported. The current source-repository tests used for the 64-test run reflect the installed family support. That old test was not changed by this feature.
+
+## Original Mini Advanced zones — investigation closed October 2, 2026
+
+Blink's official Activity Zones documentation lists Advanced support for Mini 2, Outdoor 4, Wired Floodlight, Indoor/Outdoor (3rd Gen) and XT2, excluding Original Mini. Dan also confirms that oBa offers no Advanced option for Original Mini. Classify Original Mini Advanced zones as unsupported by Blink and close the implementation investigation. Original Mini retains verified Basic editing; Mini 2 retains Advanced support. Legacy advanced_motion_regions fields alone do not establish a supported feature. Earlier unverified-format wording above describes the historical investigation.
+
+Source: https://support.blinkforhome.com/541917

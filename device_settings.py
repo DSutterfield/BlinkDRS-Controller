@@ -66,6 +66,77 @@ async def write_status_led(adapter, camera, value):
     raise HTTPException(409, 'Blink has not confirmed the requested Status LED mode.')
 
 
+SMART_DETECTION = {
+    'smart_person': ('Person Detected', 'person_detection'),
+    'smart_vehicle': ('Vehicle Detected', 'vehicle_detection'),
+    'smart_other_motion': ('Other Motion', 'motion_detection'),
+}
+
+
+def smart_detection_settings(config):
+    modes = config.get('detection_modes') if isinstance(config, dict) else None
+    if not isinstance(modes, dict) or any(type(modes.get(field)) is not bool
+                                         for _, field in SMART_DETECTION.values()):
+        return []
+    return [{'key': key, 'label': label, 'kind': 'choice',
+             'value': 'on' if modes[field] else 'off', 'options': ['off', 'on']}
+            for key, (label, field) in SMART_DETECTION.items()]
+
+
+def smart_detection_url(camera):
+    blink = camera.sync.blink
+    version, kind = {'hawk': (1, 'owls'), 'sedona': (2, 'cameras'),
+                     'tulip': (1, 'doorbells')}[camera.product_type]
+    return (f'{blink.urls.base_url}/api/v{version}/accounts/{blink.account_id}'
+            f'/networks/{camera.sync.network_id}/{kind}/{camera.camera_id}/config')
+
+
+async def read_smart_detection(camera):
+    raw = await api.http_get(camera.sync.blink, smart_detection_url(camera))
+    if camera.product_type == 'sedona':
+        entries = raw.get('camera') if isinstance(raw, dict) else None
+        if (not isinstance(entries, list) or len(entries) != 1 or
+                not isinstance(entries[0], dict) or
+                str(entries[0].get('id')) != str(camera.camera_id)):
+            raise HTTPException(502, 'Blink did not return Smart Detection for this camera.')
+        raw = entries[0]
+    if not isinstance(raw, dict):
+        raise HTTPException(502, 'Blink did not return Smart Detection configuration.')
+    return raw
+
+
+async def write_smart_detection(adapter, camera, key, value):
+    raw = await read_smart_detection(camera)
+    current = next((item for item in smart_detection_settings(raw) if item['key'] == key), None)
+    if current is None:
+        raise HTTPException(400, 'Smart Detection is not supported by this camera configuration.')
+    if type(value) is not str or value not in current['options']:
+        raise HTTPException(422, 'Smart Detection must be Off or On.')
+    if current['value'] == value:
+        return await adapter.read(camera)
+    # Blink stores the switches together. Preserve every other reported mode.
+    modes = dict(raw['detection_modes'])
+    modes[SMART_DETECTION[key][1]] = value == 'on'
+    response = await api.http_post(camera.sync.blink, smart_detection_url(camera),
+                                   json=False, data=json.dumps({'detection_modes': modes}))
+    if response is None or response.status != 200:
+        raise HTTPException(502, 'Blink did not accept the Smart Detection command.')
+    result = await response.json()
+    if (not isinstance(result, dict) or not (result.get('command') == 'config_set' or
+                 (type(result.get('id')) is int and
+                  str(result.get('network_id')) == str(camera.sync.network_id) and
+                  result.get('state') == 'done')) or
+            result.get('state_condition', result.get('state')) in ('failed', 'error') or 'code' in result):
+        raise HTTPException(502, 'Blink did not accept the Smart Detection command.')
+    for attempt in range(3):
+        confirmed = await adapter.read(camera)
+        if any(item['key'] == key and item['value'] == value for item in confirmed):
+            return confirmed
+        if attempt < 2:
+            await asyncio.sleep(.5)
+    raise HTTPException(409, 'Blink has not confirmed the requested Smart Detection setting.')
+
+
 class OriginalMiniSettings:
     profile = 'original_mini'
     label = 'Blink Mini'
@@ -177,7 +248,7 @@ class Mini2Settings(OriginalMiniSettings):
     label = 'Blink Mini 2'
 
     def additional_settings(self, config):
-        settings = super().additional_settings(config)
+        settings = super().additional_settings(config) + smart_detection_settings(config)
         if config.get('spotlight_compatible') is not True:
             return settings
         reported = config.get('manual_light_duration_options')
@@ -195,6 +266,8 @@ class Mini2Settings(OriginalMiniSettings):
         return settings
 
     async def write(self, camera, key, value):
+        if key in SMART_DETECTION:
+            return await write_smart_detection(self, camera, key, value)
         if key in ('night_vision', 'manual_light_duration', 'motion_light_activation'):
             return await self.write_config(camera, key, value)
         return await super().write(camera, key, value)
@@ -279,9 +352,11 @@ class OutdoorSettings:
                 settings.append({'key': key, 'label': label, 'kind': 'choice',
                                  'value': next(mode for mode, number in mapping.items() if number == value),
                                  'options': ['auto', 'on', 'off'] if key == 'night_vision' else list(mapping)})
-        return settings + status_led_settings(config, ['off', 'recording'])
+        return settings + smart_detection_settings(await read_smart_detection(camera)) + status_led_settings(config, ['off', 'recording'])
 
     async def write(self, camera, key, value):
+        if key in SMART_DETECTION:
+            return await write_smart_detection(self, camera, key, value)
         if key == 'status_led':
             return await write_status_led(self, camera, value)
         if key not in self.numeric_settings and key not in ('end_clip_early', 'night_vision', 'ir_intensity'):
@@ -382,9 +457,11 @@ class DoorbellSettings:
         settings.append({'key': 'ir_intensity', 'label': 'IR intensity', 'kind': 'choice',
                          'value': next(label for label, number in self.intensities.items() if number == intensity),
                          'options': list(self.intensities)})
-        return settings + status_led_settings(config, ['off', 'recording'])
+        return settings + smart_detection_settings(config) + status_led_settings(config, ['off', 'recording'])
 
     async def write(self, camera, key, value):
+        if key in SMART_DETECTION:
+            return await write_smart_detection(self, camera, key, value)
         if key == 'status_led':
             return await write_status_led(self, camera, value)
         if key not in self.numeric_settings and key not in ('end_clip_early', 'night_vision', 'ir_intensity'):
@@ -437,6 +514,7 @@ def settings_capability(camera):
 # Apply the same presentation order to fresh reads and confirmed changes.
 SETTING_ORDER = {key: index for index, key in enumerate((
     'motion_sensitivity', 'clip_length', 'retrigger_time', 'end_clip_early',
+    'smart_person', 'smart_vehicle', 'smart_other_motion',
     'night_vision', 'ir_intensity', 'status_led', 'manual_light_duration', 'motion_light_activation'))}
 
 

@@ -673,7 +673,7 @@ def create_app(controller):
     @app.post("/api/v1/liveview/stop")
     async def liveview_stop():
         async with recording_lock:
-            await recorder.stop()
+            await recorder.stop(reason="manual" if liveview_bridge.status()["active"] else "stream_ended")
             """Stop the active Live View session."""
 
             try:

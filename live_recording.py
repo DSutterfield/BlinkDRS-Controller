@@ -152,15 +152,17 @@ class LiveRecorder:
         error_task=asyncio.create_task(self._read_errors(self.process,errors))
         self.stop_event=asyncio.Event()
         self.started=time.monotonic()
+        self._requested_stop_reason = 'manual'
         self.state={'state':'recording','session_id':session_id,'recording_id':name,
                     'max_duration_seconds':limit,'camera':identity['device_name']}
         self.task=asyncio.create_task(self._finish(temp,meta,limit,errors,error_task))
         return self.status()
 
-    async def stop(self, session_id=None):
+    async def stop(self, session_id=None, *, reason='manual'):
         if session_id and self.state.get('session_id') not in (None,session_id):
             raise ValueError('Recording belongs to a different Live View session.')
         if self.task is not None and not self.task.done():
+            self._requested_stop_reason = reason
             self.stop_event.set()
             await asyncio.shield(self.task)
         return self.status()
@@ -177,7 +179,7 @@ class LiveRecorder:
         stop=asyncio.create_task(self.stop_event.wait())
         try:
             done,_=await asyncio.wait({ended,stop},timeout=limit,return_when=asyncio.FIRST_COMPLETED)
-            reason='manual' if stop in done else 'stream_ended' if ended in done else 'duration_limit'
+            reason=getattr(self, '_requested_stop_reason', 'manual') if stop in done else 'stream_ended' if ended in done else 'duration_limit'
             if time.monotonic()-self.started >= limit-0.2:reason='duration_limit'
             capture_wall_seconds = round(time.monotonic() - self.started, 3)
             self.state.update(state='finalizing',stop_reason=reason)

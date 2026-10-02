@@ -66,6 +66,9 @@ class LiveViewBridge:
         self._faults = faults
         self._startup = None
         self._recording_relay = None
+        self._cleanup_lock = asyncio.Lock()
+        self._end_task = None
+        self._ended_session = None
         self._loop = asyncio.new_event_loop()
         self._loop_ready = threading.Event()
         self._control_lock = threading.Lock()
@@ -402,6 +405,7 @@ class LiveViewBridge:
                 self._faults.safe_observe('liveview:' + camera_name, 'Live View: ' + camera_name, True,
                                          message='Live View received video again.')
 
+            self._end_task = asyncio.create_task(self._watch_session_end(self._startup), name="WatchLiveViewEnd")
             self._startup.mark("start_response_ready")
             self._startup.log("ready")
             return {
@@ -430,6 +434,24 @@ class LiveViewBridge:
             self._set_error(f"{type(exc).__name__}: {message}{details}")
             await self._stop_async(preserve_error=True)
             raise RuntimeError(self._last_error) from exc
+
+    async def _watch_session_end(self, session):
+        """Release producers and relay when an established session ends."""
+        producers = {self._feed_task: 'stream', self._frame_task: 'video'}
+        done, _ = await asyncio.wait(producers, return_when=asyncio.FIRST_COMPLETED)
+        if self._startup is not session:
+            return
+        failed = []
+        for task in done:
+            if not task.cancelled() and task.exception() is not None:
+                failed.append(producers[task])
+                self._set_error(f'Live View {producers[task]} failed: {task.exception()}')
+        terminal = {'session_id': session.snapshot()['session_id'],
+                    'camera': self._camera_name,
+                    'reason': 'stream_error' if failed or self._last_error else 'stream_ended',
+                    'ended_at': time.time()}
+        session.mark('session_ended')
+        await self._stop_async(preserve_error=True, terminal=terminal)
 
     async def _wait_for_first_frame(self) -> None:
         """Fail promptly when a producer ends instead of waiting for the deadline."""
@@ -766,6 +788,7 @@ class LiveViewBridge:
                 "frames": self._frame_number,
                 "diagnostics": self._startup.snapshot() if self._startup else None,
                 "error": self._last_error,
+                "ended_session": getattr(self, "_ended_session", None),
                 "ffmpeg_messages": list(self._ffmpeg_messages),
             }
 
@@ -778,7 +801,20 @@ class LiveViewBridge:
             )
             future.result(timeout=15)
 
-    async def _stop_async(self, preserve_error: bool = False) -> None:
+    async def _stop_async(self, preserve_error: bool = False, terminal=None) -> None:
+        # Serialize automatic cleanup against Stop and a subsequent Start.
+        if not hasattr(self, '_cleanup_lock'):
+            self._cleanup_lock = asyncio.Lock()
+        async with self._cleanup_lock:
+            end_task = getattr(self, '_end_task', None)
+            if end_task is not None and end_task is not asyncio.current_task() and not end_task.done():
+                end_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await end_task
+            self._ended_session = terminal
+            await self._stop_core_async(preserve_error)
+
+    async def _stop_core_async(self, preserve_error: bool = False) -> None:
         """Stop FFmpeg and the active Blink stream, retaining Blink login."""
         if self._active and self._startup is not None:
             self._startup.log("playback_stopping")

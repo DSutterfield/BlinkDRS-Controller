@@ -142,6 +142,8 @@ CLIP_FIELDS = {'video_length': 30, 'clip_max_length': 60, 'alert_interval': 10, 
 
 class OutdoorSettingsTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        smart = patch('device_settings.read_smart_detection', new=AsyncMock(return_value={}))
+        smart.start(); self.addCleanup(smart.stop)
         self.camera = NS(camera_id=7, product_type='sedona', online=True,
                          sync=NS(network_id=2, available=True, blink=object()))
         self.service = DeviceSettings(NS(blink=NS(cameras={'Outdoor': self.camera})))
