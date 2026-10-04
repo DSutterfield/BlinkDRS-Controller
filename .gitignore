@@ -21,3 +21,9 @@ logs/
 static/clip_thumbs/
 
 config/settings.local.ini
+
+# Local AI environments, weights, staging, and deployment backups
+.venv-ai/
+ai-models/
+.ai-stage-*/
+.ai-backup-*/

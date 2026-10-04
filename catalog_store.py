@@ -437,6 +437,8 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False):
 
     try:
         ensure_clip_validation(conn)
+        from identity_store import ensure_identities, clip_identities
+        ensure_identities(conn)
         visibility = "1 = 1" if include_damaged else "NOT EXISTS (SELECT 1 FROM clip_validation v WHERE v.catalog_id = clips.id AND v.status = 'damaged')"
         total = conn.execute(
             f"""
@@ -473,6 +475,7 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False):
                 duration_ms,
                 time_zone,
                 thumbnail_path,
+                COALESCE((SELECT state FROM identity_analysis_jobs a WHERE a.catalog_id=clips.id), 'not_analyzed') AS analysis_state,
                 COALESCE((SELECT status FROM clip_validation v WHERE v.catalog_id = clips.id), 'unchecked') AS validation_status
             FROM clips
             WHERE local_present = 1 AND {visibility}
@@ -498,6 +501,8 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False):
             clips.append(
                 {
                     "catalog_id": row["id"],
+                    "identities": clip_identities(conn, row["id"]),
+                    "analysis_state": row["analysis_state"],
                     "validation_status": row["validation_status"],
                     "id": row["blink_media_id"],
                     "filename": row["filename"],
@@ -696,4 +701,6 @@ def open_catalog_notifications(db_path):
         CREATE TRIGGER IF NOT EXISTS validation_notify_delete AFTER DELETE ON clip_validation
         BEGIN UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END;
     """)
+    from identity_store import ensure_identities
+    ensure_identities(conn)
     return conn

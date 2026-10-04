@@ -28,6 +28,7 @@ from fault_api import install_fault_api
 from clip_retention import install_clip_retention_api
 from clip_playback import clip_video_response
 from device_settings import install_device_settings_api, settings_capability
+from identity_api import install_identity_api
 from catalog_store import (
     open_catalog_notifications,
     delete_clip_by_catalog_id,
@@ -319,6 +320,7 @@ def create_app(controller):
     app.state.network_recovery = network_recovery
     install_fault_api(app, controller, network_recovery, liveview_bridge)
     install_clip_retention_api(app, controller)
+    install_identity_api(app, controller)
     async def shutdown_liveview():
         await network_recovery.close()
         await recorder.stop()
