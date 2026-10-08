@@ -1,0 +1,51 @@
+BlinkDRS Animal Sightings — installed October 7, 2026
+
+Open Recorded Clips > Animal Sightings in BlinkDRS 1.1.25, or use:
+http://192.168.0.124:8000/sightings
+The controller is version 1.2.0. Both About dates are October 7, 2026.
+
+What is available now
+- Search by local date, camera and animal, including unconfirmed possible matches.
+- Separate confirmed, suggested and possible clip counts. Counts describe clips with appearances, not distinct animals or a complete population census.
+- Play candidate clips in the results. New analyses retain up to four complementary views per tracked appearance where suitable evidence is available. Time-separated views are retained even when the model considers them nearly identical.
+- In an animal's filtered timeline, check only appearances you recognize, then confirm the selected appearances together. No boxes are automatically checked. Stale edits reject the entire confirmation request.
+- Review packs group broadly similar appearances by camera and time. A pack can contain different animals; inspect every selected thumbnail.
+- Confirmed names and reference images remain protected. New candidate indexing never confirms or reassigns names.
+
+What has actually been measured
+A production snapshot contained 597 clips for October 7, 545 analyzed, 101 clips with unconfirmed appearances. The derived index covered 672 existing unconfirmed animal appearances. Lola's search narrowed to five possible clips containing eight detected appearances. These are candidates, not five verified Lola sightings, and other Lola clips can be missed. The counts change as footage arrives and analysis completes.
+
+The classifier study used 241 confirmed animal crops from 178 clips, 11 cats and two dogs. Known species and saved human-confirmed crops were supplied. Last clips per identity were reserved before fitting or threshold calibration. These were historical development data, not a fresh prospective test of autonomous recognition.
+
+Using the production center-crop feature space, the cat classifier's reserved results were seven correct top choices out of 14 views (11 clips). Thresholded recommendations accepted three views: two correct and one wrong. Top-three retrieval included the true cat in 10 of 14 views. Camera holdout also degraded substantially. A full-subject experimental variant reached nine correct top choices and 11 top-three hits out of 14 views; it still made one wrong accepted recommendation. Consequently no new automatic cat assignments were enabled.
+
+Dogs were more promising, but the reserved set contained only three views from two clips. All three top choices were correct. The deployed dog recommendation rule additionally requires two visually distinct supported views that agree, a high score and margin, two reference clips and a nearest-reference similarity check. Those additional guards have not yet received a large independent field evaluation. All recommendations remain unconfirmed.
+
+Limits that matter
+- This release improves searching and selective/batch review; reliable automatic identity recognition and exhaustive per-cat movement/count tracking are not solved.
+- Species detection, sampling, lighting, focus, distance, occlusion and crossing subjects can still lose or mix evidence. Similar-looking tracks do not prove the same individual.
+- Existing historical clips keep their original saved view unless reanalyzed. Candidate indexing uses available evidence only and does not analyze every old recording.
+- Possible names can be wrong or omitted. No candidate/confirmed sighting is not proof that an animal was absent. Animals without suitable confirmed references may have no candidates.
+- The current cat candidate ranking uses the canonical crop. Complementary views support review and guarded dog recommendations; a validated multi-view cat recognizer remains further work.
+- Confirmations improve references for subsequent analysis. Previously stored candidates are not all recomputed on a browser refresh.
+- Date searches cover at most 32 days. Review packs show at most 200 recent unconfirmed appearances; narrow date/camera filters when necessary.
+
+Verification
+- 68 relevant controller tests passed, including atomic/stale batch confirmation, species protection, canonical reference preservation, candidate backfill races, DST date windows and bounded multi-view storage.
+- Windows Release build: zero warnings/errors. Installed binaries matched the tested build hashes.
+- Installed WPF About view verified Windows 1.1.25, controller 1.2.0, both dates October 7; Animal Sightings button present.
+- Existing controller service health, About, sightings, crop endpoints and final deployed file hashes verified. Browser checked name filtering, eight unchecked Lola candidate appearances, empty-selection protection and clip-player insertion.
+- Real clip 22267 saved four views at 0.0, 1.5, 3.0 and 4.5 seconds; the live browser displayed all four. This verifies bounded evidence retention/delivery, not identity accuracy or complete coverage of the track. Final deployed hashes and service health passed again.
+- No additional network listener was opened. The page uses the existing BlinkDRS controller service.
+
+Recovery
+The original production code and consistent catalog snapshot are in:
+/home/dan/BlinkDRS-Controller/backups/sightings-20261007-194652
+The subsequent filtered-review code backup is in:
+/home/dan/BlinkDRS-Controller/backups/sightings-20261007-194945
+The temporal retention correction is backed up in /home/dan/BlinkDRS-Controller/backups/sightings-temporal-20261007-195757. Later static HTML backups are under the same backups directory with sightings-html timestamps.
+Windows/source backup:
+C:\Users\DanSu\Documents\Codex\2026-10-07\i\work\installed-backup-20261007-195044
+Restore affected code only after checking LiveView/recording idle, then verify health. Do not overwrite the current catalog with an old snapshot: that would discard newer footage metadata or human edits. The new tables are additive.
+
+Detailed raw study and deployment results are beside this report. Their scores are ranking values, not probabilities.

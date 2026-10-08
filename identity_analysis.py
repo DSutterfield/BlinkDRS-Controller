@@ -29,6 +29,17 @@ def ensure_analysis(conn):
     CREATE TABLE IF NOT EXISTS identity_worker_status (
         id INTEGER PRIMARY KEY CHECK(id=1), state TEXT NOT NULL, message TEXT NOT NULL,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE IF NOT EXISTS identity_track_views (
+        view_id INTEGER PRIMARY KEY,
+        detection_id INTEGER NOT NULL REFERENCES clip_detections(detection_id) ON DELETE CASCADE,
+        seconds REAL NOT NULL, crop_jpeg BLOB NOT NULL,
+        embedding TEXT NOT NULL, embedding_model TEXT NOT NULL, quality_score REAL NOT NULL,
+        UNIQUE(detection_id,seconds));
+    CREATE TABLE IF NOT EXISTS identity_candidates (
+        detection_id INTEGER NOT NULL REFERENCES clip_detections(detection_id) ON DELETE CASCADE,
+        identity_id INTEGER NOT NULL REFERENCES identities(identity_id) ON DELETE CASCADE,
+        rank INTEGER NOT NULL, score REAL NOT NULL, method TEXT NOT NULL,
+        PRIMARY KEY(detection_id,identity_id));
     """)
 
     if conn.execute("SELECT 1 FROM sqlite_master WHERE name='catalog_notifications'").fetchone():
@@ -152,6 +163,11 @@ def publish_detections(db_path, catalog_id, fingerprint, observations):
                 continue
             iid, similarity = match_identity(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'),
                                              .90 if item['subject_type'] != 'Person' else .50, .05)
+            if iid is None and item['subject_type'] == 'Dog':
+                from identity_candidates import dog_recommendation
+                iid = dog_recommendation(conn,item,catalog_id)
+                if iid is not None:
+                    similarity = None  # Classifier score is not cosine or a probability.
             if existing:
                 did = existing['detection_id']
                 conn.execute('UPDATE clip_detections SET identity_id=? WHERE detection_id=? AND confirmed=0', (iid,did))
@@ -165,6 +181,14 @@ def publish_detections(db_path, catalog_id, fingerprint, observations):
                 (did,catalog_id,key,item['subject_type'],item['crop_jpeg'],
                  json.dumps(normalized(item['embedding'])) if item.get('embedding') is not None else None,
                  item.get('embedding_model'),item.get('quality_score'),similarity,))
+            if item['subject_type'] in ('Cat','Dog'):
+                from identity_candidates import store_candidates
+                store_candidates(conn,did,item['subject_type'],item.get('embedding_model'),item.get('embedding'),catalog_id)
+            for view in item.get('views', [])[:4]:
+                conn.execute('''INSERT OR IGNORE INTO identity_track_views
+                    (detection_id,seconds,crop_jpeg,embedding,embedding_model,quality_score)
+                    VALUES(?,?,?,?,?,?)''', (did,view['seconds'],view['crop_jpeg'],
+                    json.dumps(normalized(view['embedding'])),view['embedding_model'],view['quality_score']))
         conn.execute("UPDATE identity_analysis_jobs SET state='done',message=?,updated_at=CURRENT_TIMESTAMP WHERE catalog_id=?",
                      (f"Analyzed sampled frames; {len(observations)} subject appearances. Sampling can miss brief activity.",catalog_id))
 

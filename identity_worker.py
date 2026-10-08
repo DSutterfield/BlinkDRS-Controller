@@ -24,6 +24,34 @@ def overlap(a, b):
     return intersection/union if union > 0 else 0
 
 
+def retain_view(track, seconds, jpeg, vector, version, quality):
+    """Bounded complementary views; not additional confirmed training labels."""
+    if vector is None or quality < .2 or not version:
+        return
+    from identity_analysis import normalized
+    current = normalized(vector)
+    views = track.setdefault('views', [])
+    same = [v for v in views if v['embedding_model'] == version]
+    if any(abs(seconds-v['seconds']) < .5 for v in same):
+        return
+    near = [v for v in same if abs(seconds-v['seconds']) < 2.0 and len(v['embedding']) == len(current)
+            and sum(a*b for a,b in zip(normalized(v['embedding']),current)) >= .98]
+    if near:
+        old = max(near,key=lambda v:v['quality_score'])
+        if quality <= old['quality_score']:
+            return
+        views.remove(old)
+    view = dict(seconds=seconds,crop_jpeg=jpeg,embedding=current,
+                embedding_model=version,quality_score=quality)
+    if len(views) >= 4:
+        worst = min(views,key=lambda v:v['quality_score'])
+        if quality <= worst['quality_score']:
+            return
+        views.remove(worst)
+    views.append(view)
+    views.sort(key=lambda v:v['seconds'])
+
+
 def analyze_video(path, models, max_frames=16, checkpoint=None):
     cv2 = models.cv2
     capture = cv2.VideoCapture(str(path))
@@ -72,6 +100,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track['sample_hits'] = track.get('sample_hits', 1) + 1
                     track['last_seen_seconds'] = seconds
                     track['box'] = box
+                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality)
                     if (track.get('embedding') is not None and vector is None) or (bool(vector) == bool(track.get('embedding')) and quality <= track['quality_score']):
                         used.add(index)
                         continue
@@ -82,6 +111,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track = {'key': f"{frame_index}:{detection['subject_type']}:{box}",
                              'first_seen_seconds': seconds,'last_seen_seconds':seconds}
                     tracks.append(track)
+                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality)
                 used.add(index)
                 track.update(subject_type=detection['subject_type'],confidence=detection['confidence'],
                              crop_jpeg=jpeg.tobytes(),embedding=vector,embedding_model=version,

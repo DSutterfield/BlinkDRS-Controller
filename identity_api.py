@@ -45,6 +45,9 @@ def install_identity_api(app, controller):
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
 
+    from sightings_api import install_sightings_api
+    install_sightings_api(app, run)
+
     @app.get('/api/v1/clips/catalog/{catalog_id}/analysis')
     def analysis_status(catalog_id: int):
         return run(job_status, catalog_id)
@@ -140,3 +143,4 @@ def install_identity_api(app, controller):
     @app.delete('/api/v1/clips/catalog/{catalog_id}/identities/{detection_id}')
     def remove(catalog_id: int, detection_id: int):
         return run(remove_detection, catalog_id, detection_id)
+

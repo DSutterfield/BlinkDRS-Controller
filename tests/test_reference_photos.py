@@ -32,7 +32,10 @@ class Photos(unittest.TestCase):
  def test_invalid_identity_invalid_image_and_profile_delete(self):
   self.assertEqual(self.api.post(self.url,json={'filename':'bad','image_base64':'abcd'}).status_code,422)
   p=self.upload();delete_identity(self.db,self.i);self.assertEqual(self.api.get(self.url).json(),[]);self.assertEqual(self.api.get(f'{self.url}/{p}/image').status_code,404)
- def test_about(self):self.assertEqual(self.api.get('/api/v1/about').json()['version'],'1.1.3')
+ def test_about(self):
+        from release_info import VERSION
+        self.assertEqual(self.api.get('/api/v1/about').json()['version'],VERSION)
 if __name__=='__main__':unittest.main()
+
 
 
