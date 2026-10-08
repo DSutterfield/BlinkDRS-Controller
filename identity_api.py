@@ -20,7 +20,7 @@ class ReferencePhoto(BaseModel):
 
 class Assignment(BaseModel):
     identity_id: Optional[int] = Field(default=None, gt=0)
-    subject_type: Literal['Person', 'Cat', 'Dog', 'Vehicle']
+    subject_type: Literal['Person', 'Cat', 'Dog', 'Vehicle', 'Unknown']
     detection_id: Optional[int] = Field(default=None, gt=0)
 
 
@@ -31,7 +31,7 @@ class ManualCrop(BaseModel):
     width: int = Field(ge=16)
     height: int = Field(ge=16)
     identity_id: Optional[int] = Field(default=None, gt=0)
-    subject_type: Literal['Person','Cat','Dog','Vehicle']
+    subject_type: Literal['Person','Cat','Dog','Vehicle','Unknown']
 
 
 def install_identity_api(app, controller):

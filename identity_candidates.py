@@ -38,15 +38,5 @@ def store_candidates(conn,did,kind,model,vector,catalog_id):
  for index,r in enumerate(ranks[:3]):conn.execute('INSERT INTO identity_candidates(detection_id,identity_id,rank,score,method) VALUES(?,?,?,?,?)',(did,r['identity_id'],index+1,r['score'],'household-ridge-v1-possible'))
  return ranks
 def dog_recommendation(conn,item,catalog_id):
- # An experimental high-score single view cannot label an individual automatically.
- if item['subject_type']!='Dog':return None
- views=item.get('views',[]);supported=[]
- for view in views:
-  ranks=rank_candidates(conn,'Dog',view['embedding_model'],view['embedding'],catalog_id)
-  if len(ranks)>=2 and ranks[0]['score']>=.8 and ranks[0]['score']-ranks[1]['score']>=.3 and ranks[0]['reference_clips']>=2 and ranks[0]['nearest']>=.75:supported.append((ranks[0]['identity_id'],view['embedding']))
- if len(supported)>=2 and len({r[0] for r in supported})==1:
-  from identity_analysis import normalized
-  vectors=[normalized(r[1]) for r in supported]
-  if any(len(a)==len(b) and sum(x*y for x,y in zip(a,b))<.98 for i,a in enumerate(vectors) for b in vectors[i+1:]):return supported[0][0]
- return None
-
+ from dog_identity import recommend_identity
+ return recommend_identity(conn,item,catalog_id)

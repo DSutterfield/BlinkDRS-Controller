@@ -19,7 +19,7 @@ class Vehicles(Photos):
    definitions={n:source.execute('SELECT sql FROM sqlite_master WHERE name=?',(n,)).fetchone()[0] for n in ('identities','clip_detections','identity_samples','identity_evidence')}
   with closing(sqlite3.connect(target)) as c:
    c.row_factory=sqlite3.Row;c.execute('PRAGMA foreign_keys=ON');c.executescript(schema)
-   for sql in definitions.values():c.execute(sql.replace(",'Vehicle'",''))
+   for sql in definitions.values():c.execute(sql.replace(",'Vehicle'",'').replace(",'Unknown'",''))
    c.execute("INSERT INTO clips(id,filename,video_path,captured_at,local_present,source) VALUES(1,'1.mp4','1.mp4','2026-10-05',1,'pir')")
    c.execute("INSERT INTO identities(identity_id,name,subject_type) VALUES(1,'Original','Person')")
    c.execute("INSERT INTO clip_detections(detection_id,catalog_id,identity_id,subject_type,confirmed) VALUES(5,1,1,'Person',1)")

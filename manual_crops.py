@@ -116,9 +116,9 @@ def clip_frame(db_path, archive, catalog_id, seconds, box=None):
 
 
 def save_crop(db_path, archive, catalog_id, seconds, box, identity_id, subject_type):
-    if subject_type not in ('Person','Cat','Dog','Vehicle'):
-        raise ValueError('Choose Person, Cat, Dog, or Vehicle.')
-    if subject_type == 'Vehicle' and identity_id is not None:
+    if subject_type not in ('Person','Cat','Dog','Vehicle','Unknown'):
+        raise ValueError('Choose Person, Cat, Dog, Vehicle, or Unknown.')
+    if subject_type in ('Vehicle','Unknown') and identity_id is not None:
         raise ValueError('Vehicles are labeled Unknown Vehicle.')
     jpeg = clip_frame(db_path, archive, catalog_id, seconds, box)
     with connect(db_path) as conn:

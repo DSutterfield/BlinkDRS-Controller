@@ -24,28 +24,35 @@ def overlap(a, b):
     return intersection/union if union > 0 else 0
 
 
-def retain_view(track, seconds, jpeg, vector, version, quality):
+def retain_view(track, seconds, jpeg, vector, version, quality, type_result=None):
     """Bounded complementary views; not additional confirmed training labels."""
     if vector is None or quality < .2 or not version:
         return
     from identity_analysis import normalized
     current = normalized(vector)
     views = track.setdefault('views', [])
+    priority = lambda v: (v.get('type_result') in ('Cat','Dog'), v['quality_score'])
+    incoming = dict(quality_score=quality,type_result=type_result)
     same = [v for v in views if v['embedding_model'] == version]
     if any(abs(seconds-v['seconds']) < .5 for v in same):
         return
     near = [v for v in same if abs(seconds-v['seconds']) < 2.0 and len(v['embedding']) == len(current)
             and sum(a*b for a,b in zip(normalized(v['embedding']),current)) >= .98]
+    near = [v for v in near if not (type_result in ('Cat','Dog') and v.get('type_result') in ('Cat','Dog') and type_result != v['type_result'])]
     if near:
-        old = max(near,key=lambda v:v['quality_score'])
-        if quality <= old['quality_score']:
+        old = max(near,key=priority)
+        if priority(incoming) <= priority(old):
             return
         views.remove(old)
     view = dict(seconds=seconds,crop_jpeg=jpeg,embedding=current,
-                embedding_model=version,quality_score=quality)
+                embedding_model=version,quality_score=quality,type_result=type_result)
     if len(views) >= 4:
-        worst = min(views,key=lambda v:v['quality_score'])
-        if quality <= worst['quality_score']:
+        replaceable = [v for v in views if v.get('type_result') not in ('Cat','Dog')
+                       or v.get('type_result') == type_result
+                       or sum(other.get('type_result') == v.get('type_result') for other in views) > 1]
+        worst = min(replaceable,key=priority)
+        new_species = type_result in ('Cat','Dog') and not any(v.get('type_result') == type_result for v in views)
+        if priority(incoming) <= priority(worst) and not new_species:
             return
         views.remove(worst)
     views.append(view)
@@ -73,7 +80,9 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
             sampled += 1
             seconds = frame_index/fps
             used = set()
-            for detection in models.detect(frame):
+            from subject_type_check import in_person_region
+            detections = sorted(models.detect(frame), key=lambda item: item['subject_type'] != 'Person')
+            for detection in detections:
                 height,width = frame.shape[:2]
                 box = detection['box']
                 x1,y1,x2,y2 = max(0,int(box[0])),max(0,int(box[1])),min(width,int(box[2])),min(height,int(box[3]))
@@ -84,6 +93,20 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                 if detection['subject_type'] == 'Vehicle' and not models.accepts_vehicle(crop):
                     continue
                 vector, version, quality = models.embedding(crop, detection['subject_type'])
+                frame_type = detection['subject_type']
+                resolve_type = getattr(models, 'resolve_animal_type', None)
+                if detection['subject_type'] in ('Cat','Dog') and resolve_type is not None:
+                    kind = resolve_type(detection['subject_type'], vector, version,
+                                        person_region=in_person_region(dict(detection, box=box), detections))
+                    if kind is None:
+                        continue
+                    frame_type = kind
+                    # An uncertain animal frame still belongs to its spatial track.
+                    # Final species evidence must include its clearer neighboring
+                    # views instead of splitting Dog/Unknown into separate tracks.
+                    if kind == 'Unknown' and getattr(models, 'resolve_track_type', None) is not None:
+                        kind = detection['subject_type']
+                    detection = dict(detection, subject_type=kind)
                 # Keep source pixels for embeddings; store a bounded JPEG for review.
                 scale = min(1., 256/max(crop.shape[:2]))
                 preview = cv2.resize(crop, (max(1,int(crop.shape[1]*scale)),max(1,int(crop.shape[0]*scale))))
@@ -100,7 +123,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track['sample_hits'] = track.get('sample_hits', 1) + 1
                     track['last_seen_seconds'] = seconds
                     track['box'] = box
-                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality)
+                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
                     if (track.get('embedding') is not None and vector is None) or (bool(vector) == bool(track.get('embedding')) and quality <= track['quality_score']):
                         used.add(index)
                         continue
@@ -111,7 +134,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track = {'key': f"{frame_index}:{detection['subject_type']}:{box}",
                              'first_seen_seconds': seconds,'last_seen_seconds':seconds}
                     tracks.append(track)
-                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality)
+                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
                 used.add(index)
                 track.update(subject_type=detection['subject_type'],confidence=detection['confidence'],
                              crop_jpeg=jpeg.tobytes(),embedding=vector,embedding_model=version,
@@ -119,6 +142,11 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
             time.sleep(.05)
         if sampled == 0:
             raise ValueError('No frames could be sampled.')
+        finalize_type = getattr(models, 'resolve_track_type', None)
+        if finalize_type is not None:
+            for track in tracks:
+                if track['subject_type'] in ('Cat','Dog'):
+                    track['subject_type'] = finalize_type(track)
         return [track for track in tracks if track['subject_type'] != 'Vehicle' or track.get('sample_hits', 1) >= 2]
     finally:
         capture.release()

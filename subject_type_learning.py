@@ -10,7 +10,7 @@ def pending(db_path, model):
         return [dict(row) for row in conn.execute("""SELECT d.detection_id,d.subject_type,e.crop_jpeg
             FROM clip_detections d JOIN identity_evidence e USING(detection_id)
             LEFT JOIN subject_type_samples t USING(detection_id)
-            WHERE d.confirmed=1 AND (t.detection_id IS NULL OR t.subject_type<>d.subject_type
+            WHERE d.confirmed=1 AND d.subject_type<>'Unknown' AND (t.detection_id IS NULL OR t.subject_type<>d.subject_type
                 OR t.model_version<>?) ORDER BY d.detection_id LIMIT 4""", (model,))]
 
 

@@ -161,13 +161,15 @@ def publish_detections(db_path, catalog_id, fingerprint, observations):
             existing = conn.execute('SELECT d.detection_id,d.confirmed FROM identity_evidence e JOIN clip_detections d USING(detection_id) WHERE e.catalog_id=? AND e.detection_key=?', (catalog_id,key)).fetchone()
             if existing and existing['confirmed']:
                 continue
-            iid, similarity = match_identity(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'),
-                                             .90 if item['subject_type'] != 'Person' else .50, .05)
-            if iid is None and item['subject_type'] == 'Dog':
+            if item['subject_type'] == 'Unknown':
+                iid, similarity = None, None
+            elif item['subject_type'] == 'Dog':
                 from identity_candidates import dog_recommendation
                 iid = dog_recommendation(conn,item,catalog_id)
-                if iid is not None:
-                    similarity = None  # Classifier score is not cosine or a probability.
+                similarity = None  # Household classifier scores are not cosine or probabilities.
+            else:
+                iid, similarity = match_identity(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'),
+                                                 .90 if item['subject_type'] != 'Person' else .50, .05)
             if existing:
                 did = existing['detection_id']
                 conn.execute('UPDATE clip_detections SET identity_id=? WHERE detection_id=? AND confirmed=0', (iid,did))

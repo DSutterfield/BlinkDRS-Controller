@@ -123,6 +123,18 @@ class LocalModels:
         # Use the same visual space for every Type, including people and vehicles.
         return self.embedding(crop, 'Cat')
 
+    def resolve_animal_type(self, kind, vector, model, person_region=False):
+        from subject_type_check import resolve_animal_type
+        return resolve_animal_type(getattr(self, 'type_references', []), kind, vector, model, person_region=person_region)
+
+    def resolve_track_type(self, track):
+        from subject_type_check import resolve_track_type
+        return resolve_track_type(getattr(self, 'type_references', []), track)
+
+    def accepts_animal_type(self, kind, vector, model):
+        from subject_type_check import animal_type_supported
+        return animal_type_supported(getattr(self, 'type_references', []), kind, vector, model)
+
     def accepts_vehicle(self, crop):
         from subject_type_learning import vehicle_supported
         references = getattr(self, 'type_references', [])

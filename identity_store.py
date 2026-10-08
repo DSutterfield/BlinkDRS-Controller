@@ -15,7 +15,7 @@ def ensure_identities(conn):
         detection_id INTEGER PRIMARY KEY,
         catalog_id INTEGER NOT NULL REFERENCES clips(id) ON DELETE CASCADE,
         identity_id INTEGER REFERENCES identities(identity_id),
-        subject_type TEXT NOT NULL CHECK(subject_type IN ('Person','Cat','Dog','Vehicle')),
+        subject_type TEXT NOT NULL CHECK(subject_type IN ('Person','Cat','Dog','Vehicle','Unknown')),
         confidence REAL CHECK(confidence BETWEEN 0 AND 1),
         first_seen_seconds REAL CHECK(first_seen_seconds >= 0),
         last_seen_seconds REAL CHECK(last_seen_seconds >= first_seen_seconds),
@@ -35,6 +35,8 @@ def ensure_identities(conn):
     """)
     from identity_vehicle_migration import ensure_vehicle_subjects
     ensure_vehicle_subjects(conn)
+    from identity_unknown_migration import ensure_unknown_subjects
+    ensure_unknown_subjects(conn)
     from reference_photos import ensure_photos
     ensure_photos(conn)
     from identity_analysis import ensure_analysis
@@ -163,10 +165,10 @@ def require_clip(conn, catalog_id):
 
 def assign_identity(db_path, catalog_id, identity_id, subject_type, detection_id=None):
     """Explicit human assignment/correction. No fabricated confidence or training sample."""
-    if subject_type not in ('Person', 'Cat', 'Dog', 'Vehicle'):
+    if subject_type not in ('Person', 'Cat', 'Dog', 'Vehicle', 'Unknown'):
         raise ValueError('Invalid subject type.')
-    if subject_type == 'Vehicle' and identity_id is not None:
-        raise ValueError('Vehicles are labeled Unknown Vehicle; named vehicle profiles are not supported.')
+    if subject_type in ('Vehicle','Unknown') and identity_id is not None:
+        raise ValueError('Vehicle and Unknown Type do not support named profiles.')
     with connect(db_path) as conn:
         require_clip(conn, catalog_id)
         if identity_id is not None:
