@@ -53,6 +53,8 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     continue
                 box = [x1,y1,x2,y2]
                 crop = frame[y1:y2,x1:x2]
+                if detection['subject_type'] == 'Vehicle' and not models.accepts_vehicle(crop):
+                    continue
                 vector, version, quality = models.embedding(crop, detection['subject_type'])
                 # Keep source pixels for embeddings; store a bounded JPEG for review.
                 scale = min(1., 256/max(crop.shape[:2]))
@@ -67,6 +69,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                 if best[0] >= .3:
                     index = best[1]
                     track = tracks[index]
+                    track['sample_hits'] = track.get('sample_hits', 1) + 1
                     track['last_seen_seconds'] = seconds
                     track['box'] = box
                     if (track.get('embedding') is not None and vector is None) or (bool(vector) == bool(track.get('embedding')) and quality <= track['quality_score']):
@@ -86,7 +89,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
             time.sleep(.05)
         if sampled == 0:
             raise ValueError('No frames could be sampled.')
-        return tracks
+        return [track for track in tracks if track['subject_type'] != 'Vehicle' or track.get('sample_hits', 1) >= 2]
     finally:
         capture.release()
 
@@ -94,6 +97,8 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
 def process_one(db_path, archive_root, job, models, checkpoint=None):
     path = archive_video(archive_root, job['video_path'])
     fingerprint = file_hash(path)
+    from subject_type_learning import load_references
+    models.type_references = load_references(db_path, models.pet_version, job['catalog_id'])
     observations = analyze_video(path, models, checkpoint=checkpoint)
     if file_hash(path) != fingerprint:
         raise ValueError('Recording changed during analysis; retry once it is stable.')
@@ -166,6 +171,10 @@ def main():
                         raise ValueError('A confirmed subject image could not be decoded')
                     vector,version,quality = models.embedding(crop,correction['subject_type'])
                     rebuild_reference(args.db,correction,vector,version,quality)
+                from subject_type_learning import learn_pending
+                learn_pending(args.db, models, checkpoint)
+                from reference_photos import process_photos
+                process_photos(args.db, models, checkpoint)
                 job = claim_job(args.db)
                 if job:
                     set_worker_status(args.db,'analyzing',f"Analyzing clip {job['catalog_id']}")

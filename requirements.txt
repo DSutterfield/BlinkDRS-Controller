@@ -6,3 +6,4 @@ fastapi>=0.141.1
 uvicorn[standard]>=0.52.3
 
 tzdata
+Pillow>=11.0,<13

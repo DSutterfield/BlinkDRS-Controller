@@ -37,7 +37,7 @@ class ManualCropTests(unittest.TestCase):
             with self.assertRaises(ValueError):save_crop(self.db,self.db.parent,1,1.,(0,0,64,64),dog['identity_id'],'Cat')
             labels=save_crop(self.db,self.db.parent,1,1.,(0,0,64,64),None,'Dog')
         self.assertTrue(labels[0]['crop_available'])
-        self.assertEqual(pending_type_corrections(self.db),[])
+        self.assertEqual(pending_type_corrections(self.db)[0]['subject_type'],'Dog')
         assign_identity(self.db,1,dog['identity_id'],'Dog',labels[0]['detection_id'])
         self.assertEqual(len(pending_type_corrections(self.db)),1)
 

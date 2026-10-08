@@ -3,9 +3,89 @@ import json
 import math
 import subprocess
 import uuid
+import io
+import zipfile
+import tempfile
 from pathlib import Path
 from identity_store import connect, require_clip
 from identity_worker import archive_video
+from functools import lru_cache
+
+
+@lru_cache(maxsize=32)
+def _frame_times(path, size, modified):
+    try:
+        probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+            '-show_entries', 'frame=best_effort_timestamp_time', '-of', 'json', path],
+            capture_output=True, check=True, timeout=30)
+        frames = json.loads(probe.stdout)['frames']
+        times = [float(frame['best_effort_timestamp_time']) for frame in frames]
+        if not times or len(times) > 100_000 or any(not math.isfinite(t) for t in times):
+            raise ValueError('Recording frame timestamps are unavailable or too large.')
+        origin = times[0]
+        times = tuple(round(t-origin, 6) for t in times)
+        if any(b <= a for a, b in zip(times, times[1:])):
+            raise ValueError('Recording frame timestamps are not ordered.')
+        return times
+    except (subprocess.SubprocessError, OSError, KeyError, json.JSONDecodeError) as exc:
+        raise ValueError('Unable to read frame timestamps. Retry after the recording finishes.') from exc
+
+
+def clip_frame_times(db_path, archive, catalog_id):
+    with connect(db_path) as conn:
+        require_clip(conn, catalog_id)
+        relative = conn.execute('SELECT video_path FROM clips WHERE id=?', (catalog_id,)).fetchone()[0]
+    path = archive_video(Path(archive), relative)
+    stat = path.stat()
+    return _frame_times(str(path), stat.st_size, stat.st_mtime_ns)
+
+
+@lru_cache(maxsize=32)
+def _video_info(path, size, modified):
+    probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height:format=duration', '-of', 'json', path],
+        capture_output=True, check=True, timeout=10)
+    info = json.loads(probe.stdout)
+    width, height = (int(info['streams'][0][k]) for k in ('width','height'))
+    duration = float(info['format']['duration'])
+    if width <= 0 or height <= 0 or width*height > 16_000_000 or not math.isfinite(duration) or duration <= 0:
+        raise ValueError('Recording dimensions or duration are out of range.')
+    return width,height,duration
+
+
+def clip_frame_window(db_path, archive, catalog_id, start, count=8):
+    """Decode a small contiguous batch once; JPEG names are exact frame indices."""
+    if type(start) is not int or start < 0 or type(count) is not int or not 1 <= count <= 8:
+        raise ValueError('Choose a valid frame window of up to eight frames.')
+    with connect(db_path) as conn:
+        require_clip(conn,catalog_id)
+        relative=conn.execute('SELECT video_path FROM clips WHERE id=?',(catalog_id,)).fetchone()[0]
+    path=archive_video(Path(archive),relative)
+    stat=path.stat()
+    try:
+        _video_info(str(path),stat.st_size,stat.st_mtime_ns)
+        times=_frame_times(str(path),stat.st_size,stat.st_mtime_ns)
+        if start >= len(times):raise ValueError('Frame is outside the recording.')
+        count=min(count,len(times)-start)
+        with tempfile.TemporaryDirectory(prefix='blink-frames-') as folder:
+            pattern=str(Path(folder)/'%03d.jpg')
+            subprocess.run(['ffmpeg','-v','error','-threads','1','-noautorotate','-ss',str(times[start]),'-i',str(path),
+                '-vsync','0',
+                '-frames:v',str(count),'-threads','1','-q:v','2',pattern],
+                capture_output=True,check=True,timeout=30)
+            output=io.BytesIO()
+            with zipfile.ZipFile(output,'w',compression=zipfile.ZIP_STORED) as pack:
+                for offset in range(count):
+                    image=Path(folder)/f'{offset+1:03d}.jpg'
+                    if not image.is_file() or not 0 < image.stat().st_size <= 8_000_000:
+                        raise ValueError('Could not decode the requested frame window.')
+                    if output.tell()+image.stat().st_size+256 > 32_000_000:
+                        raise ValueError('Frame window is too large.')
+                    pack.write(image,f'{start+offset}.jpg')
+            if output.tell()>32_000_000:raise ValueError('Frame window is too large.')
+            return output.getvalue()
+    except (subprocess.SubprocessError,OSError,KeyError,IndexError,json.JSONDecodeError) as exc:
+        raise ValueError('Unable to decode the recording frame window.') from exc
 
 
 def clip_frame(db_path, archive, catalog_id, seconds, box=None):
@@ -16,12 +96,8 @@ def clip_frame(db_path, archive, catalog_id, seconds, box=None):
         relative = conn.execute('SELECT video_path FROM clips WHERE id=?', (catalog_id,)).fetchone()[0]
     path = archive_video(Path(archive), relative)
     try:
-        probe = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
-            '-show_entries', 'stream=width,height:format=duration', '-of', 'json', str(path)],
-            capture_output=True, check=True, timeout=10)
-        info = json.loads(probe.stdout)
-        width, height = (int(info['streams'][0][k]) for k in ('width','height'))
-        duration = float(info['format']['duration'])
+        stat=path.stat()
+        width,height,duration=_video_info(str(path),stat.st_size,stat.st_mtime_ns)
         if not math.isfinite(duration) or seconds >= duration or width*height > 16_000_000:
             raise ValueError('Frame time or recording dimensions are out of range.')
         command = ['ffmpeg','-v','error','-threads','1','-noautorotate','-ss',str(seconds),'-i',str(path),'-frames:v','1']
@@ -40,8 +116,10 @@ def clip_frame(db_path, archive, catalog_id, seconds, box=None):
 
 
 def save_crop(db_path, archive, catalog_id, seconds, box, identity_id, subject_type):
-    if subject_type not in ('Person','Cat','Dog'):
-        raise ValueError('Choose Person, Cat, or Dog.')
+    if subject_type not in ('Person','Cat','Dog','Vehicle'):
+        raise ValueError('Choose Person, Cat, Dog, or Vehicle.')
+    if subject_type == 'Vehicle' and identity_id is not None:
+        raise ValueError('Vehicles are labeled Unknown Vehicle.')
     jpeg = clip_frame(db_path, archive, catalog_id, seconds, box)
     with connect(db_path) as conn:
         require_clip(conn, catalog_id)

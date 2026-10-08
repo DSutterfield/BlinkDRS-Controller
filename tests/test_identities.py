@@ -38,7 +38,7 @@ class IdentityTests(unittest.TestCase):
         self.assertEqual(result['total'], 2)
         self.assertEqual(len(result['clips'][0]['identities']), 3)
         self.assertIs(result['clips'][0]['identities'][0]['confirmed'], True)
-        self.assertEqual(reader.execute('SELECT revision FROM catalog_notifications').fetchone()[0], baseline + 6)
+        self.assertEqual(reader.execute('SELECT revision FROM catalog_notifications').fetchone()[0], baseline + 8)
         assign_identity(self.db, 1, cat['identity_id'], 'Cat')
         self.assertEqual(len(get_clip_identities(self.db, 1)), 3)
 
@@ -103,7 +103,7 @@ class IdentityTests(unittest.TestCase):
         revision = reader.execute('SELECT revision FROM catalog_notifications').fetchone()[0]
         delete_identity(self.db, lucy['identity_id'])
         self.assertEqual([i['name'] for i in list_identities(self.db)], ['Dan'])
-        self.assertEqual(reader.execute('SELECT revision FROM catalog_notifications').fetchone()[0], revision + 2)
+        self.assertEqual(reader.execute('SELECT revision FROM catalog_notifications').fetchone()[0], revision + 3)
         for cid in (1, 2):
             unknown = get_clip_identities(self.db, cid)[0]
             self.assertIsNone(unknown['identity_id'])
@@ -187,3 +187,4 @@ class IdentityTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main()
+

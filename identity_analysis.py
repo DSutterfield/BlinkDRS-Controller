@@ -19,6 +19,10 @@ def ensure_analysis(conn):
         crop_jpeg BLOB NOT NULL, embedding TEXT, embedding_model TEXT,
         quality_score REAL, similarity REAL,
         UNIQUE(catalog_id,detection_key));
+    CREATE TABLE IF NOT EXISTS subject_type_samples (
+        detection_id INTEGER PRIMARY KEY REFERENCES clip_detections(detection_id) ON DELETE CASCADE,
+        subject_type TEXT NOT NULL, embedding TEXT, model_version TEXT NOT NULL,
+        quality_score REAL NOT NULL, crop_hash TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS identity_rejections (
         catalog_id INTEGER NOT NULL REFERENCES clips(id) ON DELETE CASCADE,
         detection_key TEXT NOT NULL, PRIMARY KEY(catalog_id,detection_key));
@@ -187,7 +191,7 @@ def pending_type_corrections(db_path):
     with connect(db_path) as conn:
         return [dict(row) for row in conn.execute("""SELECT d.detection_id,d.identity_id,d.subject_type,e.crop_jpeg
             FROM clip_detections d JOIN identity_evidence e USING(detection_id)
-            WHERE d.confirmed=1 AND d.identity_id IS NOT NULL AND
+            WHERE d.confirmed=1 AND
             (d.subject_type<>e.subject_type OR e.embedding_model='manual-pending') LIMIT 4""")]
 
 

@@ -70,16 +70,16 @@ class LocalModels:
                 for x in (0,width-crop_w):
                     views.append((bgr[y:y+crop_h,x:x+crop_w],x,y))
         candidates = []
-        kinds = {1:'Person',17:'Cat',18:'Dog'}
+        kinds = {1:'Person',3:'Vehicle',4:'Vehicle',6:'Vehicle',8:'Vehicle',17:'Cat',18:'Dog'}
         for view,x,y in views:
             rgb = Image.fromarray(self.cv2.cvtColor(view,self.cv2.COLOR_BGR2RGB))
             with self.torch.inference_mode():
                 result = self.detector([self.detector_transform(rgb)])[0]
             for label,score,box in zip(result['labels'],result['scores'],result['boxes']):
                 label,score = int(label),float(score)
-                if label not in kinds or score < (.65 if label==1 else .55):
+                if label not in kinds or score < (.85 if kinds[label]=='Vehicle' else .65 if label==1 else .55):
                     continue
-                if len(views)>1 and (x or y or view.shape != bgr.shape) and label==1:
+                if len(views)>1 and (x or y or view.shape != bgr.shape) and kinds[label] in ('Person','Vehicle'):
                     continue
                 box=box.tolist()
                 candidates.append({'subject_type':kinds[label],'confidence':score,'full_view':view.shape==bgr.shape,
@@ -97,6 +97,8 @@ class LocalModels:
         return kept
 
     def embedding(self, crop, kind):
+        if kind == 'Vehicle':
+            return None, None, 0  # Category only: no named vehicle matching.
         from PIL import Image
         if min(crop.shape[:2]) < 48:
             return None, None, 0
@@ -116,3 +118,15 @@ class LocalModels:
         with self.torch.inference_mode():
             output = self.pet_model(**self.processor(images=image, return_tensors='pt'))
         return output.last_hidden_state[0,0].tolist(), self.pet_version, quality
+
+    def type_embedding(self, crop):
+        # Use the same visual space for every Type, including people and vehicles.
+        return self.embedding(crop, 'Cat')
+
+    def accepts_vehicle(self, crop):
+        from subject_type_learning import vehicle_supported
+        references = getattr(self, 'type_references', [])
+        if not references:
+            return True
+        vector, model, quality = self.type_embedding(crop)
+        return vector is None or vehicle_supported(references, vector, model)

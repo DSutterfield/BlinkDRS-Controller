@@ -15,7 +15,7 @@ def ensure_identities(conn):
         detection_id INTEGER PRIMARY KEY,
         catalog_id INTEGER NOT NULL REFERENCES clips(id) ON DELETE CASCADE,
         identity_id INTEGER REFERENCES identities(identity_id),
-        subject_type TEXT NOT NULL CHECK(subject_type IN ('Person','Cat','Dog')),
+        subject_type TEXT NOT NULL CHECK(subject_type IN ('Person','Cat','Dog','Vehicle')),
         confidence REAL CHECK(confidence BETWEEN 0 AND 1),
         first_seen_seconds REAL CHECK(first_seen_seconds >= 0),
         last_seen_seconds REAL CHECK(last_seen_seconds >= first_seen_seconds),
@@ -33,6 +33,10 @@ def ensure_identities(conn):
         embedding BLOB, model_version TEXT, quality_score REAL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
     """)
+    from identity_vehicle_migration import ensure_vehicle_subjects
+    ensure_vehicle_subjects(conn)
+    from reference_photos import ensure_photos
+    ensure_photos(conn)
     from identity_analysis import ensure_analysis
     ensure_analysis(conn)
     # Notify existing Windows clients after a committed label change.
@@ -43,6 +47,9 @@ def ensure_identities(conn):
                 UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END""")
             conn.execute(f"""CREATE TRIGGER IF NOT EXISTS unknown_motion_notify_{event.lower()}
                 AFTER {event} ON clip_unknown_motion BEGIN
+                UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END""")
+            conn.execute(f"""CREATE TRIGGER IF NOT EXISTS profiles_notify_{event.lower()}
+                AFTER {event} ON identities BEGIN
                 UPDATE catalog_notifications SET revision=revision+1 WHERE id=1; END""")
 
 
@@ -76,12 +83,34 @@ def create_identity(db_path, name, subject_type):
                                  (name, subject_type)).fetchone())
 
 
+def update_identity(db_path, identity_id, name, subject_type):
+    """Keep the stable identity key; all clip names are joined from this table."""
+    name = name.strip()
+    if not name or len(name) > 100 or subject_type not in ('Person', 'Cat', 'Dog'):
+        raise ValueError('Enter a name (1–100 characters) and Person, Cat, or Dog.')
+    with connect(db_path) as conn:
+        current = conn.execute('SELECT * FROM identities WHERE identity_id=? AND active=1', (identity_id,)).fetchone()
+        if current is None:
+            raise LookupError('Identity profile not found.')
+        duplicate = conn.execute('SELECT identity_id FROM identities WHERE name=? AND subject_type=? AND identity_id<>?', (name,subject_type,identity_id)).fetchone()
+        if duplicate:
+            raise ValueError('Another identity already uses that name and type. Choose a different name; profiles are not merged.')
+        conn.execute('UPDATE identities SET name=?,subject_type=? WHERE identity_id=?', (name,subject_type,identity_id))
+        if current['subject_type'] != subject_type:
+            conn.execute('DELETE FROM identity_samples WHERE identity_id=?', (identity_id,))
+            conn.execute("UPDATE identity_photos SET state='pending',message='Type changed; waiting for bAI',sample_id=NULL WHERE identity_id=?", (identity_id,))
+            conn.execute('UPDATE clip_detections SET subject_type=? WHERE identity_id=?', (subject_type,identity_id))
+            conn.execute("UPDATE identity_evidence SET similarity=NULL,embedding=NULL,embedding_model='manual-pending' WHERE detection_id IN (SELECT detection_id FROM clip_detections WHERE identity_id=?)", (identity_id,))
+        return dict(conn.execute('SELECT * FROM identities WHERE identity_id=?', (identity_id,)).fetchone())
+
+
 def delete_identity(db_path, identity_id):
     """Forget a profile and references while retaining clip subjects as Unknown."""
     with connect(db_path) as conn:
         if not conn.execute('SELECT 1 FROM identities WHERE identity_id=?',
                             (identity_id,)).fetchone():
             raise LookupError('Identity profile not found.')
+        conn.execute('DELETE FROM identity_photos WHERE identity_id=?', (identity_id,))
         conn.execute('DELETE FROM identity_samples WHERE identity_id=?', (identity_id,))
         conn.execute('UPDATE identity_evidence SET similarity=NULL WHERE detection_id IN '
                      '(SELECT detection_id FROM clip_detections WHERE identity_id=?)', (identity_id,))
@@ -134,8 +163,10 @@ def require_clip(conn, catalog_id):
 
 def assign_identity(db_path, catalog_id, identity_id, subject_type, detection_id=None):
     """Explicit human assignment/correction. No fabricated confidence or training sample."""
-    if subject_type not in ('Person', 'Cat', 'Dog'):
+    if subject_type not in ('Person', 'Cat', 'Dog', 'Vehicle'):
         raise ValueError('Invalid subject type.')
+    if subject_type == 'Vehicle' and identity_id is not None:
+        raise ValueError('Vehicles are labeled Unknown Vehicle; named vehicle profiles are not supported.')
     with connect(db_path) as conn:
         require_clip(conn, catalog_id)
         if identity_id is not None:
