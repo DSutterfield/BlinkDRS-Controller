@@ -1,0 +1,28 @@
+BlinkDRS expanded cat training — completed 2026-10-09
+
+Finding: expanded training improves cat detection, but false alarms prevent a live replacement.
+
+Training expanded from 14 to 109 reviewed cat examples, including small/dark cats, fences, low light, and infrared images. Added 12 dog and 4 person training examples. Training completed 16 fixed passes in 1,197 seconds. No catalog, recordings, saved identities, human confirmations, or deployed recognition code changed. Both live services verified active after evaluation.
+
+Fixed comparison against unchanged pretrained YOLO11n:
+                                Baseline    Expanded
+Reserved cat crops found         0 / 8       5 / 8
+Whole-frame known cats found      0 / 8       5 / 8
+Noncat tiles with false cats      0 / 14      2 / 14
+Reviewed background false tiles   0 / 25      1 / 25
+Clip 24102 cats found             none        none
+
+Confidence threshold 0.30; accepted target box IoU at least 0.50. Fresh test examples were excluded from fitting and validation. Their 22 images represent four camera sessions, with all eight cat examples from two Water Bowl sessions. These are daylight recordings, not an independent nighttime test. Cross-camera appearances of the same animal/visit may overlap development and test. The previous pilot test is development evidence now.
+
+The crop test produced 5 true cat matches, 3 false/unmatched cat boxes, and 3 missed cat targets. Two false boxes cover fixtures/bins in person tiles. The third covers a real cat too tightly to meet IoU 0.50, so it counts as both an unmatched box and a missed target under the fixed rule.
+
+Whole-frame searching uses a fixed 384px grid with 256px stride and 320px model input. Mean expanded-model search time was 6.30 seconds per frame on the Pi during this experiment. Whole-frame overlays also show false cat boxes on garden fixtures. Whole-frame labels are not exhaustive, so the 5/8 number measures known-target recall only, not full-scene precision. Duplicate overlapping grid proposals remain visible in review overlays; they are not separate animals.
+
+The 25 reviewed background tiles and clip 24102 were already inspected during earlier experiments. They are development diagnostics, not fresh heldout evidence. The newly trained model still fails the original Lola/Kushka scene in 24102. No improvement in named identity matching is claimed; this experiment concerns Type detection.
+
+Decision: retain the existing live bAI. Expanded coverage helps the model learn real cats, but shadow/background rejection is not solved. The next training iteration should add explicitly empty shadowed ground, bins, garden fixtures and fence regions as hard negatives, improve box annotations, and use new separate-session nighttime and daylight clips for final testing. The present heldout results must become development evidence if used to tune that next iteration.
+
+Artifacts: BlinkDRS-Expanded-Cat-Study.zip contains the pretrained baseline, trained checkpoints, reviewed dataset/manifests, source frames, review sheets, training log and metrics, and complete evaluation records/overlays. EXPERIMENT.txt describes the protocol and limits; results.json contains measured predictions. Shell scripts alongside the archive reproduce extraction, fitting, and evaluation on the configured Pi.
+
+Archive transfer verified with matching Pi/Windows SHA256:
+b4c2811f86f8b9b55e57d1b23e621adebf8ae8409f75fbb5d11e4589b701644a

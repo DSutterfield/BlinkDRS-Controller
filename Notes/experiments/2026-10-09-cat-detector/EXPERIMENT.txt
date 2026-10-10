@@ -1,0 +1,15 @@
+BlinkDRS expanded cat detector experiment — 2026-10-09
+
+Purpose: improve detection of small, dark, partly fenced, and low-light cats before identity matching. Lola is the black-and-white cat; Kushka is the white cat. This experiment changes no saved identities or confirmations.
+
+Data source: read-only copies of native human-confirmed manual crops and their original recordings. 191 crop positions recovered by native-resolution template matching; all exceeded the match and ambiguity checks. Contextual tiles were reviewed visually. 41 examples were excluded because of apparent Type mistakes or additional visible unlabeled subjects. Saved catalog labels were not changed.
+
+Reviewed split: training 109 cat / 12 dog / 4 person images; validation 2 cat / 1 person; final test 8 cat / 3 dog / 11 person. Whole camera sessions, separated by gaps greater than two hours, stay within one split. Sessions containing previous pilot examples are development/training only. The test uses fresh sessions. It contains daylight images; nighttime examples are represented in training but independent nighttime performance remains unmeasured. Multiple images from one session are correlated, not independent visits.
+
+Labels inherit human crop boundaries. Some include margins or truncate tails. This is a reviewed experimental dataset, not exhaustive full-frame annotation. Full-video detection recall cannot be inferred from centered contextual crops. The additional whole-frame grid test measures recall of the known labeled targets only; other subjects are not exhaustively labeled. The same animal or physical visit can appear on different cameras in different splits; camera-session separation does not establish animal-disjoint or global-visit-disjoint evaluation.
+
+Model: official pretrained YOLO11n, retaining its 80-class output head. Only the final detection module is trainable (freeze=23). Fixed 16 epochs, 320px input, batch 4, AdamW learning rate 0.0005, fixed seed, no mosaic, moderate translation/scale and horizontal flips. Best checkpoint selected using validation only. The small validation set limits checkpoint selection reliability.
+
+Final comparison: unchanged pretrained YOLO11n versus expanded checkpoint at confidence >=0.30 and cat-box IoU >=0.50. The operating threshold was fixed before the new test. Previously inspected background tiles and clip 24102 are development diagnostics, not independent proof. No threshold or model adjustment follows the final test in this run.
+
+Production: experiment isolated on the configured Pi; catalog, recordings, identity profiles, services, and deployed recognition code remain unchanged. This file records the protocol; final measurements are written separately after evaluation completes.
