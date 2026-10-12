@@ -1,0 +1,44 @@
+{
+  "source": "Dan's direct review in this chat",
+  "review_date": "2026-10-12",
+  "clips": [
+    {
+      "clip": 25318,
+      "species": "Cat",
+      "distinct_animals_in_clip": 1,
+      "individual_name_as_supplied": "Kuska",
+      "review_text": "25318 - 25319: Both clips have one cat. FYI Kuska.",
+      "frame_visibility_and_boxes": "not yet annotated",
+      "continuity": "Same named cat identified in both clips; uninterrupted continuity not established"
+    },
+    {
+      "clip": 25319,
+      "species": "Cat",
+      "distinct_animals_in_clip": 1,
+      "individual_name_as_supplied": "Kuska",
+      "review_text": "25318 - 25319: Both clips have one cat. FYI Kuska.",
+      "frame_visibility_and_boxes": "not yet annotated",
+      "continuity": "Same named cat identified in both clips; uninterrupted continuity not established"
+    },
+    {
+      "clip": 25146,
+      "species": "Cat",
+      "distinct_animals_in_clip": 1,
+      "individual_name_as_supplied": "Levi",
+      "review_text": "25146 - 25147: One cat FYI Levi.",
+      "frame_visibility_and_boxes": "not yet annotated",
+      "continuity": "Same named cat identified in both clips; uninterrupted continuity not established"
+    },
+    {
+      "clip": 25147,
+      "species": "Cat",
+      "distinct_animals_in_clip": 1,
+      "individual_name_as_supplied": "Levi",
+      "review_text": "25146 - 25147: One cat FYI Levi.",
+      "frame_visibility_and_boxes": "not yet annotated",
+      "continuity": "Same named cat identified in both clips; uninterrupted continuity not established"
+    }
+  ],
+  "pending_clip_reviews": [],
+  "production_catalog_modified": false
+}

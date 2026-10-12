@@ -1,0 +1,4052 @@
+[
+  {
+    "clip": 19979,
+    "detection_id": 1484,
+    "kind": "Cat",
+    "camera": "Front Door",
+    "captured_at": "2026-10-03T20:45:05+00:00",
+    "seconds": 2.499,
+    "box": [
+      226,
+      638,
+      358,
+      704
+    ],
+    "match_score": 0.998532772064209,
+    "runnerup": 0.5703234672546387,
+    "recoverable": true,
+    "frame_sha256": "50ee08d9a25ae1d3b42d7a039fc56d8190fe80d8718104dd70dc03d86e03c816",
+    "split": "train",
+    "session": "Front Door:2026-10-03T20:45:05+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1484.jpg",
+    "source_region": [
+      164,
+      543,
+      420,
+      799
+    ]
+  },
+  {
+    "clip": 19982,
+    "detection_id": 255,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-03T20:45:14+00:00",
+    "seconds": 1.1794462,
+    "box": [
+      866,
+      395,
+      942,
+      478
+    ],
+    "match_score": 0.9990772008895874,
+    "runnerup": 0.5799111723899841,
+    "recoverable": true,
+    "frame_sha256": "6c0f84722165564b6a2dc219d46f810fbe50dfea0343053db418e8eca0fc73e7",
+    "split": "train",
+    "session": "Water Bowl:2026-10-03T20:45:14+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/255.jpg",
+    "source_region": [
+      776,
+      308,
+      1032,
+      564
+    ]
+  },
+  {
+    "clip": 19985,
+    "detection_id": 223,
+    "kind": "Cat",
+    "camera": "Front Door",
+    "captured_at": "2026-10-03T20:45:57+00:00",
+    "seconds": 29.3519964,
+    "box": [
+      84,
+      472,
+      432,
+      952
+    ],
+    "match_score": 0.9995737075805664,
+    "runnerup": 0.60124671459198,
+    "recoverable": true,
+    "frame_sha256": "c88333e54d1c800e240c9c0d0ec10b86e27058db8eaa5454b2aa7ce586e2a1ee",
+    "split": "train",
+    "session": "Front Door:2026-10-03T20:45:05+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/223.jpg",
+    "source_region": [
+      0,
+      432,
+      528,
+      960
+    ]
+  },
+  {
+    "clip": 19986,
+    "detection_id": 1486,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-03T20:45:54+00:00",
+    "seconds": 1.75,
+    "box": [
+      840,
+      366,
+      903,
+      418
+    ],
+    "match_score": 0.9988976120948792,
+    "runnerup": 0.48390668630599976,
+    "recoverable": true,
+    "frame_sha256": "2f13ba7071c1aaef91a15774d316e85c32d736fb560145af63bc253e9814e6fc",
+    "split": "train",
+    "session": "Pergola:2026-10-03T20:45:54+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1486.jpg",
+    "source_region": [
+      743,
+      264,
+      999,
+      520
+    ]
+  },
+  {
+    "clip": 19989,
+    "detection_id": 1489,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-03T20:46:25+00:00",
+    "seconds": 23.958,
+    "box": [
+      830,
+      407,
+      927,
+      492
+    ],
+    "match_score": 0.9986703395843506,
+    "runnerup": 0.4686770737171173,
+    "recoverable": true,
+    "frame_sha256": "a2f91c7f3c2a66caec461206ec6dc0e56868b0ba1634788fbeba610844080dfd",
+    "split": "train",
+    "session": "Water Bowl:2026-10-03T20:45:14+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1489.jpg",
+    "source_region": [
+      750,
+      321,
+      1006,
+      577
+    ]
+  },
+  {
+    "clip": 19991,
+    "detection_id": 1492,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-03T20:47:16+00:00",
+    "seconds": 26.833,
+    "box": [
+      673,
+      236,
+      729,
+      302
+    ],
+    "match_score": 0.9978549480438232,
+    "runnerup": 0.38910359144210815,
+    "recoverable": true,
+    "frame_sha256": "2ae178da36e6e6017fb475966fe57be8d0999dc449e2ca6e23436211de3d7f1b",
+    "split": "train",
+    "session": "Back Gate:2026-10-03T20:47:16+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1492.jpg",
+    "source_region": [
+      573,
+      141,
+      829,
+      397
+    ]
+  },
+  {
+    "clip": 20004,
+    "detection_id": 220,
+    "kind": "Cat",
+    "camera": "Front Door",
+    "captured_at": "2026-10-03T20:50:50+00:00",
+    "seconds": 3.7899941,
+    "box": [
+      202,
+      629,
+      352,
+      698
+    ],
+    "match_score": 0.9981691241264343,
+    "runnerup": 0.5096324682235718,
+    "recoverable": true,
+    "frame_sha256": "5efa59452414ff5514839148f2508e986120cddf6301e81aad50633947eff7a7",
+    "split": "train",
+    "session": "Front Door:2026-10-03T20:45:05+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/220.jpg",
+    "source_region": [
+      149,
+      535,
+      405,
+      791
+    ]
+  },
+  {
+    "clip": 20035,
+    "detection_id": 1500,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-03T21:51:21+00:00",
+    "seconds": 3.625,
+    "box": [
+      807,
+      153,
+      879,
+      216
+    ],
+    "match_score": 0.9967525005340576,
+    "runnerup": 0.48506858944892883,
+    "recoverable": true,
+    "frame_sha256": "719a0713e4a73a3d72978c33738d68efa2e31a233cbeac48d9818f0352cfb43b",
+    "split": "train",
+    "session": "Back Gate:2026-10-03T20:47:16+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1500.jpg",
+    "source_region": [
+      715,
+      56,
+      971,
+      312
+    ]
+  },
+  {
+    "clip": 20039,
+    "detection_id": 259,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-03T21:53:22+00:00",
+    "seconds": 1.0574085,
+    "box": [
+      755,
+      138,
+      841,
+      194
+    ],
+    "match_score": 0.9978780746459961,
+    "runnerup": 0.44983386993408203,
+    "recoverable": true,
+    "frame_sha256": "0e061d93c768d4095e3cfc8c60014f15c9f34def97b0e866a2d76cf652fe6e23",
+    "split": "train",
+    "session": "Back Gate:2026-10-03T20:47:16+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/259.jpg",
+    "source_region": [
+      670,
+      38,
+      926,
+      294
+    ]
+  },
+  {
+    "clip": 20042,
+    "detection_id": 1504,
+    "kind": "Dog",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-03T22:12:43+00:00",
+    "seconds": 2.0,
+    "box": [
+      721,
+      98,
+      813,
+      182
+    ],
+    "match_score": 0.9957976937294006,
+    "runnerup": 0.34548965096473694,
+    "recoverable": true,
+    "frame_sha256": "58f48fb550105246dc837f12e576fe4fe832c6935f29c05d540e11c4c2cc3f25",
+    "split": "train",
+    "session": "Back Gate:2026-10-03T20:47:16+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1504.jpg",
+    "source_region": [
+      639,
+      12,
+      895,
+      268
+    ]
+  },
+  {
+    "clip": 20045,
+    "detection_id": 1505,
+    "kind": "Dog",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-03T22:13:15+00:00",
+    "seconds": 3.75,
+    "box": [
+      897,
+      476,
+      1031,
+      594
+    ],
+    "match_score": 0.9976718425750732,
+    "runnerup": 0.2991420328617096,
+    "recoverable": true,
+    "frame_sha256": "2b726b6879d36bfa4ea7207f3301dfd6eacca18309014086dd45be0cef55b2cc",
+    "split": "train",
+    "session": "Water Bowl:2026-10-03T20:45:14+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1505.jpg",
+    "source_region": [
+      836,
+      407,
+      1092,
+      663
+    ]
+  },
+  {
+    "clip": 20064,
+    "detection_id": 200,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-03T23:23:50+00:00",
+    "seconds": 3.3899947,
+    "box": [
+      517,
+      458,
+      689,
+      572
+    ],
+    "match_score": 0.9991241693496704,
+    "runnerup": 0.2528560161590576,
+    "recoverable": true,
+    "frame_sha256": "17d19f59f443babecd476ba04c04ed6a50060fcc3af9925d2af1e59a427e0b83",
+    "split": "train",
+    "session": "Back Gate:2026-10-03T20:47:16+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/200.jpg",
+    "source_region": [
+      475,
+      387,
+      731,
+      643
+    ]
+  },
+  {
+    "clip": 20065,
+    "detection_id": 201,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-03T23:24:01+00:00",
+    "seconds": 2.579996,
+    "box": [
+      912,
+      518,
+      985,
+      603
+    ],
+    "match_score": 0.9991552829742432,
+    "runnerup": 0.30539780855178833,
+    "recoverable": true,
+    "frame_sha256": "a445c158189ed238b7182fc594093690c044f46ff9b3b38880ce1e0a2efb7baa",
+    "split": "train",
+    "session": "Pergola:2026-10-03T23:24:01+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/201.jpg",
+    "source_region": [
+      820,
+      432,
+      1076,
+      688
+    ]
+  },
+  {
+    "clip": 20073,
+    "detection_id": 215,
+    "kind": "Dog",
+    "camera": "Front Door",
+    "captured_at": "2026-10-03T23:33:20+00:00",
+    "seconds": 22.0,
+    "box": [
+      728,
+      542,
+      798,
+      614
+    ],
+    "match_score": 0.9991081357002258,
+    "runnerup": 0.7197586894035339,
+    "recoverable": true,
+    "frame_sha256": "d94226762c5c339a0209f328c9f03709038017e5623a5ed23be16aef03cc790f",
+    "split": "train",
+    "session": "Front Door:2026-10-03T23:33:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/215.jpg",
+    "source_region": [
+      635,
+      450,
+      891,
+      706
+    ]
+  },
+  {
+    "clip": 20075,
+    "detection_id": 212,
+    "kind": "Dog",
+    "camera": "Front Door",
+    "captured_at": "2026-10-03T23:44:25+00:00",
+    "seconds": 4.6099928,
+    "box": [
+      536,
+      631,
+      677,
+      785
+    ],
+    "match_score": 0.9986923336982727,
+    "runnerup": 0.5085197687149048,
+    "recoverable": true,
+    "frame_sha256": "2bf99f2056deb8a5d42171a4973fcd62f49fc57c949bfb417d359d336a92fb51",
+    "split": "train",
+    "session": "Front Door:2026-10-03T23:33:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/212.jpg",
+    "source_region": [
+      478,
+      580,
+      734,
+      836
+    ]
+  },
+  {
+    "clip": 20105,
+    "detection_id": 365,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-04T00:08:00+00:00",
+    "seconds": 7.0599982,
+    "box": [
+      496,
+      364,
+      595,
+      486
+    ],
+    "match_score": 0.9981229305267334,
+    "runnerup": 0.25272127985954285,
+    "recoverable": true,
+    "frame_sha256": "aeae6ff9c9277a2eb22d05ae53b6ec8bc4bac6a98fc4feaecb9d0536f02b7c30",
+    "split": "train",
+    "session": "Back Gate:2026-10-03T20:47:16+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/365.jpg",
+    "source_region": [
+      417,
+      297,
+      673,
+      553
+    ]
+  },
+  {
+    "clip": 20153,
+    "detection_id": 1514,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-04T00:27:07+00:00",
+    "seconds": 4.0,
+    "box": [
+      655,
+      328,
+      700,
+      387
+    ],
+    "match_score": 0.9993281364440918,
+    "runnerup": 0.5215415358543396,
+    "recoverable": true,
+    "frame_sha256": "2d28bef88c47982d61f6d9441740041347d31d1b2887e2105af9f937e04d6a39",
+    "split": "train",
+    "session": "Pergola:2026-10-03T23:24:01+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1514.jpg",
+    "source_region": [
+      549,
+      229,
+      805,
+      485
+    ]
+  },
+  {
+    "clip": 20174,
+    "detection_id": 355,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-04T00:41:04+00:00",
+    "seconds": 5.099992,
+    "box": [
+      422,
+      373,
+      515,
+      455
+    ],
+    "match_score": 0.9966368675231934,
+    "runnerup": 0.3848654329776764,
+    "recoverable": true,
+    "frame_sha256": "a968b8cf73e80a8d14bc9b2d591ab86b89f8968ca452c27e53a46b60955cc423",
+    "split": "train",
+    "session": "Pergola:2026-10-03T23:24:01+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/355.jpg",
+    "source_region": [
+      340,
+      286,
+      596,
+      542
+    ]
+  },
+  {
+    "clip": 20174,
+    "detection_id": 356,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-04T00:41:04+00:00",
+    "seconds": 12.7399985,
+    "box": [
+      699,
+      545,
+      807,
+      664
+    ],
+    "match_score": 0.998793363571167,
+    "runnerup": 0.4885519742965698,
+    "recoverable": true,
+    "frame_sha256": "6bff1d86687a6c45c509d4465dff3b15ce3e178af9153ed87917bf6e8695f32f",
+    "split": "train",
+    "session": "Pergola:2026-10-03T23:24:01+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/356.jpg",
+    "source_region": [
+      625,
+      464,
+      881,
+      720
+    ]
+  },
+  {
+    "clip": 20349,
+    "detection_id": 377,
+    "kind": "Cat",
+    "camera": "Front Door",
+    "captured_at": "2026-10-04T03:03:51+00:00",
+    "seconds": 3.5299945,
+    "box": [
+      0,
+      503,
+      458,
+      960
+    ],
+    "match_score": 0.9996088743209839,
+    "runnerup": 0.2588406205177307,
+    "recoverable": true,
+    "frame_sha256": "808432da7d87d8b1c7db5251c32372a8611ac32cad6a68f31e8ad9f233fd7a56",
+    "split": "train",
+    "session": "Front Door:2026-10-04T03:03:51+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/377.jpg",
+    "source_region": [
+      0,
+      454,
+      506,
+      960
+    ]
+  },
+  {
+    "clip": 20427,
+    "detection_id": 572,
+    "kind": "Dog",
+    "camera": "Back Door",
+    "captured_at": "2026-10-04T12:00:06+00:00",
+    "seconds": 27.4944996,
+    "box": [
+      456,
+      403,
+      674,
+      560
+    ],
+    "match_score": 0.9995807409286499,
+    "runnerup": 0.40879911184310913,
+    "recoverable": true,
+    "frame_sha256": "1b94e23980babc97ae1365b9f0cac86d76c971655e7d870145ab4b827d9ec715",
+    "split": "train",
+    "session": "Back Door:2026-10-04T12:00:06+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/572.jpg",
+    "source_region": [
+      432,
+      348,
+      698,
+      614
+    ]
+  },
+  {
+    "clip": 20617,
+    "detection_id": 1362,
+    "kind": "Cat",
+    "camera": "Catio",
+    "captured_at": "2026-10-04T17:04:37+00:00",
+    "seconds": 1.5999975,
+    "box": [
+      383,
+      411,
+      507,
+      490
+    ],
+    "match_score": 0.9988547563552856,
+    "runnerup": 0.425983726978302,
+    "recoverable": true,
+    "frame_sha256": "71bec620a049a990edbe7b2b7a515632242378e0ca3d8b5b0da504f81be5e25b",
+    "split": "train",
+    "session": "Catio:2026-10-04T17:04:37+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1362.jpg",
+    "source_region": [
+      317,
+      322,
+      573,
+      578
+    ]
+  },
+  {
+    "clip": 20622,
+    "detection_id": 1366,
+    "kind": "Person",
+    "camera": "Back Door",
+    "captured_at": "2026-10-04T17:09:21+00:00",
+    "seconds": 0.8327279,
+    "box": [
+      74,
+      384,
+      341,
+      705
+    ],
+    "match_score": 0.9996058344841003,
+    "runnerup": 0.4399557411670685,
+    "recoverable": true,
+    "frame_sha256": "c5fac5697e57060c7ae3341d5318071c0275d1e6184f877d267ab3cb46736782",
+    "split": "train",
+    "session": "Back Door:2026-10-04T17:02:28+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1366.jpg",
+    "source_region": [
+      23,
+      351,
+      392,
+      720
+    ]
+  },
+  {
+    "clip": 20626,
+    "detection_id": 1367,
+    "kind": "Dog",
+    "camera": "Back Door",
+    "captured_at": "2026-10-04T17:12:25+00:00",
+    "seconds": 1.8099972,
+    "box": [
+      143,
+      587,
+      374,
+      720
+    ],
+    "match_score": 0.9990708231925964,
+    "runnerup": 0.5940893292427063,
+    "recoverable": true,
+    "frame_sha256": "62863a345f06765009960ecada325b021c9ef910eeba22b1cb68670dad57796d",
+    "split": "train",
+    "session": "Back Door:2026-10-04T17:02:28+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1367.jpg",
+    "source_region": [
+      119,
+      441,
+      398,
+      720
+    ]
+  },
+  {
+    "clip": 20629,
+    "detection_id": 1368,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:16:26+00:00",
+    "seconds": 4.1699935,
+    "box": [
+      343,
+      376,
+      414,
+      471
+    ],
+    "match_score": 0.999409019947052,
+    "runnerup": 0.7155455946922302,
+    "recoverable": true,
+    "frame_sha256": "c9ee5e6e61eba4ca7f67f3d26c9c4f5a387eb5991c38365d97226c7e14af68ac",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1368.jpg",
+    "source_region": [
+      250,
+      295,
+      506,
+      551
+    ]
+  },
+  {
+    "clip": 20631,
+    "detection_id": 1370,
+    "kind": "Person",
+    "camera": "Driveway",
+    "captured_at": "2026-10-04T17:17:31+00:00",
+    "seconds": 1.8099972,
+    "box": [
+      369,
+      234,
+      490,
+      502
+    ],
+    "match_score": 0.9988976716995239,
+    "runnerup": 0.38909661769866943,
+    "recoverable": true,
+    "frame_sha256": "20002a2ebae5a0311a8789f7901608cd8674d841cd39ce29cc3be1677b5d03e4",
+    "split": "val",
+    "session": "Driveway:2026-10-04T17:02:01+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/val/1370.jpg",
+    "source_region": [
+      271,
+      210,
+      587,
+      526
+    ]
+  },
+  {
+    "clip": 20632,
+    "detection_id": 1369,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:17:30+00:00",
+    "seconds": 1.4850295,
+    "box": [
+      551,
+      412,
+      691,
+      501
+    ],
+    "match_score": 0.9991280436515808,
+    "runnerup": 0.36922937631607056,
+    "recoverable": true,
+    "frame_sha256": "4d0b1260c06ea76c3371578ff0a7a895f3b8699d496eda7d48d20d19ad90d5a6",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1369.jpg",
+    "source_region": [
+      493,
+      328,
+      749,
+      584
+    ]
+  },
+  {
+    "clip": 20635,
+    "detection_id": 1371,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:20:44+00:00",
+    "seconds": 0.8437904,
+    "box": [
+      413,
+      416,
+      584,
+      503
+    ],
+    "match_score": 0.9992099404335022,
+    "runnerup": 0.3613201677799225,
+    "recoverable": true,
+    "frame_sha256": "002e9b55623e4e6cd5e76b580b7724e0391cd3caf4b3db8b5418c8b0fe21a37b",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1371.jpg",
+    "source_region": [
+      370,
+      331,
+      626,
+      587
+    ]
+  },
+  {
+    "clip": 20637,
+    "detection_id": 1373,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:21:35+00:00",
+    "seconds": 1.0099984,
+    "box": [
+      847,
+      402,
+      958,
+      493
+    ],
+    "match_score": 0.9989111423492432,
+    "runnerup": 0.5697643756866455,
+    "recoverable": true,
+    "frame_sha256": "8e54e9e59d9a122cae279891aae292f4678adbce8f73f72eb254d960e5a572fa",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1373.jpg",
+    "source_region": [
+      774,
+      319,
+      1030,
+      575
+    ]
+  },
+  {
+    "clip": 20640,
+    "detection_id": 1378,
+    "kind": "Person",
+    "camera": "Picnic Table/Play Area",
+    "captured_at": "2026-10-04T17:24:15+00:00",
+    "seconds": 1.3299979,
+    "box": [
+      981,
+      467,
+      1089,
+      695
+    ],
+    "match_score": 0.998225212097168,
+    "runnerup": 0.32895660400390625,
+    "recoverable": true,
+    "frame_sha256": "e1bd9ecd7ddaf1f194b260b5eeeacc13234c1b50eada529f3b1ff9a2a24baa0f",
+    "split": "train",
+    "session": "Picnic Table/Play Area:2026-10-04T17:24:15+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1378.jpg",
+    "source_region": [
+      897,
+      443,
+      1173,
+      719
+    ]
+  },
+  {
+    "clip": 20641,
+    "detection_id": 1374,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:23:26+00:00",
+    "seconds": 5.0199922,
+    "box": [
+      765,
+      281,
+      862,
+      444
+    ],
+    "match_score": 0.9991171360015869,
+    "runnerup": 0.4470590651035309,
+    "recoverable": true,
+    "frame_sha256": "4de7f393fac8caf070c63aaf43c45d8cee22e28fd3be348c6add1465a0767903",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1374.jpg",
+    "source_region": [
+      685,
+      234,
+      941,
+      490
+    ]
+  },
+  {
+    "clip": 20642,
+    "detection_id": 1375,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:24:19+00:00",
+    "seconds": 3.199995,
+    "box": [
+      854,
+      466,
+      988,
+      552
+    ],
+    "match_score": 0.9979825019836426,
+    "runnerup": 0.5073410272598267,
+    "recoverable": true,
+    "frame_sha256": "b2c9546c9f67e10e8bc2df8aaa1f455f4f089be8e85aaec49d472c8a501a47ac",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1375.jpg",
+    "source_region": [
+      793,
+      381,
+      1049,
+      637
+    ]
+  },
+  {
+    "clip": 20644,
+    "detection_id": 1380,
+    "kind": "Dog",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-04T17:26:32+00:00",
+    "seconds": 0.9899985,
+    "box": [
+      538,
+      551,
+      706,
+      720
+    ],
+    "match_score": 0.9992658495903015,
+    "runnerup": 0.5105795860290527,
+    "recoverable": true,
+    "frame_sha256": "e6485a2a94395519a318753416663e3f8a391cf3fe76db6f1949d8c8e81d1e2d",
+    "split": "test",
+    "session": "Back Gate:2026-10-04T17:26:32+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1380.jpg",
+    "source_region": [
+      494,
+      464,
+      750,
+      720
+    ]
+  },
+  {
+    "clip": 20645,
+    "detection_id": 1376,
+    "kind": "Dog",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:26:29+00:00",
+    "seconds": 12.1899994,
+    "box": [
+      723,
+      313,
+      805,
+      405
+    ],
+    "match_score": 0.9989475011825562,
+    "runnerup": 0.533264696598053,
+    "recoverable": true,
+    "frame_sha256": "ac1ad1a9ec910b974413f40b856b9cde50e12a7088b3f0b76dc31bfed5e8d50e",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1376.jpg",
+    "source_region": [
+      636,
+      231,
+      892,
+      487
+    ]
+  },
+  {
+    "clip": 20645,
+    "detection_id": 1377,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:26:29+00:00",
+    "seconds": 4.29591,
+    "box": [
+      1149,
+      455,
+      1271,
+      668
+    ],
+    "match_score": 0.9987320899963379,
+    "runnerup": 0.4859849214553833,
+    "recoverable": true,
+    "frame_sha256": "aedd7f5a00739586cd2a67bc2ec46dfd8669d16e71f17e6ebc3c362628c38b79",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1377.jpg",
+    "source_region": [
+      1019,
+      431,
+      1280,
+      692
+    ]
+  },
+  {
+    "clip": 20646,
+    "detection_id": 1382,
+    "kind": "Dog",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:27:09+00:00",
+    "seconds": 1.7699973,
+    "box": [
+      721,
+      320,
+      798,
+      404
+    ],
+    "match_score": 0.9989645481109619,
+    "runnerup": 0.5479341149330139,
+    "recoverable": true,
+    "frame_sha256": "d9af0a0d29bc01f0589c430b0246b827739cd003b3c9dd7691dd22bbb2fe5046",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1382.jpg",
+    "source_region": [
+      631,
+      234,
+      887,
+      490
+    ]
+  },
+  {
+    "clip": 20649,
+    "detection_id": 1385,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:35:30+00:00",
+    "seconds": 2.6399959,
+    "box": [
+      971,
+      324,
+      1081,
+      500
+    ],
+    "match_score": 0.9981354475021362,
+    "runnerup": 0.33755481243133545,
+    "recoverable": true,
+    "frame_sha256": "43bdd1f3c9440a286cf224d9928d90b4950796f087155c4c07c7b1c1158e38a6",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1385.jpg",
+    "source_region": [
+      898,
+      284,
+      1154,
+      540
+    ]
+  },
+  {
+    "clip": 20651,
+    "detection_id": 1386,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:36:26+00:00",
+    "seconds": 1.3599979,
+    "box": [
+      775,
+      280,
+      858,
+      456
+    ],
+    "match_score": 0.99913489818573,
+    "runnerup": 0.5676344633102417,
+    "recoverable": true,
+    "frame_sha256": "bbaaa10366cbcf7f60e9a80e1831384191562a8bd3b382bfd58e316d9bb248a3",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1386.jpg",
+    "source_region": [
+      688,
+      240,
+      944,
+      496
+    ]
+  },
+  {
+    "clip": 20656,
+    "detection_id": 1387,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:39:35+00:00",
+    "seconds": 0.6099991,
+    "box": [
+      697,
+      250,
+      793,
+      410
+    ],
+    "match_score": 0.9990699291229248,
+    "runnerup": 0.5687928795814514,
+    "recoverable": true,
+    "frame_sha256": "c30b3ebccd33ae418e2fc3b656672d35a40221c015dd41124523ca7b17080117",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1387.jpg",
+    "source_region": [
+      617,
+      202,
+      873,
+      458
+    ]
+  },
+  {
+    "clip": 20659,
+    "detection_id": 1391,
+    "kind": "Person",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-04T17:40:57+00:00",
+    "seconds": 2.7599957,
+    "box": [
+      533,
+      347,
+      709,
+      635
+    ],
+    "match_score": 0.9980970025062561,
+    "runnerup": 0.3216128349304199,
+    "recoverable": true,
+    "frame_sha256": "3ffed0fc19384b53ea06a2c391cff3882f1079dbb6566c41138dfb7f2cbd6baa",
+    "split": "test",
+    "session": "Back Gate:2026-10-04T17:26:32+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1391.jpg",
+    "source_region": [
+      453,
+      323,
+      789,
+      659
+    ]
+  },
+  {
+    "clip": 20660,
+    "detection_id": 1388,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:40:45+00:00",
+    "seconds": 3.4799946,
+    "box": [
+      764,
+      294,
+      838,
+      451
+    ],
+    "match_score": 0.9988006949424744,
+    "runnerup": 0.3580259084701538,
+    "recoverable": true,
+    "frame_sha256": "ff55c0a666d5c75436cd7e49117222e3c68c1069414f2b6b2d4338453ba52dd9",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1388.jpg",
+    "source_region": [
+      673,
+      244,
+      929,
+      500
+    ]
+  },
+  {
+    "clip": 20660,
+    "detection_id": 1389,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:40:45+00:00",
+    "seconds": 9.7423508,
+    "box": [
+      1202,
+      396,
+      1271,
+      531
+    ],
+    "match_score": 0.9990045428276062,
+    "runnerup": 0.5782924890518188,
+    "recoverable": true,
+    "frame_sha256": "bd1f966136fa4c34fe91e6ab4a635f9c6ccd97bafe66d1588c220d5fb343aaab",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1389.jpg",
+    "source_region": [
+      1024,
+      335,
+      1280,
+      591
+    ]
+  },
+  {
+    "clip": 20660,
+    "detection_id": 1390,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:40:45+00:00",
+    "seconds": 17.8923472,
+    "box": [
+      1060,
+      335,
+      1160,
+      518
+    ],
+    "match_score": 0.9984044432640076,
+    "runnerup": 0.21575897932052612,
+    "recoverable": true,
+    "frame_sha256": "a5915e46b603674564903fb5d0dfabfddbf393511acb1043e08d6da039e29d57",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1390.jpg",
+    "source_region": [
+      982,
+      298,
+      1238,
+      554
+    ]
+  },
+  {
+    "clip": 20661,
+    "detection_id": 1392,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:41:25+00:00",
+    "seconds": 6.6915608,
+    "box": [
+      1169,
+      383,
+      1253,
+      490
+    ],
+    "match_score": 0.9983618259429932,
+    "runnerup": 0.4341661334037781,
+    "recoverable": true,
+    "frame_sha256": "4f7dfc20002d64e2ae675b9b1f9c8a62eb6ee8c5291550d605392ec8f7780414",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1392.jpg",
+    "source_region": [
+      1024,
+      308,
+      1280,
+      564
+    ]
+  },
+  {
+    "clip": 20666,
+    "detection_id": 1394,
+    "kind": "Person",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T17:44:24+00:00",
+    "seconds": 2.7499957,
+    "box": [
+      763,
+      253,
+      870,
+      457
+    ],
+    "match_score": 0.998911440372467,
+    "runnerup": 0.48855334520339966,
+    "recoverable": true,
+    "frame_sha256": "67a7fab8ffa5ae66e0e6d323d3f567021f8dd5006f3aa14cecf80c1166d32331",
+    "split": "test",
+    "session": "Water Bowl:2026-10-04T17:16:26+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1394.jpg",
+    "source_region": [
+      688,
+      227,
+      944,
+      483
+    ]
+  },
+  {
+    "clip": 20929,
+    "detection_id": 1193,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T22:45:52+00:00",
+    "seconds": 1.2199981,
+    "box": [
+      463,
+      466,
+      624,
+      578
+    ],
+    "match_score": 0.9992444515228271,
+    "runnerup": 0.4165472686290741,
+    "recoverable": true,
+    "frame_sha256": "70d1da05fd937325f450537fe0528fd6609514972476affd1584d3f5d2fe8e2e",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1193.jpg",
+    "source_region": [
+      415,
+      394,
+      671,
+      650
+    ]
+  },
+  {
+    "clip": 20930,
+    "detection_id": 1192,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T22:53:06+00:00",
+    "seconds": 5.0,
+    "box": [
+      575,
+      504,
+      761,
+      584
+    ],
+    "match_score": 0.9990697503089905,
+    "runnerup": 0.4008931815624237,
+    "recoverable": true,
+    "frame_sha256": "324177aff3330735a5dc63a99c1208dfa54a9ba8eb2988742897773909396e18",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1192.jpg",
+    "source_region": [
+      540,
+      416,
+      796,
+      672
+    ]
+  },
+  {
+    "clip": 20931,
+    "detection_id": 1191,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T22:54:09+00:00",
+    "seconds": 13.679997,
+    "box": [
+      890,
+      469,
+      984,
+      556
+    ],
+    "match_score": 0.9986520409584045,
+    "runnerup": 0.39682212471961975,
+    "recoverable": true,
+    "frame_sha256": "a321c73e2844a23b6898fdf5e1f86a1e020a5b9a7a86441157fae1b44c934180",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1191.jpg",
+    "source_region": [
+      809,
+      384,
+      1065,
+      640
+    ]
+  },
+  {
+    "clip": 20932,
+    "detection_id": 1190,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T23:03:06+00:00",
+    "seconds": 3.4536889,
+    "box": [
+      854,
+      437,
+      990,
+      529
+    ],
+    "match_score": 0.9992236495018005,
+    "runnerup": 0.41661790013313293,
+    "recoverable": true,
+    "frame_sha256": "e62ddcc517fdbb5fc9e046f2d37cc8c7bfb06116ae95f127839c50d7771c5c4b",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1190.jpg",
+    "source_region": [
+      794,
+      355,
+      1050,
+      611
+    ]
+  },
+  {
+    "clip": 20952,
+    "detection_id": 1225,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T23:50:59+00:00",
+    "seconds": 1.279998,
+    "box": [
+      802,
+      425,
+      934,
+      501
+    ],
+    "match_score": 0.9985971450805664,
+    "runnerup": 0.5135537385940552,
+    "recoverable": true,
+    "frame_sha256": "ce6a39d9e2f8ed1636e3a7b0499699bd4da173e38690571dae7acacd9210b1b7",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1225.jpg",
+    "source_region": [
+      740,
+      335,
+      996,
+      591
+    ]
+  },
+  {
+    "clip": 20953,
+    "detection_id": 1226,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T23:51:26+00:00",
+    "seconds": 4.0,
+    "box": [
+      321,
+      384,
+      437,
+      500
+    ],
+    "match_score": 0.9994776844978333,
+    "runnerup": 0.7795447707176208,
+    "recoverable": true,
+    "frame_sha256": "b3c749de3aea7bdc973daa3630f8476cd5623f34e02cb334a865da1deca7d656",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1226.jpg",
+    "source_region": [
+      251,
+      314,
+      507,
+      570
+    ]
+  },
+  {
+    "clip": 20955,
+    "detection_id": 1229,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T23:53:23+00:00",
+    "seconds": 0.6999989,
+    "box": [
+      1012,
+      465,
+      1107,
+      532
+    ],
+    "match_score": 0.9988881349563599,
+    "runnerup": 0.5406045317649841,
+    "recoverable": true,
+    "frame_sha256": "de4e905a66498dacc9873ec7493bcd83874b8c4bd75d9bc947b090b9b73e5b8a",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1229.jpg",
+    "source_region": [
+      931,
+      370,
+      1187,
+      626
+    ]
+  },
+  {
+    "clip": 20957,
+    "detection_id": 1231,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-04T23:57:52+00:00",
+    "seconds": 4.3199933,
+    "box": [
+      443,
+      417,
+      611,
+      501
+    ],
+    "match_score": 0.9993111491203308,
+    "runnerup": 0.39047297835350037,
+    "recoverable": true,
+    "frame_sha256": "bfb1daed3fd4388a2e8f6bac48d1fe66250271c64d4559f0e9059142c585d5b1",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1231.jpg",
+    "source_region": [
+      399,
+      331,
+      655,
+      587
+    ]
+  },
+  {
+    "clip": 20958,
+    "detection_id": 1237,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-04T23:59:48+00:00",
+    "seconds": 10.1099934,
+    "box": [
+      786,
+      90,
+      872,
+      180
+    ],
+    "match_score": 0.9969125390052795,
+    "runnerup": 0.410895437002182,
+    "recoverable": true,
+    "frame_sha256": "6588fc3fb8a9cc0d9028190e2a8b949b8101c0e10ab409bdbeb9a61d87fb073f",
+    "split": "train",
+    "session": "Back Gate:2026-10-04T23:59:48+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1237.jpg",
+    "source_region": [
+      701,
+      7,
+      957,
+      263
+    ]
+  },
+  {
+    "clip": 20960,
+    "detection_id": 1238,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T00:00:15+00:00",
+    "seconds": 6.7399987,
+    "box": [
+      585,
+      411,
+      672,
+      501
+    ],
+    "match_score": 0.9984979033470154,
+    "runnerup": 0.4472498893737793,
+    "recoverable": true,
+    "frame_sha256": "6a7070707a22132eb78b5949d38b013944b306c436fcd65b884f02f89a3b4833",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1238.jpg",
+    "source_region": [
+      500,
+      328,
+      756,
+      584
+    ]
+  },
+  {
+    "clip": 20960,
+    "detection_id": 1239,
+    "kind": "Dog",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T00:00:15+00:00",
+    "seconds": 2.4499962,
+    "box": [
+      322,
+      376,
+      416,
+      495
+    ],
+    "match_score": 0.9994150996208191,
+    "runnerup": 0.7032560706138611,
+    "recoverable": true,
+    "frame_sha256": "73d2d812a7bb53a51a3b7f86767e27ffa645fd3b20a9c1e5131dc55bd7739542",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1239.jpg",
+    "source_region": [
+      241,
+      307,
+      497,
+      563
+    ]
+  },
+  {
+    "clip": 20963,
+    "detection_id": 1242,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T00:01:37+00:00",
+    "seconds": 8.0099967,
+    "box": [
+      585,
+      409,
+      664,
+      505
+    ],
+    "match_score": 0.9986653327941895,
+    "runnerup": 0.4124390184879303,
+    "recoverable": true,
+    "frame_sha256": "f40e13cc7f3e5abf07b900ac5c3799991f5a1f0b3e3226197e036af9d24b7552",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1242.jpg",
+    "source_region": [
+      496,
+      329,
+      752,
+      585
+    ]
+  },
+  {
+    "clip": 21033,
+    "detection_id": 1325,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T00:25:05+00:00",
+    "seconds": 1.6099975,
+    "box": [
+      246,
+      222,
+      331,
+      300
+    ],
+    "match_score": 0.9992634057998657,
+    "runnerup": 0.48936858773231506,
+    "recoverable": true,
+    "frame_sha256": "dc9adf1e08d6924a6197c45a8da59d25a01aca8fbe21adc0b239211945864bf1",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1325.jpg",
+    "source_region": [
+      160,
+      133,
+      416,
+      389
+    ]
+  },
+  {
+    "clip": 21034,
+    "detection_id": 1321,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T00:26:01+00:00",
+    "seconds": 1.6099975,
+    "box": [
+      247,
+      222,
+      339,
+      304
+    ],
+    "match_score": 0.9993469715118408,
+    "runnerup": 0.5495067238807678,
+    "recoverable": true,
+    "frame_sha256": "76f9f345739d2d3be84d603e682cb9fc4b864091aa2e5979249911ac1a65879a",
+    "split": "train",
+    "session": "Water Bowl:2026-10-04T22:45:52+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1321.jpg",
+    "source_region": [
+      165,
+      135,
+      421,
+      391
+    ]
+  },
+  {
+    "clip": 21321,
+    "detection_id": 1464,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T12:48:45+00:00",
+    "seconds": 6.333,
+    "box": [
+      172,
+      518,
+      363,
+      598
+    ],
+    "match_score": 0.9957094788551331,
+    "runnerup": 0.5324026942253113,
+    "recoverable": true,
+    "frame_sha256": "cdd9ae4bdcd191a2bfa1b20ab4c67b8fc04d344af6ce0a7ea9a28846009f2c31",
+    "split": "test",
+    "session": "Water Bowl:2026-10-05T12:48:45+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1464.jpg",
+    "source_region": [
+      139,
+      430,
+      395,
+      686
+    ]
+  },
+  {
+    "clip": 21332,
+    "detection_id": 1519,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-05T13:31:53+00:00",
+    "seconds": 4.291,
+    "box": [
+      855,
+      146,
+      907,
+      204
+    ],
+    "match_score": 0.99799644947052,
+    "runnerup": 0.4512783885002136,
+    "recoverable": true,
+    "frame_sha256": "3ac4aef672c5ac0d90123c39d73fead3aca3676304b87bf8bede85643f9c2d1e",
+    "split": "test",
+    "session": "Back Gate:2026-10-05T13:31:53+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1519.jpg",
+    "source_region": [
+      753,
+      47,
+      1009,
+      303
+    ]
+  },
+  {
+    "clip": 21366,
+    "detection_id": 1473,
+    "kind": "Cat",
+    "camera": "Catio",
+    "captured_at": "2026-10-05T14:21:50+00:00",
+    "seconds": 25.958,
+    "box": [
+      566,
+      440,
+      668,
+      530
+    ],
+    "match_score": 0.9989728331565857,
+    "runnerup": 0.3942027986049652,
+    "recoverable": true,
+    "frame_sha256": "aefb347f066164818c92c1adbf379ced6cf401131de1e963afddf0cbda37d09c",
+    "split": "train",
+    "session": "Catio:2026-10-05T14:21:50+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1473.jpg",
+    "source_region": [
+      489,
+      357,
+      745,
+      613
+    ]
+  },
+  {
+    "clip": 21368,
+    "detection_id": 1474,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T14:23:34+00:00",
+    "seconds": 3.166,
+    "box": [
+      849,
+      413,
+      961,
+      471
+    ],
+    "match_score": 0.9992365837097168,
+    "runnerup": 0.46275049448013306,
+    "recoverable": true,
+    "frame_sha256": "2dfbbc2c146beaa6ce53fc2b00a266e46cec90f955851f2c8b75f981cc00c4e8",
+    "split": "test",
+    "session": "Water Bowl:2026-10-05T12:48:45+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/test/1474.jpg",
+    "source_region": [
+      777,
+      314,
+      1033,
+      570
+    ]
+  },
+  {
+    "clip": 21373,
+    "detection_id": 1518,
+    "kind": "Cat",
+    "camera": "Back Door",
+    "captured_at": "2026-10-05T14:32:05+00:00",
+    "seconds": 12.666,
+    "box": [
+      451,
+      419,
+      602,
+      529
+    ],
+    "match_score": 0.9991992115974426,
+    "runnerup": 0.7559655904769897,
+    "recoverable": true,
+    "frame_sha256": "4c7a38b49ed1f4838c1518033c785e489157d69b2229abe00e23ec846038c337",
+    "split": "train",
+    "session": "Back Door:2026-10-05T14:32:05+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1518.jpg",
+    "source_region": [
+      398,
+      346,
+      654,
+      602
+    ]
+  },
+  {
+    "clip": 21440,
+    "detection_id": 1578,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T17:15:20+00:00",
+    "seconds": 6.541,
+    "box": [
+      746,
+      395,
+      826,
+      461
+    ],
+    "match_score": 0.9987148642539978,
+    "runnerup": 0.4523393511772156,
+    "recoverable": true,
+    "frame_sha256": "10333b26ca3131a3d40bcc7ef91233c5ed06f34bd4f16794df70ac47e3b16802",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1578.jpg",
+    "source_region": [
+      658,
+      300,
+      914,
+      556
+    ]
+  },
+  {
+    "clip": 21442,
+    "detection_id": 1577,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T17:33:35+00:00",
+    "seconds": 4.291,
+    "box": [
+      931,
+      421,
+      1008,
+      495
+    ],
+    "match_score": 0.9989392161369324,
+    "runnerup": 0.5720796585083008,
+    "recoverable": true,
+    "frame_sha256": "cf963a27dde419b7491c48364eafe22efdc8473d53f556b0ec0f7270072d851f",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1577.jpg",
+    "source_region": [
+      841,
+      330,
+      1097,
+      586
+    ]
+  },
+  {
+    "clip": 21443,
+    "detection_id": 1574,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T17:34:02+00:00",
+    "seconds": 2.666,
+    "box": [
+      387,
+      417,
+      535,
+      501
+    ],
+    "match_score": 0.9993312358856201,
+    "runnerup": 0.39815741777420044,
+    "recoverable": true,
+    "frame_sha256": "dd1b8122c7dc69e4c7f28e29b823e70590c1b6f71eb9d63a5610cf54faefc80d",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1574.jpg",
+    "source_region": [
+      333,
+      331,
+      589,
+      587
+    ]
+  },
+  {
+    "clip": 21444,
+    "detection_id": 1573,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-05T17:49:10+00:00",
+    "seconds": 0.958,
+    "box": [
+      685,
+      233,
+      806,
+      300
+    ],
+    "match_score": 0.9987573623657227,
+    "runnerup": 0.4252609610557556,
+    "recoverable": true,
+    "frame_sha256": "31357575ebc27d087e673c3d11aa3a4549006c58616f5db499946a266b87f6ad",
+    "split": "train",
+    "session": "Back Gate:2026-10-05T17:49:10+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1573.jpg",
+    "source_region": [
+      617,
+      138,
+      873,
+      394
+    ]
+  },
+  {
+    "clip": 21449,
+    "detection_id": 1569,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T17:56:05+00:00",
+    "seconds": 0.708,
+    "box": [
+      831,
+      432,
+      935,
+      497
+    ],
+    "match_score": 0.9973574876785278,
+    "runnerup": 0.4983106255531311,
+    "recoverable": true,
+    "frame_sha256": "3788977572eb891519ebdff82ced200a7ef87257044429acbde0de7c3a662133",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1569.jpg",
+    "source_region": [
+      755,
+      336,
+      1011,
+      592
+    ]
+  },
+  {
+    "clip": 21450,
+    "detection_id": 1568,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T17:57:46+00:00",
+    "seconds": 0.916,
+    "box": [
+      396,
+      415,
+      539,
+      486
+    ],
+    "match_score": 0.9972215294837952,
+    "runnerup": 0.2863021492958069,
+    "recoverable": true,
+    "frame_sha256": "4407aff69d7494da65671cf2fb009eddb5002a545725f2dd682f975af5d608f3",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1568.jpg",
+    "source_region": [
+      339,
+      322,
+      595,
+      578
+    ]
+  },
+  {
+    "clip": 21452,
+    "detection_id": 1566,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-05T18:08:36+00:00",
+    "seconds": 4.416,
+    "box": [
+      888,
+      196,
+      938,
+      246
+    ],
+    "match_score": 0.9976033568382263,
+    "runnerup": 0.4525589048862457,
+    "recoverable": true,
+    "frame_sha256": "fd9b0f739d0588fa171b2451e8f51cea47533147d57eeb24516479168c7cb22b",
+    "split": "train",
+    "session": "Back Gate:2026-10-05T17:49:10+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1566.jpg",
+    "source_region": [
+      785,
+      93,
+      1041,
+      349
+    ]
+  },
+  {
+    "clip": 21453,
+    "detection_id": 1575,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T18:09:03+00:00",
+    "seconds": 0.166,
+    "box": [
+      359,
+      534,
+      454,
+      701
+    ],
+    "match_score": 0.9986351132392883,
+    "runnerup": 0.27220332622528076,
+    "recoverable": true,
+    "frame_sha256": "c70b41d974c50c73c57cd4c3bb5980d1a57c04da10eb952b1bbd6c6a6337e23f",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1575.jpg",
+    "source_region": [
+      278,
+      464,
+      534,
+      720
+    ]
+  },
+  {
+    "clip": 21453,
+    "detection_id": 1576,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T18:09:03+00:00",
+    "seconds": 18.458,
+    "box": [
+      341,
+      393,
+      448,
+      474
+    ],
+    "match_score": 0.9990864396095276,
+    "runnerup": 0.4744517505168915,
+    "recoverable": true,
+    "frame_sha256": "2daa4a6beeb436fcb2805f1cb83598b6b2a037c6f8bf2b1e52c9a1c304953aa0",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1576.jpg",
+    "source_region": [
+      266,
+      305,
+      522,
+      561
+    ]
+  },
+  {
+    "clip": 21454,
+    "detection_id": 1567,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T18:09:22+00:00",
+    "seconds": 2.416,
+    "box": [
+      330,
+      393,
+      420,
+      464
+    ],
+    "match_score": 0.9991509914398193,
+    "runnerup": 0.5028260946273804,
+    "recoverable": true,
+    "frame_sha256": "abcf6be70ced9da3223e6dd5742dc0e38890f59a43fe07841dac3bec7f033d07",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1567.jpg",
+    "source_region": [
+      247,
+      300,
+      503,
+      556
+    ]
+  },
+  {
+    "clip": 21455,
+    "detection_id": 1565,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-05T18:09:53+00:00",
+    "seconds": 6.916,
+    "box": [
+      761,
+      382,
+      866,
+      444
+    ],
+    "match_score": 0.9988417625427246,
+    "runnerup": 0.4656445384025574,
+    "recoverable": true,
+    "frame_sha256": "4e294e231347dbe3ace1703ed0c73ade685a231dd6d4643e47e6df3b329c8021",
+    "split": "train",
+    "session": "Water Bowl:2026-10-05T17:15:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/1565.jpg",
+    "source_region": [
+      685,
+      285,
+      941,
+      541
+    ]
+  },
+  {
+    "clip": 22058,
+    "detection_id": 2363,
+    "kind": "Dog",
+    "camera": "Picnic Table/Play Area",
+    "captured_at": "2026-10-06T23:54:42+00:00",
+    "seconds": 29.958,
+    "box": [
+      0,
+      640,
+      108,
+      720
+    ],
+    "match_score": 0.9985416531562805,
+    "runnerup": 0.4114973247051239,
+    "recoverable": true,
+    "frame_sha256": "8e8d6483948892691aa84aa6b85f77ff86ba5ceb5965ca800d8676d69ef58dea",
+    "split": "train",
+    "session": "Picnic Table/Play Area:2026-10-06T23:54:42+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2363.jpg",
+    "source_region": [
+      0,
+      464,
+      256,
+      720
+    ]
+  },
+  {
+    "clip": 22059,
+    "detection_id": 2361,
+    "kind": "Dog",
+    "camera": "Catio",
+    "captured_at": "2026-10-06T23:56:34+00:00",
+    "seconds": 21.666,
+    "box": [
+      57,
+      435,
+      124,
+      508
+    ],
+    "match_score": 0.9920639991760254,
+    "runnerup": 0.5160173773765564,
+    "recoverable": true,
+    "frame_sha256": "9b7cbe434602f1dfabf024bae3d10b1c09fb6f891494451dbccca5e001e068a3",
+    "split": "train",
+    "session": "Catio:2026-10-06T23:56:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2361.jpg",
+    "source_region": [
+      0,
+      343,
+      256,
+      599
+    ]
+  },
+  {
+    "clip": 22070,
+    "detection_id": 2365,
+    "kind": "Dog",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T00:18:34+00:00",
+    "seconds": 8.291,
+    "box": [
+      641,
+      184,
+      775,
+      283
+    ],
+    "match_score": 0.997501790523529,
+    "runnerup": 0.48516541719436646,
+    "recoverable": true,
+    "frame_sha256": "26eafb491c25e1e00f2b7a3630b5ed41a50753e21c38a700438f402021761d7f",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2365.jpg",
+    "source_region": [
+      580,
+      105,
+      836,
+      361
+    ]
+  },
+  {
+    "clip": 22080,
+    "detection_id": 2375,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T00:27:41+00:00",
+    "seconds": 2.125,
+    "box": [
+      730,
+      125,
+      810,
+      177
+    ],
+    "match_score": 0.9973098635673523,
+    "runnerup": 0.47185370326042175,
+    "recoverable": true,
+    "frame_sha256": "08da0602b2542191766af2d493dc0d095d6d7729f6820c71849006009a38d18f",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2375.jpg",
+    "source_region": [
+      642,
+      23,
+      898,
+      279
+    ]
+  },
+  {
+    "clip": 22080,
+    "detection_id": 2384,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T00:27:41+00:00",
+    "seconds": 6.083,
+    "box": [
+      529,
+      436,
+      648,
+      524
+    ],
+    "match_score": 0.997426450252533,
+    "runnerup": 0.35809096693992615,
+    "recoverable": true,
+    "frame_sha256": "425ff3f17f4cc7fa071bbf781d797df93bc69f8c6cc19130c53fe1739f1999c4",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2384.jpg",
+    "source_region": [
+      460,
+      352,
+      716,
+      608
+    ]
+  },
+  {
+    "clip": 22143,
+    "detection_id": 2423,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:16:52+00:00",
+    "seconds": 3.733,
+    "box": [
+      8,
+      516,
+      142,
+      638
+    ],
+    "match_score": 0.9994513392448425,
+    "runnerup": 0.5307801365852356,
+    "recoverable": true,
+    "frame_sha256": "0323de49982046b6675a2bf1fcd3fdd122c9bf5ac35b3eff22f2e6e203bcf92e",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2423.jpg",
+    "source_region": [
+      0,
+      449,
+      256,
+      705
+    ]
+  },
+  {
+    "clip": 22143,
+    "detection_id": 2424,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:16:52+00:00",
+    "seconds": 1.933,
+    "box": [
+      842,
+      406,
+      923,
+      471
+    ],
+    "match_score": 0.9993048310279846,
+    "runnerup": 0.7752657532691956,
+    "recoverable": true,
+    "frame_sha256": "150f12e92f9ff38784b279555b70119cf860321681ad82c7113ce91d658cd1e7",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2424.jpg",
+    "source_region": [
+      754,
+      310,
+      1010,
+      566
+    ]
+  },
+  {
+    "clip": 22144,
+    "detection_id": 2495,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:17:33+00:00",
+    "seconds": 2.4,
+    "box": [
+      12,
+      518,
+      141,
+      670
+    ],
+    "match_score": 0.9995291233062744,
+    "runnerup": 0.620778501033783,
+    "recoverable": true,
+    "frame_sha256": "f221a3a971df313feef721bcb93db81b0e438730c987f57e15d7fafe3d19b4d5",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2495.jpg",
+    "source_region": [
+      0,
+      464,
+      256,
+      720
+    ]
+  },
+  {
+    "clip": 22145,
+    "detection_id": 2494,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:18:27+00:00",
+    "seconds": 0.466,
+    "box": [
+      577,
+      298,
+      641,
+      391
+    ],
+    "match_score": 0.9983377456665039,
+    "runnerup": 0.5217176079750061,
+    "recoverable": true,
+    "frame_sha256": "0c94ab4463d34aa102017676db79070ebf62b6a7a0ccab2a3cb40edfa6e09e4b",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2494.jpg",
+    "source_region": [
+      481,
+      216,
+      737,
+      472
+    ]
+  },
+  {
+    "clip": 22146,
+    "detection_id": 2489,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:18:38+00:00",
+    "seconds": 3.066,
+    "box": [
+      28,
+      523,
+      156,
+      707
+    ],
+    "match_score": 0.9995156526565552,
+    "runnerup": 0.5356238484382629,
+    "recoverable": true,
+    "frame_sha256": "538687a7f7a74b7cc8261cc8695c5602e261c42c6f090a839a97031e8c36995d",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2489.jpg",
+    "source_region": [
+      0,
+      464,
+      256,
+      720
+    ]
+  },
+  {
+    "clip": 22146,
+    "detection_id": 2490,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:18:38+00:00",
+    "seconds": 5.666,
+    "box": [
+      893,
+      444,
+      1015,
+      524
+    ],
+    "match_score": 0.998878002166748,
+    "runnerup": 0.5731265544891357,
+    "recoverable": true,
+    "frame_sha256": "5e7513c76d70c36f155a75eabcb3a008542cf6fc5c1086336c3442bdb07ee090",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2490.jpg",
+    "source_region": [
+      826,
+      356,
+      1082,
+      612
+    ]
+  },
+  {
+    "clip": 22146,
+    "detection_id": 2493,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:18:38+00:00",
+    "seconds": 27.533,
+    "box": [
+      921,
+      423,
+      1016,
+      502
+    ],
+    "match_score": 0.9992153644561768,
+    "runnerup": 0.7968060374259949,
+    "recoverable": true,
+    "frame_sha256": "7b57063c14428d13dd902d7a920f735b63d1adad4a2ccde4d8db54d26ea12cd1",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2493.jpg",
+    "source_region": [
+      840,
+      334,
+      1096,
+      590
+    ]
+  },
+  {
+    "clip": 22147,
+    "detection_id": 2488,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:19:41+00:00",
+    "seconds": 0.8,
+    "box": [
+      290,
+      435,
+      443,
+      595
+    ],
+    "match_score": 0.9994115829467773,
+    "runnerup": 0.6352620124816895,
+    "recoverable": true,
+    "frame_sha256": "2ac66481052593899096dc0fd2e53cc4daeb007d51270059d678cd16ee96f01e",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2488.jpg",
+    "source_region": [
+      238,
+      387,
+      494,
+      643
+    ]
+  },
+  {
+    "clip": 22148,
+    "detection_id": 2484,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:20:51+00:00",
+    "seconds": 2.066,
+    "box": [
+      625,
+      220,
+      706,
+      287
+    ],
+    "match_score": 0.9986487627029419,
+    "runnerup": 0.4684177339076996,
+    "recoverable": true,
+    "frame_sha256": "ab7f4712d40a5d745f20d0be9b52f4ab8df84e01b9ac6194ed48ae1f63da7000",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2484.jpg",
+    "source_region": [
+      537,
+      125,
+      793,
+      381
+    ]
+  },
+  {
+    "clip": 22148,
+    "detection_id": 2485,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:20:51+00:00",
+    "seconds": 5.4,
+    "box": [
+      645,
+      230,
+      753,
+      303
+    ],
+    "match_score": 0.9981975555419922,
+    "runnerup": 0.494822233915329,
+    "recoverable": true,
+    "frame_sha256": "0aa89c640842deebd4a797b7ac40687b95f23b5330b445307a2c64990b151572",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2485.jpg",
+    "source_region": [
+      571,
+      138,
+      827,
+      394
+    ]
+  },
+  {
+    "clip": 22148,
+    "detection_id": 2486,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:20:51+00:00",
+    "seconds": 3.2,
+    "box": [
+      626,
+      228,
+      707,
+      287
+    ],
+    "match_score": 0.9987005591392517,
+    "runnerup": 0.4878142476081848,
+    "recoverable": true,
+    "frame_sha256": "ac6d05746406af1625b80676220492899a69c6a19a0d41e1639bfdcf736ee8f1",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2486.jpg",
+    "source_region": [
+      538,
+      129,
+      794,
+      385
+    ]
+  },
+  {
+    "clip": 22148,
+    "detection_id": 2487,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:20:51+00:00",
+    "seconds": 6.0,
+    "box": [
+      656,
+      232,
+      770,
+      316
+    ],
+    "match_score": 0.9983806610107422,
+    "runnerup": 0.645176351070404,
+    "recoverable": true,
+    "frame_sha256": "273ab6343cfd68f0114d74e0dd24209a276a23cb56b505b001345b1acbda9921",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2487.jpg",
+    "source_region": [
+      585,
+      146,
+      841,
+      402
+    ]
+  },
+  {
+    "clip": 22149,
+    "detection_id": 2482,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:20:52+00:00",
+    "seconds": 12.666,
+    "box": [
+      961,
+      448,
+      1063,
+      511
+    ],
+    "match_score": 0.9987730979919434,
+    "runnerup": 0.6499083638191223,
+    "recoverable": true,
+    "frame_sha256": "7e4199d3c98025a9d1d7ca8b30009bfbdaa163d6846ca1724913dcb948e1d319",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2482.jpg",
+    "source_region": [
+      884,
+      351,
+      1140,
+      607
+    ]
+  },
+  {
+    "clip": 22149,
+    "detection_id": 2483,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:20:52+00:00",
+    "seconds": 13.6,
+    "box": [
+      978,
+      561,
+      1097,
+      674
+    ],
+    "match_score": 0.9989157319068909,
+    "runnerup": 0.47976988554000854,
+    "recoverable": true,
+    "frame_sha256": "029c8e4b2f529059398d026ff30c3d8a8c3f435b247b98296414dca8d3ec3a66",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2483.jpg",
+    "source_region": [
+      909,
+      464,
+      1165,
+      720
+    ]
+  },
+  {
+    "clip": 22150,
+    "detection_id": 2481,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:23:23+00:00",
+    "seconds": 6.066,
+    "box": [
+      511,
+      338,
+      657,
+      410
+    ],
+    "match_score": 0.9987196922302246,
+    "runnerup": 0.39095360040664673,
+    "recoverable": true,
+    "frame_sha256": "f402efd7599514ff62e272af35e76e0d1a2457e38136dd57b4d5510e3d6cb99e",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2481.jpg",
+    "source_region": [
+      456,
+      246,
+      712,
+      502
+    ]
+  },
+  {
+    "clip": 22151,
+    "detection_id": 2480,
+    "kind": "Cat",
+    "camera": "Catio",
+    "captured_at": "2026-10-07T01:23:25+00:00",
+    "seconds": 0.466,
+    "box": [
+      280,
+      418,
+      401,
+      492
+    ],
+    "match_score": 0.998955249786377,
+    "runnerup": 0.7446327805519104,
+    "recoverable": true,
+    "frame_sha256": "00747ab1bac10853133dbb248a39b91324b891e6ca7a248963db29b5e0842ef7",
+    "split": "train",
+    "session": "Catio:2026-10-06T23:56:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2480.jpg",
+    "source_region": [
+      212,
+      327,
+      468,
+      583
+    ]
+  },
+  {
+    "clip": 22152,
+    "detection_id": 2477,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:25:22+00:00",
+    "seconds": 14.866,
+    "box": [
+      497,
+      342,
+      576,
+      388
+    ],
+    "match_score": 0.9988582730293274,
+    "runnerup": 0.6936799883842468,
+    "recoverable": true,
+    "frame_sha256": "829ced4fba311a7934783cd0967d8952ed549a9003b99505dfac21f17c48ecbb",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2477.jpg",
+    "source_region": [
+      408,
+      237,
+      664,
+      493
+    ]
+  },
+  {
+    "clip": 22152,
+    "detection_id": 2478,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:25:22+00:00",
+    "seconds": 11.2,
+    "box": [
+      239,
+      464,
+      407,
+      588
+    ],
+    "match_score": 0.9993314743041992,
+    "runnerup": 0.5352460741996765,
+    "recoverable": true,
+    "frame_sha256": "8a39f5efc75ec3a5d25d673a67353bc9c8ce25ce4a51d1294e92c04970c95c5c",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2478.jpg",
+    "source_region": [
+      195,
+      398,
+      451,
+      654
+    ]
+  },
+  {
+    "clip": 22152,
+    "detection_id": 2479,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:25:22+00:00",
+    "seconds": 18.4,
+    "box": [
+      130,
+      468,
+      262,
+      594
+    ],
+    "match_score": 0.9993975758552551,
+    "runnerup": 0.5712482333183289,
+    "recoverable": true,
+    "frame_sha256": "7bcb00f55be251ffb1746fd27021c34f4059e3ec9b6d50d74185f346e475c434",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2479.jpg",
+    "source_region": [
+      68,
+      403,
+      324,
+      659
+    ]
+  },
+  {
+    "clip": 22153,
+    "detection_id": 2474,
+    "kind": "Cat",
+    "camera": "Catio",
+    "captured_at": "2026-10-07T01:27:40+00:00",
+    "seconds": 2.266,
+    "box": [
+      415,
+      435,
+      532,
+      487
+    ],
+    "match_score": 0.9987660646438599,
+    "runnerup": 0.6714865565299988,
+    "recoverable": true,
+    "frame_sha256": "f043fc38542ac44390b046f93967dc47f4892c7b22c8e6675b3ed0ddf3534ee8",
+    "split": "train",
+    "session": "Catio:2026-10-06T23:56:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2474.jpg",
+    "source_region": [
+      345,
+      333,
+      601,
+      589
+    ]
+  },
+  {
+    "clip": 22155,
+    "detection_id": 2426,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:29:32+00:00",
+    "seconds": 2.2,
+    "box": [
+      570,
+      410,
+      709,
+      495
+    ],
+    "match_score": 0.999057948589325,
+    "runnerup": 0.5837650895118713,
+    "recoverable": true,
+    "frame_sha256": "6b6b0dfc5d731298cf3733ea18a80765f445128f042caa79c628e39638719860",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2426.jpg",
+    "source_region": [
+      511,
+      324,
+      767,
+      580
+    ]
+  },
+  {
+    "clip": 22156,
+    "detection_id": 2471,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:31:27+00:00",
+    "seconds": 0.266,
+    "box": [
+      502,
+      420,
+      653,
+      493
+    ],
+    "match_score": 0.9994354844093323,
+    "runnerup": 0.6285116672515869,
+    "recoverable": true,
+    "frame_sha256": "264e670d6f73ed088640c59e4661606b10f81953fe4a87a23bfc83f053220512",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2471.jpg",
+    "source_region": [
+      449,
+      328,
+      705,
+      584
+    ]
+  },
+  {
+    "clip": 22156,
+    "detection_id": 2472,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:31:27+00:00",
+    "seconds": 5.266,
+    "box": [
+      411,
+      495,
+      606,
+      678
+    ],
+    "match_score": 0.9983823299407959,
+    "runnerup": 0.5502389073371887,
+    "recoverable": true,
+    "frame_sha256": "7f77b53a5c904ec7f7da6d4c91c4f5f04122a9497fc273d07b86818a161db91f",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2472.jpg",
+    "source_region": [
+      380,
+      458,
+      636,
+      714
+    ]
+  },
+  {
+    "clip": 22157,
+    "detection_id": 2469,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:32:42+00:00",
+    "seconds": 1.733,
+    "box": [
+      544,
+      326,
+      655,
+      404
+    ],
+    "match_score": 0.9985029697418213,
+    "runnerup": 0.4874410927295685,
+    "recoverable": true,
+    "frame_sha256": "5a303dc5a258e2d37b4577fe821199c5a355125c7866fd41bd7bf8ecd4237036",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2469.jpg",
+    "source_region": [
+      471,
+      237,
+      727,
+      493
+    ]
+  },
+  {
+    "clip": 22158,
+    "detection_id": 2427,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:33:05+00:00",
+    "seconds": 2.4,
+    "box": [
+      531,
+      425,
+      671,
+      485
+    ],
+    "match_score": 0.9992990493774414,
+    "runnerup": 0.5830775499343872,
+    "recoverable": true,
+    "frame_sha256": "9da8ceba339de23dcddb5c0ec93314cd951142863f93f4b014bc6ccf2d314564",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2427.jpg",
+    "source_region": [
+      473,
+      327,
+      729,
+      583
+    ]
+  },
+  {
+    "clip": 22158,
+    "detection_id": 2429,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:33:05+00:00",
+    "seconds": 10.2,
+    "box": [
+      947,
+      485,
+      1061,
+      569
+    ],
+    "match_score": 0.9986458420753479,
+    "runnerup": 0.5111423134803772,
+    "recoverable": true,
+    "frame_sha256": "78d7b49e60707326c4fbde7909b3290b5b7678644924c72daa45af6d2024ddda",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2429.jpg",
+    "source_region": [
+      876,
+      399,
+      1132,
+      655
+    ]
+  },
+  {
+    "clip": 22158,
+    "detection_id": 2467,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:33:05+00:00",
+    "seconds": 3.933,
+    "box": [
+      387,
+      414,
+      555,
+      503
+    ],
+    "match_score": 0.9996058344841003,
+    "runnerup": 0.5146434903144836,
+    "recoverable": true,
+    "frame_sha256": "2a793f95780830d9ad722b36ad96ff7d45e7fd7c90ed000a86f6f99add5cac1f",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2467.jpg",
+    "source_region": [
+      343,
+      330,
+      599,
+      586
+    ]
+  },
+  {
+    "clip": 22158,
+    "detection_id": 2468,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:33:05+00:00",
+    "seconds": 8.0,
+    "box": [
+      1000,
+      515,
+      1088,
+      612
+    ],
+    "match_score": 0.9987918734550476,
+    "runnerup": 0.6197320818901062,
+    "recoverable": true,
+    "frame_sha256": "77bdb2648c7f42f0eec87c8587409c41f919649ba2035969c5ba4386b59b029e",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2468.jpg",
+    "source_region": [
+      916,
+      435,
+      1172,
+      691
+    ]
+  },
+  {
+    "clip": 22160,
+    "detection_id": 2464,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:34:29+00:00",
+    "seconds": 0.466,
+    "box": [
+      707,
+      181,
+      812,
+      245
+    ],
+    "match_score": 0.9991620779037476,
+    "runnerup": 0.4716741442680359,
+    "recoverable": true,
+    "frame_sha256": "218b2715326d8dce5cfa3ec9f798af27cba300d5b3fec20db364c69b09ab2d75",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2464.jpg",
+    "source_region": [
+      631,
+      85,
+      887,
+      341
+    ]
+  },
+  {
+    "clip": 22160,
+    "detection_id": 2465,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:34:29+00:00",
+    "seconds": 3.733,
+    "box": [
+      838,
+      163,
+      895,
+      210
+    ],
+    "match_score": 0.9991939067840576,
+    "runnerup": 0.5886849164962769,
+    "recoverable": true,
+    "frame_sha256": "bc7f1a4562a858143ded638c732f87c9b7109efa23b279920812eef73faa2452",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2465.jpg",
+    "source_region": [
+      738,
+      58,
+      994,
+      314
+    ]
+  },
+  {
+    "clip": 22161,
+    "detection_id": 2460,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:35:20+00:00",
+    "seconds": 3.466,
+    "box": [
+      519,
+      461,
+      667,
+      534
+    ],
+    "match_score": 0.998867928981781,
+    "runnerup": 0.5169547200202942,
+    "recoverable": true,
+    "frame_sha256": "572de0d81769e880be07e9977db841e6bdec00e89d627647528f4c8eb6b06c0e",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2460.jpg",
+    "source_region": [
+      465,
+      369,
+      721,
+      625
+    ]
+  },
+  {
+    "clip": 22161,
+    "detection_id": 2461,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:35:20+00:00",
+    "seconds": 15.0,
+    "box": [
+      537,
+      467,
+      661,
+      538
+    ],
+    "match_score": 0.9988846778869629,
+    "runnerup": 0.4734308421611786,
+    "recoverable": true,
+    "frame_sha256": "5c0dda7f25a447ff3cf3a79ff4483ac21870e0396e87493b0b61710988bafca1",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2461.jpg",
+    "source_region": [
+      471,
+      374,
+      727,
+      630
+    ]
+  },
+  {
+    "clip": 22162,
+    "detection_id": 2462,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:35:09+00:00",
+    "seconds": 0.0,
+    "box": [
+      439,
+      414,
+      605,
+      497
+    ],
+    "match_score": 0.9995821714401245,
+    "runnerup": 0.6022636890411377,
+    "recoverable": true,
+    "frame_sha256": "942964ea40a772c8f83d23a2c62072b9ec3265505d5a27d6216d7e450abe50b9",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2462.jpg",
+    "source_region": [
+      394,
+      327,
+      650,
+      583
+    ]
+  },
+  {
+    "clip": 22162,
+    "detection_id": 2463,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:35:09+00:00",
+    "seconds": 7.2,
+    "box": [
+      777,
+      384,
+      855,
+      447
+    ],
+    "match_score": 0.9982175827026367,
+    "runnerup": 0.5157517790794373,
+    "recoverable": true,
+    "frame_sha256": "088be81f85cf21ff9c380e7d0b0aeac335fa5f40e841f008c452f74470bcc849",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2463.jpg",
+    "source_region": [
+      688,
+      287,
+      944,
+      543
+    ]
+  },
+  {
+    "clip": 22164,
+    "detection_id": 2458,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:39:44+00:00",
+    "seconds": 0.8,
+    "box": [
+      554,
+      320,
+      653,
+      393
+    ],
+    "match_score": 0.9986640810966492,
+    "runnerup": 0.6101652383804321,
+    "recoverable": true,
+    "frame_sha256": "c31c5149bfa5206890757038fa786cb3b21e507a6f08f91dc799621746140082",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2458.jpg",
+    "source_region": [
+      475,
+      228,
+      731,
+      484
+    ]
+  },
+  {
+    "clip": 22165,
+    "detection_id": 2457,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:39:53+00:00",
+    "seconds": 1.266,
+    "box": [
+      117,
+      479,
+      290,
+      575
+    ],
+    "match_score": 0.999444305896759,
+    "runnerup": 0.5425933599472046,
+    "recoverable": true,
+    "frame_sha256": "2f9e872d299e05a498cf3eef5178c2e7308d0cffae94c5a4c320a7a30c9b534d",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2457.jpg",
+    "source_region": [
+      75,
+      399,
+      331,
+      655
+    ]
+  },
+  {
+    "clip": 22166,
+    "detection_id": 2454,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:40:48+00:00",
+    "seconds": 0.933,
+    "box": [
+      1,
+      469,
+      129,
+      574
+    ],
+    "match_score": 0.9993144869804382,
+    "runnerup": 0.5272898077964783,
+    "recoverable": true,
+    "frame_sha256": "0fab5ca30b2fd76be2313454362a2f8d420d8dd40d3361d1ce18b795764b8496",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2454.jpg",
+    "source_region": [
+      0,
+      393,
+      256,
+      649
+    ]
+  },
+  {
+    "clip": 22166,
+    "detection_id": 2455,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:40:48+00:00",
+    "seconds": 26.466,
+    "box": [
+      2,
+      486,
+      128,
+      639
+    ],
+    "match_score": 0.9993640184402466,
+    "runnerup": 0.6058374643325806,
+    "recoverable": true,
+    "frame_sha256": "258007b72fedf0302c530148f684bc05b25a215b52eca9491f7ede5606508849",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2455.jpg",
+    "source_region": [
+      0,
+      434,
+      256,
+      690
+    ]
+  },
+  {
+    "clip": 22167,
+    "detection_id": 2451,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:41:29+00:00",
+    "seconds": 14.666,
+    "box": [
+      167,
+      495,
+      366,
+      577
+    ],
+    "match_score": 0.9994654059410095,
+    "runnerup": 0.6454631686210632,
+    "recoverable": true,
+    "frame_sha256": "1d205a6819e72bd9d2114a63274ebea0d80c0f7cef1803bf90b3316fe4c7745e",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2451.jpg",
+    "source_region": [
+      138,
+      408,
+      394,
+      664
+    ]
+  },
+  {
+    "clip": 22167,
+    "detection_id": 2452,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:41:29+00:00",
+    "seconds": 15.0,
+    "box": [
+      203,
+      488,
+      378,
+      579
+    ],
+    "match_score": 0.9994345307350159,
+    "runnerup": 0.5750923752784729,
+    "recoverable": true,
+    "frame_sha256": "28be142a7b6d2cae36cf0585434b021cfe21e23cd044ef89f80717e644202c46",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2452.jpg",
+    "source_region": [
+      162,
+      405,
+      418,
+      661
+    ]
+  },
+  {
+    "clip": 22167,
+    "detection_id": 2453,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:41:29+00:00",
+    "seconds": 29.933,
+    "box": [
+      231,
+      226,
+      310,
+      340
+    ],
+    "match_score": 0.9992771744728088,
+    "runnerup": 0.5748125910758972,
+    "recoverable": true,
+    "frame_sha256": "038e83ca61316704010792c9750135cc9fc6837560edbf792be71795e6e9c11e",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2453.jpg",
+    "source_region": [
+      142,
+      155,
+      398,
+      411
+    ]
+  },
+  {
+    "clip": 22167,
+    "detection_id": 2456,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:41:29+00:00",
+    "seconds": 13.866,
+    "box": [
+      100,
+      481,
+      305,
+      595
+    ],
+    "match_score": 0.9994134902954102,
+    "runnerup": 0.49449700117111206,
+    "recoverable": true,
+    "frame_sha256": "48a63890f3f1d2247edfaddf04413a9a14117cb7722a219507528cf82dcc4bf1",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2456.jpg",
+    "source_region": [
+      74,
+      410,
+      330,
+      666
+    ]
+  },
+  {
+    "clip": 22168,
+    "detection_id": 2450,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:42:00+00:00",
+    "seconds": 18.4,
+    "box": [
+      263,
+      220,
+      327,
+      294
+    ],
+    "match_score": 0.9992890357971191,
+    "runnerup": 0.5946966409683228,
+    "recoverable": true,
+    "frame_sha256": "172e5cde4dd04e377607ae6763edb21bc5b6fa5faf2758d049c0bd29635342a1",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2450.jpg",
+    "source_region": [
+      167,
+      129,
+      423,
+      385
+    ]
+  },
+  {
+    "clip": 22169,
+    "detection_id": 2449,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:49:33+00:00",
+    "seconds": 1.733,
+    "box": [
+      570,
+      281,
+      658,
+      372
+    ],
+    "match_score": 0.9980223178863525,
+    "runnerup": 0.5666363835334778,
+    "recoverable": true,
+    "frame_sha256": "abce1015d032b05a35923de1e929c77b44b70b7ef05dfabaaa875a1b17829963",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2449.jpg",
+    "source_region": [
+      486,
+      198,
+      742,
+      454
+    ]
+  },
+  {
+    "clip": 22170,
+    "detection_id": 2447,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:49:47+00:00",
+    "seconds": 1.733,
+    "box": [
+      867,
+      456,
+      994,
+      544
+    ],
+    "match_score": 0.9989199042320251,
+    "runnerup": 0.5767827033996582,
+    "recoverable": true,
+    "frame_sha256": "b73202edbb3d235987e0dbd7b8977d57aef7b88e8851b66b9ba95845915b6467",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2447.jpg",
+    "source_region": [
+      802,
+      372,
+      1058,
+      628
+    ]
+  },
+  {
+    "clip": 22170,
+    "detection_id": 2448,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:49:47+00:00",
+    "seconds": 9.6,
+    "box": [
+      392,
+      412,
+      541,
+      488
+    ],
+    "match_score": 0.9992863535881042,
+    "runnerup": 0.6978974938392639,
+    "recoverable": true,
+    "frame_sha256": "33cae2e691100089644a082128656aef99263dbdf84eb86f5ed98dfa13a13496",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2448.jpg",
+    "source_region": [
+      338,
+      322,
+      594,
+      578
+    ]
+  },
+  {
+    "clip": 22171,
+    "detection_id": 2442,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:52:02+00:00",
+    "seconds": 0.733,
+    "box": [
+      485,
+      363,
+      606,
+      491
+    ],
+    "match_score": 0.9987287521362305,
+    "runnerup": 0.3884461224079132,
+    "recoverable": true,
+    "frame_sha256": "4a91d0ccd1626ad42abc3ff5f45dfd3326de34dc1af275310cae77db899456a4",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2442.jpg",
+    "source_region": [
+      417,
+      299,
+      673,
+      555
+    ]
+  },
+  {
+    "clip": 22172,
+    "detection_id": 2444,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:51:20+00:00",
+    "seconds": 6.2,
+    "box": [
+      841,
+      418,
+      952,
+      489
+    ],
+    "match_score": 0.9981601238250732,
+    "runnerup": 0.5480550527572632,
+    "recoverable": true,
+    "frame_sha256": "7c2a2eabfe1c42e9b5642b378664b53847d3bd51d42107344bb40aae03fd70a7",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2444.jpg",
+    "source_region": [
+      768,
+      325,
+      1024,
+      581
+    ]
+  },
+  {
+    "clip": 22173,
+    "detection_id": 2443,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:51:52+00:00",
+    "seconds": 6.8,
+    "box": [
+      988,
+      493,
+      1100,
+      567
+    ],
+    "match_score": 0.9994105100631714,
+    "runnerup": 0.6177108883857727,
+    "recoverable": true,
+    "frame_sha256": "b6d2cb91447107996c492983ceb603b6c74ba77dcb49269dee114c9fe7b49ea0",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2443.jpg",
+    "source_region": [
+      916,
+      402,
+      1172,
+      658
+    ]
+  },
+  {
+    "clip": 22173,
+    "detection_id": 2445,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:51:52+00:00",
+    "seconds": 6.933,
+    "box": [
+      972,
+      478,
+      1102,
+      584
+    ],
+    "match_score": 0.9992232322692871,
+    "runnerup": 0.5371965765953064,
+    "recoverable": true,
+    "frame_sha256": "28c6cedac54c6d46e2c76a6370915c98cfc96bc5055e148eaa5271b4d4278c05",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2445.jpg",
+    "source_region": [
+      909,
+      403,
+      1165,
+      659
+    ]
+  },
+  {
+    "clip": 22173,
+    "detection_id": 2446,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T01:51:52+00:00",
+    "seconds": 17.266,
+    "box": [
+      832,
+      398,
+      924,
+      468
+    ],
+    "match_score": 0.9994167685508728,
+    "runnerup": 0.7224248647689819,
+    "recoverable": true,
+    "frame_sha256": "8d73e1732b99db61295d6b98aa933ad16520b21e6dbf2c5a95b14baa39676349",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2446.jpg",
+    "source_region": [
+      750,
+      305,
+      1006,
+      561
+    ]
+  },
+  {
+    "clip": 22174,
+    "detection_id": 2441,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T01:52:50+00:00",
+    "seconds": 4.6,
+    "box": [
+      482,
+      365,
+      648,
+      424
+    ],
+    "match_score": 0.9991076588630676,
+    "runnerup": 0.4479128122329712,
+    "recoverable": true,
+    "frame_sha256": "b5c12b750e21f3d12e15a8a4677f63f32c0e59893b6a1e993798926301cd87c6",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2441.jpg",
+    "source_region": [
+      437,
+      266,
+      693,
+      522
+    ]
+  },
+  {
+    "clip": 22176,
+    "detection_id": 2433,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T02:06:23+00:00",
+    "seconds": 0.666,
+    "box": [
+      752,
+      261,
+      864,
+      328
+    ],
+    "match_score": 0.9989100098609924,
+    "runnerup": 0.5951461791992188,
+    "recoverable": true,
+    "frame_sha256": "1432c2bc85876a858ea7c3c7293d307269a596b74c95c200d17e22f2faf21d5f",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2433.jpg",
+    "source_region": [
+      680,
+      166,
+      936,
+      422
+    ]
+  },
+  {
+    "clip": 22177,
+    "detection_id": 2439,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T02:07:47+00:00",
+    "seconds": 0.0,
+    "box": [
+      816,
+      137,
+      870,
+      218
+    ],
+    "match_score": 0.9993352890014648,
+    "runnerup": 0.5661391019821167,
+    "recoverable": true,
+    "frame_sha256": "078a8b0d69f5d66197adb61979079de291af3d4d05ddb8dae944985575a61857",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2439.jpg",
+    "source_region": [
+      715,
+      49,
+      971,
+      305
+    ]
+  },
+  {
+    "clip": 22177,
+    "detection_id": 2440,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T02:07:47+00:00",
+    "seconds": 2.4,
+    "box": [
+      728,
+      135,
+      821,
+      184
+    ],
+    "match_score": 0.9989833831787109,
+    "runnerup": 0.508784830570221,
+    "recoverable": true,
+    "frame_sha256": "f26024e4ff173fd13bd8c3ee215554dd872b5954ec3cf3f2c19176c35f9b3a13",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2440.jpg",
+    "source_region": [
+      646,
+      31,
+      902,
+      287
+    ]
+  },
+  {
+    "clip": 22178,
+    "detection_id": 2434,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T02:08:48+00:00",
+    "seconds": 0.733,
+    "box": [
+      438,
+      337,
+      564,
+      398
+    ],
+    "match_score": 0.9975758194923401,
+    "runnerup": 0.5171753764152527,
+    "recoverable": true,
+    "frame_sha256": "5c6ec4816a463665ebb0fb0fd9cf16284a04a67febf8321fc00d7833a14a3336",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2434.jpg",
+    "source_region": [
+      373,
+      239,
+      629,
+      495
+    ]
+  },
+  {
+    "clip": 22181,
+    "detection_id": 2436,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T02:15:23+00:00",
+    "seconds": 1.8,
+    "box": [
+      753,
+      133,
+      826,
+      187
+    ],
+    "match_score": 0.9986644387245178,
+    "runnerup": 0.5226396918296814,
+    "recoverable": true,
+    "frame_sha256": "a45d35e48392f96c1eaa0edeb6d2ab0515ad908ba21b7bee9bbab556585b5d4e",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2436.jpg",
+    "source_region": [
+      661,
+      32,
+      917,
+      288
+    ]
+  },
+  {
+    "clip": 22183,
+    "detection_id": 2470,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T02:31:17+00:00",
+    "seconds": 7.266,
+    "box": [
+      853,
+      428,
+      978,
+      504
+    ],
+    "match_score": 0.9985083341598511,
+    "runnerup": 0.5319281816482544,
+    "recoverable": true,
+    "frame_sha256": "ddb5480127d20024203b04d1b105280b141c6e9fbd90fc89feab04ce3e25121b",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2470.jpg",
+    "source_region": [
+      787,
+      338,
+      1043,
+      594
+    ]
+  },
+  {
+    "clip": 22185,
+    "detection_id": 2476,
+    "kind": "Dog",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-07T03:25:49+00:00",
+    "seconds": 2.733,
+    "box": [
+      530,
+      518,
+      704,
+      717
+    ],
+    "match_score": 0.9987354278564453,
+    "runnerup": 0.6401525139808655,
+    "recoverable": true,
+    "frame_sha256": "e60f95e782470f66a2bd1b8a7edd8c9c9ba4f1c78ba3c8d4fa0916f5ba3ac785",
+    "split": "train",
+    "session": "Back Gate:2026-10-07T00:18:34+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2476.jpg",
+    "source_region": [
+      489,
+      464,
+      745,
+      720
+    ]
+  },
+  {
+    "clip": 22186,
+    "detection_id": 2499,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T03:53:55+00:00",
+    "seconds": 2.133,
+    "box": [
+      423,
+      413,
+      608,
+      493
+    ],
+    "match_score": 0.9993271231651306,
+    "runnerup": 0.7824501991271973,
+    "recoverable": true,
+    "frame_sha256": "cc1bd469c63f40ce5c940891c46fbcb8250de44606b2629b6922d2851fa529d8",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2499.jpg",
+    "source_region": [
+      387,
+      325,
+      643,
+      581
+    ]
+  },
+  {
+    "clip": 22187,
+    "detection_id": 2498,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T03:54:42+00:00",
+    "seconds": 5.0,
+    "box": [
+      426,
+      418,
+      527,
+      500
+    ],
+    "match_score": 0.9990074634552002,
+    "runnerup": 0.6784506440162659,
+    "recoverable": true,
+    "frame_sha256": "36173d27a30c17bf4af1ba0562b492281e7be7330005473cd27c36e45421f6df",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2498.jpg",
+    "source_region": [
+      348,
+      331,
+      604,
+      587
+    ]
+  },
+  {
+    "clip": 22188,
+    "detection_id": 2497,
+    "kind": "Cat",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T03:55:03+00:00",
+    "seconds": 1.8,
+    "box": [
+      907,
+      435,
+      1023,
+      517
+    ],
+    "match_score": 0.998649537563324,
+    "runnerup": 0.6933131217956543,
+    "recoverable": true,
+    "frame_sha256": "49b3ef2e66401109256edc071e3697a1386d2d6349d1700ff7eff4d60478daf1",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T01:07:18+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2497.jpg",
+    "source_region": [
+      837,
+      348,
+      1093,
+      604
+    ]
+  },
+  {
+    "clip": 22560,
+    "detection_id": 2662,
+    "kind": "Dog",
+    "camera": "Water Bowl",
+    "captured_at": "2026-10-07T19:00:20+00:00",
+    "seconds": 0.0,
+    "box": [
+      708,
+      301,
+      782,
+      383
+    ],
+    "match_score": 0.998440682888031,
+    "runnerup": 0.4771130084991455,
+    "recoverable": true,
+    "frame_sha256": "85b7969851bdcfbdbfc2593d92fd274bd6ac8349f3f99f8d75465dd796c8b516",
+    "split": "train",
+    "session": "Water Bowl:2026-10-07T19:00:20+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/2662.jpg",
+    "source_region": [
+      617,
+      214,
+      873,
+      470
+    ]
+  },
+  {
+    "clip": 23352,
+    "detection_id": 3062,
+    "kind": "Person",
+    "camera": "Driveway",
+    "captured_at": "2026-10-08T17:01:33+00:00",
+    "seconds": 6.0,
+    "box": [
+      879,
+      268,
+      972,
+      432
+    ],
+    "match_score": 0.9994704127311707,
+    "runnerup": 0.35999399423599243,
+    "recoverable": true,
+    "frame_sha256": "f13774a357fabe576cc1012298d93b06270ca634e6f58b2548f632dea2a244a3",
+    "split": "train",
+    "session": "Driveway:2026-10-08T17:01:33+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/3062.jpg",
+    "source_region": [
+      797,
+      222,
+      1053,
+      478
+    ]
+  },
+  {
+    "clip": 23353,
+    "detection_id": 3053,
+    "kind": "Person",
+    "camera": "Back Door",
+    "captured_at": "2026-10-08T17:02:19+00:00",
+    "seconds": 0.208,
+    "box": [
+      28,
+      359,
+      445,
+      720
+    ],
+    "match_score": 0.999707043170929,
+    "runnerup": 0.559650719165802,
+    "recoverable": true,
+    "frame_sha256": "2a12c47586d37c129cf620667c294b32eefd479fd26f628e539ee8c63d9451a2",
+    "split": "train",
+    "session": "Back Door:2026-10-08T17:02:19+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/3053.jpg",
+    "source_region": [
+      4,
+      255,
+      469,
+      720
+    ]
+  },
+  {
+    "clip": 23388,
+    "detection_id": 3092,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-08T18:08:22+00:00",
+    "seconds": 7.625,
+    "box": [
+      595,
+      403,
+      691,
+      486
+    ],
+    "match_score": 0.9987519383430481,
+    "runnerup": 0.4145900309085846,
+    "recoverable": true,
+    "frame_sha256": "0e3cab9aadbc3b2bd2e51f9f88be03e2eb6ddb5b800e9ad7441eb3ee0a357801",
+    "split": "train",
+    "session": "Pergola:2026-10-08T18:08:22+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/3092.jpg",
+    "source_region": [
+      515,
+      316,
+      771,
+      572
+    ]
+  },
+  {
+    "clip": 23392,
+    "detection_id": 3102,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-08T18:10:16+00:00",
+    "seconds": 0.0,
+    "box": [
+      839,
+      471,
+      960,
+      536
+    ],
+    "match_score": 0.9994540214538574,
+    "runnerup": 0.44403165578842163,
+    "recoverable": true,
+    "frame_sha256": "3b6758b1a9c893fe02a25600190616562e0fa0e087f2eaafe29759c808cf9f21",
+    "split": "train",
+    "session": "Pergola:2026-10-08T18:08:22+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/3102.jpg",
+    "source_region": [
+      771,
+      375,
+      1027,
+      631
+    ]
+  },
+  {
+    "clip": 23392,
+    "detection_id": 3103,
+    "kind": "Cat",
+    "camera": "Pergola",
+    "captured_at": "2026-10-08T18:10:16+00:00",
+    "seconds": 2.541,
+    "box": [
+      415,
+      351,
+      479,
+      391
+    ],
+    "match_score": 0.998605489730835,
+    "runnerup": 0.5224614143371582,
+    "recoverable": true,
+    "frame_sha256": "cd2c84fe6de3a209612ff49fb702f87c5a1ecfeb095de1542ce349bbcff16e47",
+    "split": "train",
+    "session": "Pergola:2026-10-08T18:08:22+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/train/3103.jpg",
+    "source_region": [
+      319,
+      243,
+      575,
+      499
+    ]
+  },
+  {
+    "clip": 23401,
+    "detection_id": 3104,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-08T18:16:37+00:00",
+    "seconds": 2.041,
+    "box": [
+      725,
+      141,
+      798,
+      185
+    ],
+    "match_score": 0.9985036849975586,
+    "runnerup": 0.5411677360534668,
+    "recoverable": true,
+    "frame_sha256": "6e0e506dd6acf0c516ef739de59fbe22619337d800acd33f4a0a6553f450f8e9",
+    "split": "val",
+    "session": "Back Gate:2026-10-08T18:16:37+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/val/3104.jpg",
+    "source_region": [
+      633,
+      35,
+      889,
+      291
+    ]
+  },
+  {
+    "clip": 23401,
+    "detection_id": 3105,
+    "kind": "Cat",
+    "camera": "Back Gate",
+    "captured_at": "2026-10-08T18:16:37+00:00",
+    "seconds": 7.0,
+    "box": [
+      831,
+      149,
+      894,
+      191
+    ],
+    "match_score": 0.9991962313652039,
+    "runnerup": 0.524241030216217,
+    "recoverable": true,
+    "frame_sha256": "462cc67b3faf84dbac8178ca48e1d95ed01f0637e82b2d2f3e3bebd2f7f939cc",
+    "split": "val",
+    "session": "Back Gate:2026-10-08T18:16:37+00:00",
+    "image": ".cat-training-expanded-20261009/dataset/images/val/3105.jpg",
+    "source_region": [
+      734,
+      42,
+      990,
+      298
+    ]
+  }
+]

@@ -1,0 +1,48 @@
+Water Bowl day/night comparison — October 12, 2026
+
+Outcome: the combined search finds useful daylight Cat proposals that the baseline misses, but unresolved security-lit container-region proposals and missed cats prevent deployment. Cross-clip continuity did not qualify for any link in this run. Production is unchanged; both live services were active after completion.
+
+Human scene clarification added October 12: Dan explains that the garden container is away from the wall and cats frequently pass behind it. A partly hidden cat could contribute to a container-region Cat proposal. Earlier descriptions of those proposals as definite false detections were too strong. Treat them as unresolved pending examination of the original video before, during and after the proposal; do not use these regions as confirmed empty/background negatives. The current still-frame review cannot establish whether a separate proposal is an occluded subject, a displaced/oversized box or a fixture error.
+
+Human review supplied before inference:
+- Clips 25318 and 25319: one Cat each, named Kuska by Dan.
+- Clips 25146 and 25147: one Cat each, named Levi by Dan.
+These are clip-level labels. Names were recorded as supplied, were not input to recognition, and were not written to production identity profiles. Clip-level counts do not establish frame visibility or bounding boxes, nor uninterrupted continuity.
+
+Fixed experiment:
+12 untouched original frames: 10%, 50%, 90% through each of the four clips. Original bAI SSDLite discovery and its existing Type-reference gate provide a frame-level baseline. The experimental Cat branch searches fixed overlapping 384px tiles, stride 256, YOLO input 320, confidence >=0.30. Original/lightness-adjusted proposals must overlap at IoU >=0.35. CLAHE changes LAB lightness only, clipLimit 2, tile grid 8x8. Up to four alternative boundaries per spatial proposal are retained. Embeddings and Type checks use original source pixels. Conflicting or weak species evidence yields Unknown. All reference images from the reserve clips' Chicago date (October 12) were excluded. No threshold was changed after these predictions.
+
+Measured model-output counts (NOT target accuracy):
+Clip / human name    Sampled frames    Frames with any supported Cat proposal    Baseline animal proposals
+25318 / Kuska        3                 2                                        0
+25319 / Kuska        3                 2                                        0
+25146 / Levi         3                 1                                        0
+25147 / Levi         3                 1                                        0
+
+Important visual verification:
+- Daylight Cat boxes in four frames cover Kuska. The 4.9-second view in 25318 lacks a cat box even though Kuska is visible. The 6.3-second frame in 25319 has no visible cat and no animal proposal. Several fixture regions remain Unknown.
+- Nighttime raw Cat counts cannot establish successful target localization. In 25146 at 14.9 seconds, a Cat box covers the garden-container region while a visible cat appears near the gate outside it. The container proposal was initially interpreted as a fixture error, but Dan's scene clarification means original-video examination is needed before assigning negative ground truth.
+- In 25147 at 2.9 seconds, boxes cover Levi near the bowl, with an additional container-region Cat proposal and overlapping proposals on the visible cat. Whether the additional region is a fixture error, misplaced box or occlusion-related proposal remains unresolved. Dan's one-cat-per-clip review must be retained; extra boxes do not establish extra cats.
+- The 14.9-second view of 25147 shows Levi partly at the lower-left edge without a proposal. The 26.9-second view shows Levi on the shelf without a proposal.
+- Other night views remain missed/Unknown. No exhaustive human frame boxes were supplied, so no IoU precision/recall estimate is reported. The six Cat-positive frames must not be described as six successful cat detections.
+
+Timing: 254.4 seconds summed across 12 frames, mean 21.2 seconds/frame for baseline plus experimental detection/verification together, excluding model startup. This is low-priority, single-thread experimental Pi timing, not measured full production throughput. It is substantial extra cost.
+
+Continuity: zero advisory cross-clip links qualified under the frozen appearance/position/time/ambiguity rules. No labels or names propagated. Synthetic safeguards passed 13 tests earlier. Those tests establish the rules' implementation, not real-world identity accuracy. Cross-clip assistance remains unproven. High similarity can also describe the same stationary fixture; future link logic must not treat that as animal identity evidence.
+
+Interpretation and next development work:
+1. Preserve the daylight improvements as a candidate, not a replacement for live bAI.
+2. Review original video around the garden-container proposals, including approach, partial occlusion and reappearance. Add garden-container, hose, gate, fence, shelf and shadow negatives only where absence of a cat is established; retain unresolved regions without assigning a negative label. Include confirmed partial-cat positives where video supplies the evidence. A detector proposal plus correlated image variants is insufficient to establish a Cat.
+3. Improve proposal coverage for the small cat near the gate, shelf views and partial frame-edge subjects; add boundary/containment handling to prevent one cat becoming duplicate subjects.
+4. Then assess multiple separated original-pixel views within clips and possible continuity between clips. Weak frames should retain context for review; automatic names must not spread through uncertain or fixture matches.
+5. Include separate Dog, Person and genuinely empty sequences; these four one-cat clips cannot measure discrimination against those subjects. Reserve new Water Bowl visits for a later independent check. These now-inspected four clips become development material if used to tune the next candidate.
+
+Files:
+- reserve-evaluation/comparison-sheet-0.jpg: daylight overlays.
+- reserve-evaluation/comparison-sheet-1.jpg: night overlays.
+- reserve-evaluation/results.json: all scores, alternate boxes, runtimes, source/checkpoint hashes and sequence outputs.
+- review/human-review.json: Dan's clip-level reviews.
+- water-reserve-run.py and water-reserve-run.sh: reproduction source.
+- reserve-evaluation.zip: measurements and native overlays.
+
+Overlay legend: green = experimental Cat-supported proposal; orange = experimental Unknown. Baseline animal boxes would be blue; none were returned in these samples. Green is a model output, not a human confirmation.

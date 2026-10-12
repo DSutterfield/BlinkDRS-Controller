@@ -1,0 +1,1457 @@
+{
+  "weights_sha256": "b0f91265f4e219010d8c5a3b48165418382f9851d0a0a2a69d8139dfb01aaa1b",
+  "scope": "Previously inspected development examples; no new heldout accuracy claim. Context crops are supplied, not autonomous discovery.",
+  "variants": {
+    "original320": {
+      "summary": {
+        "cats_found": 5,
+        "cat_targets": 8,
+        "noncat_false_images": 2,
+        "noncat_images": 14,
+        "background_false_images": 1,
+        "background_images": 25,
+        "elapsed_seconds": 19.39091134001501
+      },
+      "records": [
+        {
+          "clip": 20629,
+          "detection_id": 1368,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                77.2191390991211,
+                89.7870101928711,
+                157.85305786132812,
+                181.1101531982422
+              ],
+              "score": 0.3308902680873871
+            }
+          ]
+        },
+        {
+          "clip": 20632,
+          "detection_id": 1369,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                51.23699951171875,
+                96.40753936767578,
+                200.81747436523438,
+                171.9425048828125
+              ],
+              "score": 0.6953074932098389
+            }
+          ]
+        },
+        {
+          "clip": 20635,
+          "detection_id": 1371,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                40.4691162109375,
+                87.91963958740234,
+                216.84375,
+                168.50509643554688
+              ],
+              "score": 0.4335278570652008
+            }
+          ]
+        },
+        {
+          "clip": 20637,
+          "detection_id": 1373,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                84.52662658691406,
+                100.41108703613281,
+                182.1525115966797,
+                170.1944122314453
+              ],
+              "score": 0.4415034055709839
+            }
+          ]
+        },
+        {
+          "clip": 20641,
+          "detection_id": 1374,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20642,
+          "detection_id": 1375,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20644,
+          "detection_id": 1380,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1376,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1377,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                157.54437255859375,
+                0.0,
+                227.04678344726562,
+                57.179481506347656
+              ],
+              "score": 0.5908868312835693
+            }
+          ]
+        },
+        {
+          "clip": 20646,
+          "detection_id": 1382,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20649,
+          "detection_id": 1385,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20651,
+          "detection_id": 1386,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20656,
+          "detection_id": 1387,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20659,
+          "detection_id": 1391,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1388,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1389,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1390,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20661,
+          "detection_id": 1392,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                152.79214477539062,
+                191.702392578125,
+                245.9385223388672,
+                256.0
+              ],
+              "score": 0.6044857501983643
+            }
+          ]
+        },
+        {
+          "clip": 20666,
+          "detection_id": 1394,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 21321,
+          "detection_id": 1464,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                28.615453720092773,
+                77.1722412109375,
+                208.9202117919922,
+                179.1592559814453
+              ],
+              "score": 0.4292154908180237
+            }
+          ]
+        },
+        {
+          "clip": 21332,
+          "detection_id": 1519,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 21368,
+          "detection_id": 1474,
+          "kind": "Cat",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                100.60568237304688,
+                107.30778503417969,
+                168.5511474609375,
+                152.3730010986328
+              ],
+              "score": 0.7471638917922974
+            }
+          ]
+        }
+      ],
+      "backgrounds": [
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22183-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22170-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20065-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20021-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21444-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21373-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20004-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21366-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20153-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21450-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20349-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19979-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20952-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19985-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19986-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19982-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22059-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/23388-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22080-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22157-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22161-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22151-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22148-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22058-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22145-background.jpg",
+          "cat_boxes": 0
+        }
+      ]
+    },
+    "closer640": {
+      "summary": {
+        "cats_found": 5,
+        "cat_targets": 8,
+        "noncat_false_images": 2,
+        "noncat_images": 14,
+        "background_false_images": 5,
+        "background_images": 25,
+        "elapsed_seconds": 62.03497541300021
+      },
+      "records": [
+        {
+          "clip": 20629,
+          "detection_id": 1368,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                185.44482421875,
+                124.96427917480469,
+                234.7379913330078,
+                161.3785858154297
+              ],
+              "score": 0.3703917860984802
+            },
+            {
+              "box": [
+                88.60850524902344,
+                92.25404357910156,
+                149.41416931152344,
+                178.40106201171875
+              ],
+              "score": 0.34958136081695557
+            }
+          ]
+        },
+        {
+          "clip": 20632,
+          "detection_id": 1369,
+          "kind": "Cat",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                88.873291015625,
+                103.10038757324219,
+                184.490478515625,
+                145.2975616455078
+              ],
+              "score": 0.3145040273666382
+            }
+          ]
+        },
+        {
+          "clip": 20635,
+          "detection_id": 1371,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20637,
+          "detection_id": 1373,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                77.0268783569336,
+                105.43296813964844,
+                168.7285614013672,
+                167.25259399414062
+              ],
+              "score": 0.4555198848247528
+            }
+          ]
+        },
+        {
+          "clip": 20641,
+          "detection_id": 1374,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20642,
+          "detection_id": 1375,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20644,
+          "detection_id": 1380,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1376,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1377,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                156.97764587402344,
+                4.641393661499023,
+                221.11737060546875,
+                45.26799011230469
+              ],
+              "score": 0.4230179786682129
+            }
+          ]
+        },
+        {
+          "clip": 20646,
+          "detection_id": 1382,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20649,
+          "detection_id": 1385,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20651,
+          "detection_id": 1386,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20656,
+          "detection_id": 1387,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20659,
+          "detection_id": 1391,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1388,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1389,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1390,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20661,
+          "detection_id": 1392,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                151.7186737060547,
+                127.66322326660156,
+                221.2666015625,
+                171.91168212890625
+              ],
+              "score": 0.4687046706676483
+            }
+          ]
+        },
+        {
+          "clip": 20666,
+          "detection_id": 1394,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 21321,
+          "detection_id": 1464,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                49.3587646484375,
+                84.11028289794922,
+                205.9131622314453,
+                166.4711151123047
+              ],
+              "score": 0.48648563027381897
+            }
+          ]
+        },
+        {
+          "clip": 21332,
+          "detection_id": 1519,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                99.7176513671875,
+                106.159423828125,
+                141.2928466796875,
+                154.90420532226562
+              ],
+              "score": 0.3752121329307556
+            }
+          ]
+        },
+        {
+          "clip": 21368,
+          "detection_id": 1474,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                95.04061889648438,
+                108.997802734375,
+                174.0231475830078,
+                151.2607879638672
+              ],
+              "score": 0.4979047179222107
+            }
+          ]
+        }
+      ],
+      "backgrounds": [
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22183-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22170-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20065-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20021-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21444-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21373-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20004-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21366-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20153-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21450-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20349-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19979-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20952-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19985-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19986-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19982-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22059-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/23388-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22080-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22157-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22161-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22151-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22148-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22058-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22145-background.jpg",
+          "cat_boxes": 0
+        }
+      ]
+    },
+    "shadow320": {
+      "summary": {
+        "cats_found": 6,
+        "cat_targets": 8,
+        "noncat_false_images": 3,
+        "noncat_images": 14,
+        "background_false_images": 2,
+        "background_images": 25,
+        "elapsed_seconds": 16.981520541012287
+      },
+      "records": [
+        {
+          "clip": 20629,
+          "detection_id": 1368,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                76.8992919921875,
+                88.41251373291016,
+                158.4690399169922,
+                182.34454345703125
+              ],
+              "score": 0.35227689146995544
+            }
+          ]
+        },
+        {
+          "clip": 20632,
+          "detection_id": 1369,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                55.30540084838867,
+                96.8440170288086,
+                202.2696990966797,
+                176.535888671875
+              ],
+              "score": 0.7314186096191406
+            }
+          ]
+        },
+        {
+          "clip": 20635,
+          "detection_id": 1371,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                41.973289489746094,
+                88.6229248046875,
+                220.4723663330078,
+                168.859375
+              ],
+              "score": 0.42651402950286865
+            }
+          ]
+        },
+        {
+          "clip": 20637,
+          "detection_id": 1373,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                83.51359558105469,
+                100.2625503540039,
+                182.4986114501953,
+                170.14181518554688
+              ],
+              "score": 0.43792036175727844
+            }
+          ]
+        },
+        {
+          "clip": 20641,
+          "detection_id": 1374,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20642,
+          "detection_id": 1375,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20644,
+          "detection_id": 1380,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1376,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1377,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                157.16217041015625,
+                0.0,
+                226.95420837402344,
+                60.761592864990234
+              ],
+              "score": 0.5530834197998047
+            }
+          ]
+        },
+        {
+          "clip": 20646,
+          "detection_id": 1382,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20649,
+          "detection_id": 1385,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20651,
+          "detection_id": 1386,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20656,
+          "detection_id": 1387,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20659,
+          "detection_id": 1391,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1388,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1389,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                154.3206787109375,
+                93.19343566894531,
+                221.40432739257812,
+                156.44802856445312
+              ],
+              "score": 0.37152671813964844
+            }
+          ]
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1390,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20661,
+          "detection_id": 1392,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                153.2234344482422,
+                194.32017517089844,
+                243.14974975585938,
+                256.0
+              ],
+              "score": 0.5506117343902588
+            }
+          ]
+        },
+        {
+          "clip": 20666,
+          "detection_id": 1394,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 21321,
+          "detection_id": 1464,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                29.167278289794922,
+                76.71437072753906,
+                209.48471069335938,
+                179.04234313964844
+              ],
+              "score": 0.4589577317237854
+            }
+          ]
+        },
+        {
+          "clip": 21332,
+          "detection_id": 1519,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 21368,
+          "detection_id": 1474,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                97.99105072021484,
+                107.00141906738281,
+                168.14283752441406,
+                151.57943725585938
+              ],
+              "score": 0.7996001243591309
+            },
+            {
+              "box": [
+                88.1898193359375,
+                88.90040588378906,
+                184.4273681640625,
+                164.15367126464844
+              ],
+              "score": 0.3746555745601654
+            }
+          ]
+        }
+      ],
+      "backgrounds": [
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22183-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22170-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20065-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20021-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21444-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21373-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20004-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21366-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20153-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21450-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20349-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19979-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20952-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19985-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19986-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19982-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22059-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/23388-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22080-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22157-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22161-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22151-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22148-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22058-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22145-background.jpg",
+          "cat_boxes": 0
+        }
+      ]
+    },
+    "closer_shadow640": {
+      "summary": {
+        "cats_found": 4,
+        "cat_targets": 8,
+        "noncat_false_images": 3,
+        "noncat_images": 14,
+        "background_false_images": 3,
+        "background_images": 25,
+        "elapsed_seconds": 62.60054934001528
+      },
+      "records": [
+        {
+          "clip": 20629,
+          "detection_id": 1368,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20632,
+          "detection_id": 1369,
+          "kind": "Cat",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                172.5237579345703,
+                175.6011505126953,
+                241.92288208007812,
+                216.7296600341797
+              ],
+              "score": 0.5475513935089111
+            },
+            {
+              "box": [
+                169.0253143310547,
+                128.46710205078125,
+                224.4796600341797,
+                167.60411071777344
+              ],
+              "score": 0.47304120659828186
+            },
+            {
+              "box": [
+                28.38003158569336,
+                142.8165740966797,
+                101.65071105957031,
+                182.48696899414062
+              ],
+              "score": 0.45546862483024597
+            },
+            {
+              "box": [
+                192.08529663085938,
+                114.0218734741211,
+                256.0,
+                151.58993530273438
+              ],
+              "score": 0.39370861649513245
+            }
+          ]
+        },
+        {
+          "clip": 20635,
+          "detection_id": 1371,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20637,
+          "detection_id": 1373,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                77.39008331298828,
+                105.59806823730469,
+                169.91757202148438,
+                167.37454223632812
+              ],
+              "score": 0.43128272891044617
+            }
+          ]
+        },
+        {
+          "clip": 20641,
+          "detection_id": 1374,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20642,
+          "detection_id": 1375,
+          "kind": "Cat",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20644,
+          "detection_id": 1380,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1376,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20645,
+          "detection_id": 1377,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20646,
+          "detection_id": 1382,
+          "kind": "Dog",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20649,
+          "detection_id": 1385,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20651,
+          "detection_id": 1386,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20656,
+          "detection_id": 1387,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20659,
+          "detection_id": 1391,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1388,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1389,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                152.5146484375,
+                101.1213150024414,
+                212.7122039794922,
+                143.6062469482422
+              ],
+              "score": 0.3175926208496094
+            }
+          ]
+        },
+        {
+          "clip": 20660,
+          "detection_id": 1390,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                197.36611938476562,
+                135.80593872070312,
+                256.0,
+                173.01332092285156
+              ],
+              "score": 0.6272583603858948
+            }
+          ]
+        },
+        {
+          "clip": 20661,
+          "detection_id": 1392,
+          "kind": "Person",
+          "matched": false,
+          "cats": [
+            {
+              "box": [
+                151.83139038085938,
+                127.61778259277344,
+                220.61679077148438,
+                171.54446411132812
+              ],
+              "score": 0.35858917236328125
+            }
+          ]
+        },
+        {
+          "clip": 20666,
+          "detection_id": 1394,
+          "kind": "Person",
+          "matched": false,
+          "cats": []
+        },
+        {
+          "clip": 21321,
+          "detection_id": 1464,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                48.859130859375,
+                83.15147399902344,
+                209.8827667236328,
+                163.39517211914062
+              ],
+              "score": 0.47812965512275696
+            }
+          ]
+        },
+        {
+          "clip": 21332,
+          "detection_id": 1519,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                99.70100402832031,
+                106.59767150878906,
+                140.9749298095703,
+                150.89439392089844
+              ],
+              "score": 0.5002627372741699
+            }
+          ]
+        },
+        {
+          "clip": 21368,
+          "detection_id": 1474,
+          "kind": "Cat",
+          "matched": true,
+          "cats": [
+            {
+              "box": [
+                95.69230651855469,
+                108.95872497558594,
+                174.6490020751953,
+                151.13072204589844
+              ],
+              "score": 0.3509386479854584
+            }
+          ]
+        }
+      ],
+      "backgrounds": [
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22183-background.jpg",
+          "cat_boxes": 3
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/val/22170-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20065-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20021-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21444-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21373-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20004-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21366-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20153-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/21450-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20349-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19979-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/20952-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19985-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19986-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/train/19982-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22059-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/23388-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22080-background.jpg",
+          "cat_boxes": 1
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22157-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22161-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22151-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22148-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22058-background.jpg",
+          "cat_boxes": 0
+        },
+        {
+          "image": ".cat-training-20261009/dataset/images/test/22145-background.jpg",
+          "cat_boxes": 0
+        }
+      ]
+    }
+  }
+}

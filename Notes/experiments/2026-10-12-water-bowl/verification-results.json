@@ -1,0 +1,808 @@
+{
+  "scope": "Development contextual-crop verification; not full-video discovery or independent accuracy. No named identity propagation.",
+  "reference_sources": {
+    "Person": 62,
+    "Cat": 78,
+    "Dog": 82
+  },
+  "excluded_reference_dates_chicago": [
+    "2026-10-04",
+    "2026-10-05"
+  ],
+  "records": [
+    {
+      "clip": 20629,
+      "detection_id": 1368,
+      "ground_truth": "Cat",
+      "candidate_found": true,
+      "species": "Cat",
+      "alternatives": [
+        {
+          "box": [
+            77.2191390991211,
+            89.7870101928711,
+            157.85305786132812,
+            181.1101531982422
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.6791949560734734,
+              "independent_similarities": [
+                0.5764104795018017,
+                0.5560186232050299,
+                0.5324751599302076
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.2347805402762414,
+              "independent_similarities": [
+                0.38449715902934867,
+                0.38045554476106025,
+                0.37925530352147074
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.08602450365028397,
+              "independent_similarities": [
+                0.5560695061916945,
+                0.5528247256162842,
+                0.4930462232707447
+              ]
+            }
+          ],
+          "target_match": true
+        },
+        {
+          "box": [
+            76.8992919921875,
+            88.41251373291016,
+            158.4690399169922,
+            182.34454345703125
+          ],
+          "quality": 1.0,
+          "species": "Unknown",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.6433857610426652,
+              "independent_similarities": [
+                0.5591607887279095,
+                0.5566271507083664,
+                0.5150997153024808
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.22767355168431752,
+              "independent_similarities": [
+                0.40176637549115024,
+                0.39986366635832843,
+                0.3910695573661803
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.12894068727301633,
+              "independent_similarities": [
+                0.55791169215559,
+                0.536363524555253,
+                0.5141677564592041
+              ]
+            }
+          ],
+          "target_match": true
+        }
+      ]
+    },
+    {
+      "clip": 20632,
+      "detection_id": 1369,
+      "ground_truth": "Cat",
+      "candidate_found": true,
+      "species": "Cat",
+      "alternatives": [
+        {
+          "box": [
+            51.23699951171875,
+            96.40753936767578,
+            200.81747436523438,
+            171.9425048828125
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.6848637790916048,
+              "independent_similarities": [
+                0.6716822529064188,
+                0.6261050272220404,
+                0.6177369965530743
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.2537542264964203,
+              "independent_similarities": [
+                0.5771557617602215,
+                0.5303738987229241,
+                0.51768556683159
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.06138199441197395,
+              "independent_similarities": [
+                0.429992406172644,
+                0.4072947217530303,
+                0.3419620049521679
+              ]
+            }
+          ],
+          "target_match": true
+        },
+        {
+          "box": [
+            55.30540084838867,
+            96.8440170288086,
+            202.2696990966797,
+            176.535888671875
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.6618561382709351,
+              "independent_similarities": [
+                0.6535965305917066,
+                0.6259434645247706,
+                0.610886207656971
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.2105150936405486,
+              "independent_similarities": [
+                0.5481333729338804,
+                0.5098531223207015,
+                0.5006508689019523
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.1276287680885154,
+              "independent_similarities": [
+                0.4289733905310579,
+                0.417963983055174,
+                0.3202228576103441
+              ]
+            }
+          ],
+          "target_match": true
+        }
+      ]
+    },
+    {
+      "clip": 20635,
+      "detection_id": 1371,
+      "ground_truth": "Cat",
+      "candidate_found": true,
+      "species": "Cat",
+      "alternatives": [
+        {
+          "box": [
+            40.4691162109375,
+            87.91963958740234,
+            216.84375,
+            168.50509643554688
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.7640122867248005,
+              "independent_similarities": [
+                0.7216349098573955,
+                0.6966583067352083,
+                0.6574218912621871
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.23159208723022007,
+              "independent_similarities": [
+                0.5237423044151525,
+                0.5191790064032127,
+                0.5058810339979103
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.004395626044978673,
+              "independent_similarities": [
+                0.4605480724285108,
+                0.3598643963048259,
+                0.28455493588943304
+              ]
+            }
+          ],
+          "target_match": true
+        },
+        {
+          "box": [
+            41.973289489746094,
+            88.6229248046875,
+            220.4723663330078,
+            168.859375
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.7263885183353751,
+              "independent_similarities": [
+                0.6773795497409265,
+                0.64890391756943,
+                0.6475247526036507
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.26559069137153096,
+              "independent_similarities": [
+                0.5620617896760602,
+                0.5333824818536596,
+                0.5081925026198637
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.008020790293092883,
+              "independent_similarities": [
+                0.4178677735182037,
+                0.361929643101941,
+                0.2892907045389907
+              ]
+            }
+          ],
+          "target_match": true
+        }
+      ]
+    },
+    {
+      "clip": 20637,
+      "detection_id": 1373,
+      "ground_truth": "Cat",
+      "candidate_found": true,
+      "species": "Cat",
+      "alternatives": [
+        {
+          "box": [
+            84.52662658691406,
+            100.41108703613281,
+            182.1525115966797,
+            170.1944122314453
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.7678351262747265,
+              "independent_similarities": [
+                0.7284467990920043,
+                0.7185755578998687,
+                0.7146076650217854
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.18143677510189604,
+              "independent_similarities": [
+                0.5663591044342037,
+                0.5583991757944589,
+                0.5471352370409862
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.05072809862337663,
+              "independent_similarities": [
+                0.5524421898609924,
+                0.403102814649937,
+                0.29333608785137266
+              ]
+            }
+          ],
+          "target_match": true
+        },
+        {
+          "box": [
+            83.51359558105469,
+            100.2625503540039,
+            182.4986114501953,
+            170.14181518554688
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.7788722464596824,
+              "independent_similarities": [
+                0.7308480057707794,
+                0.7248768432093944,
+                0.7187158821807642
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.17257413216595,
+              "independent_similarities": [
+                0.5742112202806063,
+                0.5726361342656401,
+                0.5507072406085403
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.04855362137436681,
+              "independent_similarities": [
+                0.5529982592589802,
+                0.41232503411449817,
+                0.29722231633422447
+              ]
+            }
+          ],
+          "target_match": true
+        }
+      ]
+    },
+    {
+      "clip": 20641,
+      "detection_id": 1374,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20642,
+      "detection_id": 1375,
+      "ground_truth": "Cat",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20645,
+      "detection_id": 1376,
+      "ground_truth": "Dog",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20645,
+      "detection_id": 1377,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": [
+        {
+          "box": [
+            157.54437255859375,
+            0.0,
+            227.04678344726562,
+            57.179481506347656
+          ],
+          "quality": 1.0,
+          "species": "Unknown",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.5405275029813019,
+              "independent_similarities": [
+                0.5012272218310926,
+                0.49313542541924793,
+                0.4866876814072558
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.45626586448673223,
+              "independent_similarities": [
+                0.48962662373046695,
+                0.43653781969311933,
+                0.4194843926259213
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.003206632531964737,
+              "independent_similarities": [
+                0.27687572761254037,
+                0.2707707909130735,
+                0.26996198025740226
+              ]
+            }
+          ],
+          "target_match": false
+        },
+        {
+          "box": [
+            157.16217041015625,
+            0.0,
+            226.95420837402344,
+            60.761592864990234
+          ],
+          "quality": 1.0,
+          "species": "Unknown",
+          "ranks": [
+            {
+              "subject_type": "Dog",
+              "score": 0.474397415252774,
+              "independent_similarities": [
+                0.46001510708263765,
+                0.43755240944521623,
+                0.41861082586913445
+              ]
+            },
+            {
+              "subject_type": "Cat",
+              "score": 0.46928551085648385,
+              "independent_similarities": [
+                0.493511421174042,
+                0.48755481930234523,
+                0.4722445624877058
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.05631707389074131,
+              "independent_similarities": [
+                0.30203658491329183,
+                0.2899400854205811,
+                0.28637145269052183
+              ]
+            }
+          ],
+          "target_match": false
+        }
+      ]
+    },
+    {
+      "clip": 20646,
+      "detection_id": 1382,
+      "ground_truth": "Dog",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20649,
+      "detection_id": 1385,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20651,
+      "detection_id": 1386,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20656,
+      "detection_id": 1387,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20660,
+      "detection_id": 1388,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20660,
+      "detection_id": 1389,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20660,
+      "detection_id": 1390,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 20661,
+      "detection_id": 1392,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": [
+        {
+          "box": [
+            152.79214477539062,
+            191.702392578125,
+            245.9385223388672,
+            256.0
+          ],
+          "quality": 1.0,
+          "species": "Unknown",
+          "ranks": [
+            {
+              "subject_type": "Person",
+              "score": 0.3832875737518817,
+              "independent_similarities": [
+                0.34136089879114356,
+                0.3215667746938268,
+                0.2952432361675445
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.33304681389616386,
+              "independent_similarities": [
+                0.3907473471582061,
+                0.3741202039827554,
+                0.36017444229561235
+              ]
+            },
+            {
+              "subject_type": "Cat",
+              "score": 0.2836656123519532,
+              "independent_similarities": [
+                0.43104559254921987,
+                0.4274117681309593,
+                0.37158873304480244
+              ]
+            }
+          ],
+          "target_match": false
+        },
+        {
+          "box": [
+            153.2234344482422,
+            194.32017517089844,
+            243.14974975585938,
+            256.0
+          ],
+          "quality": 1.0,
+          "species": "Unknown",
+          "ranks": [
+            {
+              "subject_type": "Dog",
+              "score": 0.37307108302371994,
+              "independent_similarities": [
+                0.3477446935868208,
+                0.335002368001528,
+                0.32549826865216436
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": 0.3280961333651728,
+              "independent_similarities": [
+                0.2979616783543598,
+                0.29023695989517473,
+                0.2781231717309289
+              ]
+            },
+            {
+              "subject_type": "Cat",
+              "score": 0.2988327836111063,
+              "independent_similarities": [
+                0.4003310107610095,
+                0.3633055402452915,
+                0.3523959683782155
+              ]
+            }
+          ],
+          "target_match": false
+        }
+      ]
+    },
+    {
+      "clip": 20666,
+      "detection_id": 1394,
+      "ground_truth": "Person",
+      "candidate_found": false,
+      "species": "Unknown",
+      "alternatives": []
+    },
+    {
+      "clip": 21321,
+      "detection_id": 1464,
+      "ground_truth": "Cat",
+      "candidate_found": true,
+      "species": "Cat",
+      "alternatives": [
+        {
+          "box": [
+            28.615453720092773,
+            77.1722412109375,
+            208.9202117919922,
+            179.1592559814453
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.6653505204641721,
+              "independent_similarities": [
+                0.5616165107038699,
+                0.5469328915217511,
+                0.5341709543897661
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.3760497127738436,
+              "independent_similarities": [
+                0.48955896432569723,
+                0.47373775425834175,
+                0.4633352445002087
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": -0.04140023323801689,
+              "independent_similarities": [
+                0.25488681606440117,
+                0.24181626608833184,
+                0.2374420464664454
+              ]
+            }
+          ],
+          "target_match": true
+        },
+        {
+          "box": [
+            29.167278289794922,
+            76.71437072753906,
+            209.48471069335938,
+            179.04234313964844
+          ],
+          "quality": 1.0,
+          "species": "Unknown",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.6419391298866992,
+              "independent_similarities": [
+                0.5609550538217127,
+                0.540054862440938,
+                0.5319258905551731
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.4084429645875614,
+              "independent_similarities": [
+                0.48663172595866955,
+                0.47674091586250417,
+                0.45721352289282524
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": -0.050382094474261674,
+              "independent_similarities": [
+                0.2615797770837578,
+                0.24474969664462232,
+                0.23797142534914367
+              ]
+            }
+          ],
+          "target_match": true
+        }
+      ]
+    },
+    {
+      "clip": 21368,
+      "detection_id": 1474,
+      "ground_truth": "Cat",
+      "candidate_found": true,
+      "species": "Cat",
+      "alternatives": [
+        {
+          "box": [
+            100.60568237304688,
+            107.30778503417969,
+            168.5511474609375,
+            152.3730010986328
+          ],
+          "quality": 0,
+          "species": "Unknown",
+          "ranks": [],
+          "target_match": false
+        },
+        {
+          "box": [
+            97.99105072021484,
+            107.00141906738281,
+            168.14283752441406,
+            151.57943725585938
+          ],
+          "quality": 0,
+          "species": "Unknown",
+          "ranks": [],
+          "target_match": false
+        },
+        {
+          "box": [
+            88.1898193359375,
+            88.90040588378906,
+            184.4273681640625,
+            164.15367126464844
+          ],
+          "quality": 1.0,
+          "species": "Cat",
+          "ranks": [
+            {
+              "subject_type": "Cat",
+              "score": 0.8058877477848161,
+              "independent_similarities": [
+                0.6447931182905486,
+                0.6368819807313724,
+                0.6283339958854417
+              ]
+            },
+            {
+              "subject_type": "Dog",
+              "score": 0.3324571238941398,
+              "independent_similarities": [
+                0.5548094038107438,
+                0.5504264747711435,
+                0.5388908553186382
+              ]
+            },
+            {
+              "subject_type": "Person",
+              "score": -0.13834487167895665,
+              "independent_similarities": [
+                0.3647825140634289,
+                0.31282350291681116,
+                0.3088680920624429
+              ]
+            }
+          ],
+          "target_match": true
+        }
+      ]
+    }
+  ],
+  "sequence_links": [],
+  "feature_model": "dinov2-small-cls-v1:ae1e99fcefd534ed978cdeb8326f08030c96e28b7a81ffcbc98a857c84d14be1",
+  "summary": {
+    "cat_targets": 7,
+    "matched_cat_candidates": 6,
+    "matched_and_cat_supported": 6,
+    "noncat_images": 12,
+    "noncat_images_with_cat_support": 0,
+    "possible_sequence_links": 0
+  }
+}

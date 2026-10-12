@@ -1,0 +1,13 @@
+{
+  "source": "Dan's direct clarification in this chat",
+  "date": "2026-10-12",
+  "camera": "Water Bowl",
+  "garden_container": {
+    "against_wall": false,
+    "cats_pass_behind": true,
+    "possible_partial_occlusion": true
+  },
+  "review_status": "Container-region Cat proposals remain unresolved pending original-video sequence review",
+  "training_rule": "Do not label these proposal regions as empty/background negatives without verifying that no cat is present. Partial-cat positives also require verified evidence.",
+  "production_catalog_modified": false
+}

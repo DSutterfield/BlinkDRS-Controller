@@ -1,0 +1,32 @@
+Water Bowl combined-method development study — October 12, 2026
+
+Scope: Water Bowl Camera only. Existing reviewed examples: 7 Cat, 2 Dog, 10 Person contextual crops from two camera sessions. All are previously inspected development data. No new inference, training, production changes or catalog writes were needed for this comparison; it reuses saved October 12 model outputs and the reviewed October 9 manifest.
+
+Candidate stage results:
+Method                            Known cats found /7    Noncat images with false Cat /12
+Original 320                      5                      2
+Shadow-adjusted 320               6                      3
+Either original or shadow         6                      3
+Overlapping original AND shadow   6                      2
+Any of four variants              6                      4
+At least two of four variants     6                      3
+At least three of four variants   5                      1
+
+The additional variants are larger 640 input and larger 640 input plus shadow adjustment. All predictions used confidence >=0.30. A proposal receives support from another variant when their boxes have IoU >=0.35. Duplicate boxes within one variant never count as additional support. Known-target matching uses IoU >=0.50 against the existing reviewed Cat box. Rules were specified before combination scoring, without a threshold sweep. The selected promising rule is consequently a development choice requiring new evaluation.
+
+Promising candidate: require overlapping proposals in the original and shadow-adjusted 320 views, retaining their supported box alternatives. On these examples it keeps the extra supported outline for clip 21368 while removing the extra noncat false-positive image introduced by shadow adjustment. It still falsely proposes Cat on fixtures in Person examples 20645 and 20661, and still misses Cat in 20642. This is not ready for live deployment.
+
+Important box-processing limitation: standard highest-score nonmaximum suppression at IoU 0.35 drops the useful larger outline in 21368 and retains a tighter, higher-score box that fails the fixed target match. After that merge, the original-and-shadow combination matches only 5/7, not 6/7. Candidate-stage recall is therefore not a completed pipeline improvement. Preserve and evaluate alternative boundaries through Type verification before selecting one final crop. Never use the known answer to choose a production box.
+
+The variants are correlated processing views of the same trained checkpoint. Their agreement is not independent confirmation, a calibrated confidence probability, or a human label. Counts are images with false Cat proposals, not exhaustive full-scene precision or unique-animal counts. A Dog/Person-labelled contextual tile can include scenery that attracts a false Cat box. Existing annotations are not exhaustive full-frame labels. No background-camera-specific combination result is claimed because the saved background records lack box coordinates and camera provenance. No named individual identity improvement is claimed.
+
+Next combined prototype to evaluate:
+1. Discover possible subjects in original Water Bowl frames with overlapping contextual tiles, retaining the full scene for people and larger dogs.
+2. Run original and lightness-adjusted 320 views; use overlapping agreement as an experimental proposal gate, preserving alternative box boundaries.
+3. Apply the existing confirmed-reference Person/Cat/Dog check to original-pixel crops; preserve Unknown when evidence conflicts or is weak.
+4. Combine spatially consistent evidence across separated frames using existing duplicate and time-separation safeguards. Do not treat repeated model variants as independent visits or confirmed labels.
+5. Evaluate on new Water Bowl visits separated from fitting/development by recording session/day, with daylight, darkness, cats, dogs, people, empty shadows and fixtures. Review every visible target in evaluation frames; establish ground truth before running candidates. Compare original live bAI and the frozen combined candidate on exactly the same clips, including latency and false alarms per clip.
+
+Current data supports developing this candidate, not claiming it works on new clips. Hard-negative training remains useful because several views agree on the same fixtures. Repeated Water Bowl visits make camera-specific data collection practical but cannot substitute for independent evaluation.
+
+Files: results.json contains per-image outputs and scores, input-predictions.json contains original model outputs, reviewed-manifest.json provides camera/session/box provenance, and combine_water_bowl.py reproduces this comparison with Python's standard library. Run the script from its delivered folder without relocating its companion JSON files.
