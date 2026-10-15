@@ -1,0 +1,36 @@
+BlinkDRS Controller 1.2.22 - Independent Unknown evaluation collection
+2026-10-15
+
+24 previously unconfirmed, untrained Unknown clips across eight cameras are copied to
+/home/dan/BlinkDVR/bai-evaluation/unknown-v1. The normal 30-day retention setting is
+unchanged. Separate recordings, membership and reviewed answers survive ordinary
+clip cleanup. Membership uses Blink media IDs to prevent catalog ID reuse errors.
+The dataset CSV and manifest identify the clips and recording checksums.
+
+Held-out clips and same-camera clips within five minutes are excluded from positive
+references, confirmed Unknown negative references, pending corrections, Cat variants,
+same-clip teachers and replay exports. Database triggers also block sample writes.
+Selection excluded known development examples and candidates with prior references
+or nearby human confirmations. Initially 88 catalog clips fall within this exclusion.
+
+Normal human confirmations on the 24 clips become separate evaluation answers,
+including crops and timing, rather than learning samples. Answers persist after
+original recordings expire. Partial confirmations do not establish full-clip truth.
+Historical predictions are provisional snapshots, not ground truth or a uniform
+version baseline. Compare raw inference with a complete reviewed answer key before
+reporting accuracy. Do not tune against these test failures or upload their frames
+as teaching photos; use other examples for development.
+
+The private frozen reference catalog, previous source snapshot and baseline context
+remain on the Pi for controlled comparisons. Source and available model hashes are
+recorded. Keep references fixed to compare code versions; document reference changes
+when comparing the complete learning system. Independent uploaded reference photos
+continue to function normally.
+
+GET /api/v1/evaluation/holdouts lists archived test cases. Each stable media-ID video
+URL streams its retained recording. No Windows app changes are required.
+
+Validation: 434 backend tests passed, including actual 30-day retention cleanup,
+learning exclusions, negative-reference filtering, label preservation and ID reuse.
+Standalone recording integration passed. Production installation verifies unchanged
+labels/images and retention, archived video streaming, health and service status.

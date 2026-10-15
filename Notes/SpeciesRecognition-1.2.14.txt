@@ -1,0 +1,17 @@
+Controller 1.2.14 — Dog and Person Type refinement — October 15, 2026
+
+Investigated 383 automatically labeled Type Unknown appearances. Reviewed 111 representative crops across eight cameras. Clear Dogs and people occur alongside empty grass, shadows, and genuinely unclear crops; Unknown remains appropriate when evidence is insufficient.
+
+Changes
+- Reuse high-confidence Person proposals from the existing offline detail model. New Person tracks require at least two sampled frames and native crops at least 48 pixels across. Existing Person detection and identity crops stay intact; independently supported full-body regions help suppress animal-shaped human-part proposals.
+- Recover an uncertain Dog through repeated independent scene-detector and confirmed-Type evidence, or a bounded second-model crop check. The crop check requires a Dog-favoring reference score and margin, support from two distinct confirmed Clips/images, a high-confidence Dog result occupying the crop, and a clear lead over Cat/Person alternatives. At most four additional crop checks run per Clip.
+- Preserve supported Cat Types and conflicting-Cat vetoes. Person face matching and pet individual-identification models, sizes, and quality requirements are unchanged. No study Clip was added to the confirmed training gallery.
+
+Validation
+- 115 regression checks passed.
+- Paired baseline/candidate full-pipeline replays used the same four sampled frames per Clip and frozen held-out reference galleries. Clip 23454 changed from an Unknown appearance to a Person track spanning the tested 7.49–14.98 seconds. Clip 25216 retained its existing Dog results; its remaining uncertain appearance stayed Unknown.
+- Recorded-crop/track-feature evaluation with exact detail-model crop predictions recovered Dog appearances in Clips 25619 and 23941. No new Dog labels were introduced on the reviewed Cat, Person, background, or unclear crops in the 111-crop comparison. This is a diagnostic sample, not a population accuracy estimate; original Dog proposals are required by the production crop fallback.
+- Three native frames from known empty Clip 26097 produced no Person or Dog proposals. Established Cat scenes 26079 and 26093 produced no high-confidence supplemental Person proposals in the tested frames.
+- Broader reference selection and unrestricted crop-model replacement did not provide reliable gains and were not installed.
+
+Full production analysis samples up to 16 frames. The paired replay used four for a controlled, bounded comparison. Additional poses, poor lighting, and brief activity can still remain Unknown.

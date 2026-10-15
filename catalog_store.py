@@ -429,16 +429,17 @@ def sync_clip(
         conn.close()
 
 
-def list_clips(db_path, limit=100, offset=0, include_damaged=False):
+def list_clips(db_path, limit=100, offset=0, include_damaged=False, *, _conn=None, _since=None):
     """Return locally available recorded clips from the SQLite catalog."""
 
-    conn = sqlite3.connect(db_path)
+    conn = _conn if _conn is not None else sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
 
     try:
-        ensure_clip_validation(conn)
         from identity_store import ensure_identities, clip_identities
-        ensure_identities(conn)
+        if _conn is None:
+            ensure_clip_validation(conn)
+            ensure_identities(conn)
         visibility = "1 = 1" if include_damaged else "NOT EXISTS (SELECT 1 FROM clip_validation v WHERE v.catalog_id = clips.id AND v.status = 'damaged')"
         total = conn.execute(
             f"""
@@ -457,6 +458,8 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False):
             """
         ).fetchone()[0]
 
+        changes = "" if _since is None else " AND id IN (SELECT catalog_id FROM clip_sync_changes WHERE revision > ?)"
+        parameters = (limit, offset) if _since is None else (_since, limit, offset)
         rows = conn.execute(
             f"""
             SELECT
@@ -478,11 +481,11 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False):
                 COALESCE((SELECT state FROM identity_analysis_jobs a WHERE a.catalog_id=clips.id), 'not_analyzed') AS analysis_state,
                 COALESCE((SELECT status FROM clip_validation v WHERE v.catalog_id = clips.id), 'unchecked') AS validation_status
             FROM clips
-            WHERE local_present = 1 AND {visibility}
+            WHERE local_present = 1 AND {visibility}{changes}
             ORDER BY captured_at DESC
             LIMIT ? OFFSET ?
             """,
-            (limit, offset),
+            parameters,
         ).fetchall()
 
         clips = []
@@ -533,7 +536,8 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False):
         }
 
     finally:
-        conn.close()
+        if _conn is None:
+            conn.close()
 
 
 def get_clip_by_media_id(db_path, media_id):
@@ -703,4 +707,6 @@ def open_catalog_notifications(db_path):
     """)
     from identity_store import ensure_identities
     ensure_identities(conn)
+    from clip_sync import ensure_clip_sync
+    ensure_clip_sync(conn)
     return conn

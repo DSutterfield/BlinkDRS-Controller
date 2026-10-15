@@ -10,10 +10,12 @@ def _gallery_token(conn):
     profiles=list(conn.execute("SELECT identity_id,name,active FROM identities WHERE subject_type='Dog' ORDER BY identity_id"))
     samples=list(conn.execute('''SELECT s.*,d.catalog_id,d.confirmed,d.subject_type,d.identity_id AS current_identity
         FROM identity_samples s JOIN identities i USING(identity_id)
-        LEFT JOIN clip_detections d USING(detection_id) WHERE i.subject_type='Dog' ORDER BY s.sample_id'''))
+        LEFT JOIN clip_detections d USING(detection_id) WHERE i.subject_type='Dog'
+        AND (s.detection_id IS NULL OR d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)) ORDER BY s.sample_id'''))
     unknowns=list(conn.execute('''SELECT d.detection_id,d.catalog_id,e.embedding,e.embedding_model,e.quality_score
         FROM clip_detections d JOIN identity_evidence e USING(detection_id)
-        WHERE d.subject_type='Dog' AND e.subject_type='Dog' AND d.confirmed=1 AND d.identity_id IS NULL
+        WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
+        AND d.subject_type='Dog' AND e.subject_type='Dog' AND d.confirmed=1 AND d.identity_id IS NULL
         ORDER BY d.detection_id'''))
     return hashlib.sha256(repr([[tuple(r) for r in rows] for rows in (profiles,samples,unknowns)]).encode()).hexdigest()
 

@@ -1,0 +1,7 @@
+Controller 1.2.12 — 2026-10-15
+
+Fixed Analyze Clip being rejected while the local AI worker is still analyzing a long clip. The API expires worker status after 15 minutes; the previous worker refreshed status only between jobs. An observed clip took 17 minutes 45 seconds, exceeding that limit.
+
+A worker-owned heartbeat now refreshes the timestamp every 30 seconds during model loading, analysis, and pauses. It preserves the current state/message, never revives failed/stopped status, and stops on worker exit. An exited process still expires normally.
+
+Validation: 13 isolated heartbeat and identity-analysis regressions passed, including stale-status reproduction and a successful analysis API request after refresh. Deployed files were backed up and hash-checked, both services restarted only after activity checks, and the interrupted analysis was requeued. Person/pet recognition logic and confirmed identities were unchanged.

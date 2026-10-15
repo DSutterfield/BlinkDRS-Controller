@@ -97,6 +97,33 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(overlap([0,0,10,10],[0,0,10,10]),1.)
         self.assertEqual(overlap([0,0,10,10],[20,20,30,30]),0.)
 
+    def test_manual_analysis_precedes_background_and_preserves_background_order(self):
+        enable_new_clip_queue(self.db)
+        with connect(self.db) as conn:
+            for cid in (3,4):
+                conn.execute("INSERT INTO clips(id,filename,video_path,captured_at,local_present) VALUES(?,?,?,'2026-10-15',1)",(cid,f'{cid}.mp4',f'{cid}.mp4'))
+        queue_clip(self.db,2)
+        self.assertEqual(claim_job(self.db)['catalog_id'],2)
+        self.assertEqual(claim_job(self.db)['catalog_id'],3)
+        self.assertEqual(claim_job(self.db)['catalog_id'],4)
+
+    def test_clicking_an_already_queued_clip_promotes_it_without_duplicates(self):
+        queue_clip(self.db,1);queue_clip(self.db,2);queue_clip(self.db,1)
+        self.assertEqual(claim_job(self.db)['catalog_id'],1)
+        with connect(self.db) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM identity_analysis_jobs').fetchone()[0],2)
+
+    def test_completed_and_failed_retries_go_first_active_analysis_is_unchanged(self):
+        for state in ('done','failed'):
+            queue_clip(self.db,1);queue_clip(self.db,2)
+            finish_job(self.db,1,state,'old message')
+            result=queue_clip(self.db,1)
+            self.assertEqual(result['message'],'')
+            self.assertEqual(claim_job(self.db)['catalog_id'],1)
+            with connect(self.db) as conn:
+                before=dict(conn.execute('SELECT * FROM identity_analysis_jobs WHERE catalog_id=1').fetchone())
+            self.assertEqual(queue_clip(self.db,1),before)
+
     def test_type_correction_rebuild_uses_current_human_label(self):
         publish_detections(self.db,1,'hash',[self.observation()])
         did=get_clip_identities(self.db,1)[0]['detection_id']

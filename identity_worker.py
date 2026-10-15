@@ -5,7 +5,8 @@ import os
 import time
 from pathlib import Path
 from identity_analysis import (claim_job, enable_new_clip_queue, finish_job,
-                              publish_detections, set_worker_status, pending_type_corrections, rebuild_reference)
+                              publish_detections, set_worker_status, pending_type_corrections, rebuild_reference,
+                              WorkerHeartbeat)
 from identity_store import connect
 from identity_models import file_hash
 
@@ -73,6 +74,19 @@ def retain_view(track, seconds, jpeg, vector, version, quality, type_result=None
     views.sort(key=lambda v:v['seconds'])
 
 
+def sampled_frame_indices(frames, max_frames=16):
+    """Keep regular coverage and inspect two views of the previously skipped tail."""
+    step = max(1, int(math.ceil(frames/max_frames)))
+    indices = list(range(0, int(frames), step))
+    last = int(frames)-1
+    if indices[-1] != last:
+        middle = (indices[-1]+last)//2
+        if middle > indices[-1]:
+            indices.append(middle)
+        indices.append(last)
+    return indices, step
+
+
 def analyze_video(path, models, max_frames=16, checkpoint=None):
     cv2 = models.cv2
     capture = cv2.VideoCapture(str(path))
@@ -82,9 +96,9 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
         frames = capture.get(cv2.CAP_PROP_FRAME_COUNT)
         if not capture.isOpened() or not math.isfinite(fps) or fps <= 0 or not math.isfinite(frames) or frames < 1:
             raise ValueError('Video duration/frame rate could not be read.')
-        step = max(1, int(math.ceil(frames/max_frames)))
+        frame_indices, step = sampled_frame_indices(frames, max_frames)
         sampled = 0
-        for frame_index in range(0, int(frames), step):
+        for frame_index in frame_indices:
             if checkpoint:
                 checkpoint()
             capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
@@ -134,8 +148,14 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                         kind = detection['subject_type']
                     detection = dict(detection, subject_type=kind)
                 # Keep source pixels for embeddings; store a bounded JPEG for review.
-                scale = min(1., 256/max(crop.shape[:2]))
-                preview = cv2.resize(crop, (max(1,int(crop.shape[1]*scale)),max(1,int(crop.shape[0]*scale))))
+                review_crop=crop;review_box=box;review_rank=None
+                if (detection['subject_type']=='Person' and detection.get('detail_person_candidate')
+                        and detection.get('person_model_consensus') and vector is None and quality>=.2):
+                    from person_review_crop import review_region
+                    review_box,review_rank=review_region(frame.shape,box,detection['confidence'])
+                    ra,rb,rc,rd=review_box;review_crop=frame[rb:rd,ra:rc]
+                scale = min(1., 256/max(review_crop.shape[:2]))
+                preview = cv2.resize(review_crop, (max(1,int(review_crop.shape[1]*scale)),max(1,int(review_crop.shape[0]*scale))))
                 encoded_ok, jpeg = cv2.imencode('.jpg', preview, [cv2.IMWRITE_JPEG_QUALITY,85])
                 if not encoded_ok:
                     raise ValueError('Could not encode a subject image.')
@@ -175,10 +195,14 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                         retain_view(holder,seconds,type_jpeg,type_vector,type_version,type_quality,type_result=frame_type)
                         if type_quality > track.get('type_quality_score', -1):
                             track.update(type_embedding=type_vector,type_embedding_model=type_version,type_quality_score=type_quality,type_crop_box=type_box,type_crop_jpeg=type_jpeg,type_crop_seconds=seconds)
-                    if (track.get('embedding') is not None and vector is None) or (bool(vector) == bool(track.get('embedding')) and quality <= track['quality_score']):
-                        used.add(index)
-                        continue
+                    keep_best_crop = (track.get('embedding') is not None and vector is None) or (bool(vector) == bool(track.get('embedding')) and quality <= track['quality_score'])
+                    if (review_rank is not None and track.get('person_review_rank') is not None
+                            and track.get('embedding') is None and vector is None
+                            and quality>=track['quality_score']-.05
+                            and review_rank>track['person_review_rank']):
+                        keep_best_crop=False
                 else:
+                    keep_best_crop = False
                     if len(tracks) >= 100:
                         continue
                     index = len(tracks)
@@ -192,9 +216,26 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                         if type_quality > track.get('type_quality_score', -1):
                             track.update(type_embedding=type_vector,type_embedding_model=type_version,type_quality_score=type_quality,type_crop_box=type_box,type_crop_jpeg=type_jpeg,type_crop_seconds=seconds)
                 used.add(index)
+                if detection['subject_type']=='Person':
+                    track['detail_person_only'] = (track.get('detail_person_only',True)
+                        and detection.get('detail_person_candidate',False)
+                        and not detection.get('person_model_consensus',False))
+                vote_method = getattr(models,'detail_type_vote',None)
+                if vote_method is not None:
+                    vote = vote_method(detection,type_vector,type_version,type_quality,seconds,type_jpeg)
+                    if vote is not None:
+                        track.setdefault('detail_type_votes',[]).append(vote)
+                cat_vote_method = getattr(models,'cat_type_vote',None)
+                if cat_vote_method is not None:
+                    vote = cat_vote_method(detection,type_vector,type_version,type_quality,seconds,type_jpeg)
+                    if vote is not None:
+                        track.setdefault('cat_type_votes',[]).append(vote)
+                if keep_best_crop:
+                    continue
                 track.update(subject_type=detection['subject_type'],confidence=detection['confidence'],
                              crop_jpeg=jpeg.tobytes(),embedding=vector,embedding_model=version,
-                             quality_score=quality,detector_model=detection.get('detector_model',models.detector_version),box=box)
+                             quality_score=quality,detector_model=detection.get('detector_model',models.detector_version),box=box,
+                             person_review_rank=review_rank,review_crop_box=review_box,crop_seconds=seconds)
             time.sleep(.05)
         if sampled == 0:
             raise ValueError('No frames could be sampled.')
@@ -203,7 +244,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
             for track in tracks:
                 if track['subject_type'] in ('Cat','Dog'):
                     track['subject_type'] = finalize_type(track)
-        return [track for track in tracks if track['subject_type'] != 'Vehicle' or track.get('sample_hits', 1) >= 2]
+        return [track for track in tracks if (track['subject_type'] != 'Vehicle' and not track.get('detail_person_only')) or track.get('sample_hits', 1) >= 2]
     finally:
         capture.release()
 
@@ -213,8 +254,11 @@ def process_one(db_path, archive_root, job, models, checkpoint=None):
     fingerprint = file_hash(path)
     from subject_type_learning import load_references
     models.type_references = load_references(db_path, models.pet_version, job['catalog_id'])
-    from animal_detail_refinement import RefinedAnimalSceneModels as AnimalSceneModels
-    observations = analyze_video(path, AnimalSceneModels(models, checkpoint), checkpoint=checkpoint)
+    from cat_type_variants import load_variants
+    models.cat_type_references = load_variants(db_path,models,models.type_references,checkpoint,
+                                              teaching_clip=job['catalog_id'])
+    from person_scene_search import PersonConsensusModels as AnimalSceneModels
+    observations = analyze_video(path, AnimalSceneModels(models, checkpoint, catalog_id=job['catalog_id']), checkpoint=checkpoint)
     if file_hash(path) != fingerprint:
         raise ValueError('Recording changed during analysis; retry once it is stable.')
     publish_detections(db_path,job['catalog_id'],fingerprint,observations)
@@ -252,8 +296,11 @@ def main():
             lock.seek(0); lock.write(b'0'); lock.flush(); lock.seek(0)
             msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
         failed = False
+        heartbeat = None
         try:
             set_worker_status(args.db,'loading','Loading local models')
+            heartbeat = WorkerHeartbeat(args.db)
+            heartbeat.__enter__()
             from identity_models import LocalModels
             models = LocalModels(args.models)
             with connect(args.db) as conn:
@@ -308,6 +355,8 @@ def main():
             set_worker_status(args.db,'failed',str(exc))
             raise
         finally:
+            if heartbeat is not None:
+                heartbeat.__exit__()
             with connect(args.db) as conn:
                 conn.execute("UPDATE identity_analysis_jobs SET state='failed',message='Worker interrupted; retry analysis',updated_at=CURRENT_TIMESTAMP WHERE state='running'")
             if not failed:

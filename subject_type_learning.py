@@ -10,17 +10,20 @@ def pending(db_path, model):
         return [dict(row) for row in conn.execute("""SELECT d.detection_id,d.subject_type,e.crop_jpeg
             FROM clip_detections d JOIN identity_evidence e USING(detection_id)
             LEFT JOIN subject_type_samples t USING(detection_id)
-            WHERE d.confirmed=1 AND d.subject_type<>'Unknown' AND (t.detection_id IS NULL OR t.subject_type<>d.subject_type
+            WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
+            AND d.confirmed=1 AND d.subject_type<>'Unknown' AND (t.detection_id IS NULL OR t.subject_type<>d.subject_type
                 OR t.model_version<>?) ORDER BY d.detection_id LIMIT 4""", (model,))]
 
 
 def save_reference(db_path, item, vector, model, quality):
     with connect(db_path) as conn:
-        row = conn.execute("""SELECT d.subject_type,d.confirmed,e.crop_jpeg
+        row = conn.execute("""SELECT d.catalog_id,d.subject_type,d.confirmed,e.crop_jpeg
             FROM clip_detections d JOIN identity_evidence e USING(detection_id)
             WHERE d.detection_id=?""", (item['detection_id'],)).fetchone()
         if not row or not row['confirmed'] or row['subject_type'] != item['subject_type'] or row['crop_jpeg'] != item['crop_jpeg']:
             return  # A later human edit wins over work already in flight.
+        from evaluation_holdout import blocked
+        if blocked(conn,row['catalog_id']):return
         conn.execute("""INSERT INTO subject_type_samples VALUES(?,?,?,?,?,?)
             ON CONFLICT(detection_id) DO UPDATE SET subject_type=excluded.subject_type,
             embedding=excluded.embedding,model_version=excluded.model_version,
@@ -66,7 +69,8 @@ def load_references(db_path, model, exclude_clip):
         for kind in ('Person','Cat','Dog','Vehicle'):
             rows = conn.execute("""SELECT t.*,d.catalog_id FROM subject_type_samples t
                 JOIN clip_detections d USING(detection_id)
-                WHERE d.confirmed=1 AND d.subject_type=t.subject_type AND t.subject_type=?
+                WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
+                AND d.confirmed=1 AND d.subject_type=t.subject_type AND t.subject_type=?
                 AND t.model_version=? AND t.embedding IS NOT NULL AND t.quality_score>=.2
                 AND d.catalog_id<>? ORDER BY t.detection_id DESC LIMIT ?""", (kind,model,exclude_clip,2048 if kind=='Cat' else 128))
             usable = []

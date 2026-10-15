@@ -48,6 +48,22 @@ def install_identity_api(app, controller):
     from sightings_api import install_sightings_api
     install_sightings_api(app, run)
 
+    @app.get('/api/v1/evaluation/holdouts')
+    def evaluation_holdouts():
+        from evaluation_holdout import list_holdouts
+        return run(list_holdouts)
+
+    @app.get('/api/v1/evaluation/holdouts/{blink_media_id}/video')
+    def evaluation_video(blink_media_id: str):
+        from evaluation_holdout import video_path
+        from fastapi.responses import FileResponse
+        return FileResponse(run(video_path,blink_media_id),media_type='video/mp4')
+
+    @app.get('/api/v1/clips/catalog/{catalog_id}/identity-suggestions')
+    def identity_suggestions(catalog_id: int):
+        from cat_identity_review import review_suggestions
+        return run(review_suggestions,catalog_id)
+
     @app.get('/api/v1/clips/catalog/{catalog_id}/analysis')
     def analysis_status(catalog_id: int):
         return run(job_status, catalog_id)

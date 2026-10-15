@@ -895,6 +895,14 @@ def create_app(controller):
             "motion_enabled": camera.motion_enabled,
         }
 
+    @app.get("/api/v1/clips/sync")
+    def sync_clips(token: str | None = None):
+        """Return a consistent baseline or only clips changed since a prior token."""
+        if not controller.catalog_db_path.is_file():
+            raise HTTPException(status_code=503, detail="Local clip catalog is unavailable")
+        from clip_sync import sync_clips as read_sync
+        return read_sync(controller.catalog_db_path, token)
+
     @app.get("/api/v1/clips")
     def clips(
         limit: int = Query(default=100, ge=1, le=500),

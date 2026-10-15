@@ -20,7 +20,8 @@ def _supporting_clips(conn, identity_id, model, vector, catalog_id, threshold):
     sources = set()
     for row in conn.execute('''SELECT d.catalog_id,s.embedding FROM identity_samples s
             JOIN clip_detections d USING(detection_id) JOIN identities i USING(identity_id)
-            WHERE s.identity_id=? AND i.active=1 AND i.subject_type='Dog'
+            WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
+            AND s.identity_id=? AND i.active=1 AND i.subject_type='Dog'
             AND d.confirmed=1 AND d.subject_type='Dog' AND d.identity_id=s.identity_id
             AND d.catalog_id<>? AND s.model_version=? AND s.quality_score>=.2''',
             (identity_id, catalog_id, model)):
@@ -37,7 +38,8 @@ def _unknown_veto(conn, model, vector, catalog_id, nearest):
     # Explicit human-confirmed unknowns are negative examples, never named training data.
     for row in conn.execute('''SELECT e.embedding FROM clip_detections d
             JOIN identity_evidence e USING(detection_id)
-            WHERE d.subject_type='Dog' AND e.subject_type='Dog' AND d.confirmed=1
+            WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
+            AND d.subject_type='Dog' AND e.subject_type='Dog' AND d.confirmed=1
             AND d.identity_id IS NULL AND d.catalog_id<>? AND e.embedding_model=?
             AND e.quality_score>=.2 AND e.embedding IS NOT NULL''', (catalog_id,model)):
         try:

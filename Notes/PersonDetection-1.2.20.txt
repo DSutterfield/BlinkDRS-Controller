@@ -1,0 +1,13 @@
+Person detection refinement — controller 1.2.20, October 15, 2026
+
+Clip 26046's later full-body Person was present in the sampled end frames. SSDLite scored it .327/.501, below its .65 Person floor. Faster R-CNN scored it .940/.976 at 29.006/29.921 seconds: only the second passed the existing .95 supplementary-Person floor, then the single supplementary appearance was removed by the two-sample rule. This was an object detection/retention failure, not a face or individual identity failure.
+
+The already provisioned YOLO11s model agreed at .879/.890 on overlapping Person locations. Reuse that model's existing full-scene forward pass to collect Person proposals separately from Cat/Dog proposals. A Faster R-CNN full-scene Person candidate at >=.90 may enter only when YOLO11s independently favors Person at >=.80 with box IoU >=.50. Both native dimensions must be >=48 pixels. Existing Person crops remain unchanged. Two-model agreement can retain a single supplementary appearance; uncorroborated supplementary Person detections still require two sampled views. Original SSDLite and Faster R-CNN .95 paths retain their existing thresholds.
+
+Person category recognition does not need a detectable face. Individual identity matching continues to use its existing face evidence; this change does not assign Trish or learn an identity from robe color. Animal proposals remain separate. Cat detection, teaching provenance, quality, background, contrary-species and independence guards from 1.2.19 remain intact.
+
+No additional pretrained assets, runtime dependencies or network downloads are required. Existing ai-models/yolo11s-cat-v1.onnx and Faster R-CNN weights are verified using their existing SHA-256 fingerprints. See CatDetection-1.2.19.md for model provenance, licensing and private asset provisioning.
+
+The isolated study is /home/dan/BlinkDRS-Controller/.person-26046-20261015. It retains current catalog snapshots, 136-test log, full target replay, paired scene controls, native crops and deployment verification. All private feature caches and observation data remain on the Pi. Source, tests, release metadata and this note are synchronized to the Windows controller repository. Installation guards Live View/recording, backs up affected files/catalog, preserves human labels and crops, resumes interrupted queue work, and checks production model paths and services.
+
+Reanalysis is published only to clip 26046. Dan's newly confirmed images in clip 25912 are preserved and are not republished.

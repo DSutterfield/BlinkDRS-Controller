@@ -8,7 +8,7 @@ def rank_candidates(conn,kind,model,vector,exclude_clip=None):
  query=np.array(normalized(vector));raw=list(conn.execute('''SELECT s.sample_id,s.identity_id,s.embedding,d.catalog_id,i.name
   FROM identity_samples s JOIN identities i USING(identity_id) LEFT JOIN clip_detections d USING(detection_id)
   WHERE i.active=1 AND i.subject_type=? AND s.model_version=? AND s.quality_score>=.2
-  AND (s.detection_id IS NULL OR d.confirmed=1) ORDER BY s.sample_id LIMIT2000'''.replace('LIMIT2000','LIMIT 2000'),(kind,model)))
+  AND (s.detection_id IS NULL OR (d.confirmed=1 AND d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips))) ORDER BY s.sample_id LIMIT2000'''.replace('LIMIT2000','LIMIT 2000'),(kind,model)))
  rows=[]
  for row in raw:
   if exclude_clip is not None and row['catalog_id']==exclude_clip:continue

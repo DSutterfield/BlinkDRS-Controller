@@ -15,11 +15,16 @@ class RefinedAnimalSceneModels(DetailedAnimalSceneModels):
   h,w=frame.shape[:2];a,b,c,e=region or [0,0,w,h]
   image=Image.fromarray(self.models.cv2.cvtColor(frame[b:e,a:c],self.models.cv2.COLOR_BGR2RGB))
   with self.models.torch.inference_mode():result=self.detail.detector([self.detail.transform(image)])[0]
-  found=[]
+  found=[];people=[]
   for label,score,box in zip(result['labels'],result['scores'],result['boxes']):
    label=int(label);score=float(score)
+   if label==1 and score>=.90:
+    x,y,z,t=box.tolist();people.append(dict(subject_type='Person',confidence=score,box=[x+a,y+b,z+a,t+b],detector_model=self.detail.version))
    if label not in (17,18) or score<.10:continue
    x,y,z,t=box.tolist();found.append(dict(subject_type='Cat' if label==17 else 'Dog',confidence=score,box=[x+a,y+b,z+a,t+b],detector_model=self.detail.version))
+  if region is None:
+   self.detail_people=[p for p in people if p['confidence']>=.95]
+   self.person_search_candidates=people
   self.raw_cache[key]=found;return found
  def detail_detections(self,frame,region=None):
   # Preserve the installed proposal floor and order for its original pass.

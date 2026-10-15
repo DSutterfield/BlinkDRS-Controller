@@ -1,0 +1,9 @@
+Person review crop — controller 1.2.21, October 15, 2026
+
+The later Person in 26046 had equal sharpness scores in both accepted views, so the earlier crop near the right/bottom video edges remained selected. The final view is farther inside the frame and has stronger detector confidence.
+
+For supplemental, two-model-corroborated Person detections with no face embedding and usable quality, add 8% horizontal and 6% vertical review margins (minimum eight pixels), clipped to the recording. At comparable sharpness, prefer a view with room for more padded sides, then higher detector confidence. Identity features and tracking boxes are computed from the unchanged native detection crop. Face-bearing Person crops, original SSDLite Person crops and animal crop selection retain their existing policy. Record the selected review frame and region in observation metadata.
+
+142 regressions passed. Crop selection was replayed over all 18 sampled native frames using the actual Person detections recorded in the completed 1.2.20 full analysis and its verified Pi-local feature cache. Category, detection times and identity features matched all three previous Person tracks. The later crop now selects 29.921 seconds, region [1072,347,1255,693], with full bounded margins. Native revised images were visually reviewed.
+
+Only unconfirmed detection 5068's review JPEG and its selected-view confidence are refreshed. Its Type, identity, confirmation and time range are preserved; all other clip rows/images, including Trish, Dixie and clip 25912, are untouched. The previous JPEG is retained in the deployment backup. No full detection/identity republish is needed for this review-image correction.

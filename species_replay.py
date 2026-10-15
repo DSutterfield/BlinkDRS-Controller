@@ -23,7 +23,8 @@ def prepare(snapshot,output,clip_ids,neighbor_seconds=300):
     (output/'images').mkdir()
     src=sqlite3.connect('file:'+str(Path(snapshot).resolve())+'?mode=ro',uri=True);src.row_factory=sqlite3.Row
     try:
-        clips=[];answers=[];excluded=set(clip_ids);held_hashes=set()
+        from evaluation_holdout import excluded_ids
+        clips=[];answers=[];excluded=set(clip_ids)|excluded_ids(src);held_hashes=set()
         for cid in clip_ids:
             clip=src.execute('SELECT * FROM clips WHERE id=? AND local_present=1',(cid,)).fetchone()
             if clip is None:raise ValueError(f'Clip {cid} is not locally available')

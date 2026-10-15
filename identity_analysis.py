@@ -2,7 +2,8 @@
 import hashlib
 import json
 import math
-from datetime import datetime, timezone
+import threading
+from datetime import datetime, timezone, timedelta
 from identity_store import connect, require_clip
 
 
@@ -52,10 +53,19 @@ def ensure_analysis(conn):
 def queue_clip(db_path, catalog_id):
     with connect(db_path) as conn:
         ensure_analysis(conn)
+        conn.execute('BEGIN IMMEDIATE')
         require_clip(conn, catalog_id)
-        conn.execute("""INSERT INTO identity_analysis_jobs(catalog_id,state) VALUES(?,'queued')
-            ON CONFLICT(catalog_id) DO UPDATE SET state='queued',message='',updated_at=CURRENT_TIMESTAMP
-            WHERE identity_analysis_jobs.state IN ('done','failed')""", (catalog_id,))
+        # Queued timestamps are the worker's existing FIFO ordering key.
+        # Reserve an earlier slot atomically; keep an active job untouched.
+        first = conn.execute("""SELECT MIN(j.updated_at) FROM identity_analysis_jobs j
+            JOIN clips c ON c.id=j.catalog_id
+            WHERE j.state='queued' AND c.local_present=1 AND j.catalog_id<>?""", (catalog_id,)).fetchone()[0]
+        slot = datetime.now(timezone.utc).replace(tzinfo=None)
+        if first is not None:
+            slot = min(slot, datetime.fromisoformat(first)-timedelta(seconds=1))
+        conn.execute("""INSERT INTO identity_analysis_jobs(catalog_id,state,updated_at) VALUES(?,'queued',?)
+            ON CONFLICT(catalog_id) DO UPDATE SET state='queued',message='',updated_at=excluded.updated_at
+            WHERE identity_analysis_jobs.state IN ('queued','done','failed')""", (catalog_id,slot.isoformat(sep=' ')))
         return dict(conn.execute('SELECT * FROM identity_analysis_jobs WHERE catalog_id=?', (catalog_id,)).fetchone())
 
 
@@ -77,6 +87,33 @@ def set_worker_status(db_path, state, message):
         conn.execute("""INSERT INTO identity_worker_status(id,state,message) VALUES(1,?,?)
             ON CONFLICT(id) DO UPDATE SET state=excluded.state,message=excluded.message,
             updated_at=CURRENT_TIMESTAMP""", (state, message[:1000]))
+
+
+class WorkerHeartbeat:
+    """Keep a live worker available during long inference and model loading."""
+    def __init__(self, db_path, interval=30):
+        self.db_path = db_path
+        self.interval = interval
+        self.stop = threading.Event()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+
+    def _run(self):
+        import logging
+        while not self.stop.wait(self.interval):
+            try:
+                with connect(self.db_path) as conn:
+                    conn.execute("""UPDATE identity_worker_status SET updated_at=CURRENT_TIMESTAMP
+                        WHERE id=1 AND state IN ('loading','ready','analyzing','paused')""")
+            except Exception:
+                logging.exception('Could not refresh local AI worker heartbeat')
+
+    def __enter__(self):
+        self.thread.start()
+        return self
+
+    def __exit__(self, *args):
+        self.stop.set()
+        self.thread.join()
 
 
 def enable_new_clip_queue(db_path):
@@ -127,7 +164,9 @@ def match_identity(conn, subject_type, model, vector, threshold, margin):
     vector = normalized(vector)
     scores = {}
     rows = conn.execute("""SELECT s.identity_id,s.embedding FROM identity_samples s
-        JOIN identities i USING(identity_id) WHERE i.active=1 AND i.subject_type=? AND s.model_version=?""", (subject_type, model))
+        JOIN identities i USING(identity_id) LEFT JOIN clip_detections d USING(detection_id)
+        WHERE (s.detection_id IS NULL OR d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips))
+        AND i.active=1 AND i.subject_type=? AND s.model_version=?""", (subject_type, model))
     for row in rows:
         try:
             sample = normalized(json.loads(row['embedding']))
@@ -198,7 +237,8 @@ def publish_detections(db_path, catalog_id, fingerprint, observations):
 def learn_confirmed(conn, detection_id):
     row = conn.execute("""SELECT d.identity_id,d.subject_type AS assigned_type,e.* FROM clip_detections d
         JOIN identity_evidence e USING(detection_id) WHERE d.detection_id=? AND d.confirmed=1""", (detection_id,)).fetchone()
-    if row and row['identity_id'] is not None and row['assigned_type'] == row['subject_type'] and row['embedding'] and row['quality_score'] >= .2:
+    from evaluation_holdout import blocked
+    if row and not blocked(conn,row['catalog_id']) and row['identity_id'] is not None and row['assigned_type'] == row['subject_type'] and row['embedding'] and row['quality_score'] >= .2:
         conn.execute('INSERT INTO identity_samples(identity_id,detection_id,embedding,model_version,quality_score) VALUES(?,?,?,?,?)',
                      (row['identity_id'],detection_id,row['embedding'],row['embedding_model'],row['quality_score']))
 
@@ -217,7 +257,7 @@ def pending_type_corrections(db_path):
     with connect(db_path) as conn:
         return [dict(row) for row in conn.execute("""SELECT d.detection_id,d.identity_id,d.subject_type,e.crop_jpeg
             FROM clip_detections d JOIN identity_evidence e USING(detection_id)
-            WHERE d.confirmed=1 AND
+            WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips) AND d.confirmed=1 AND
             (d.subject_type<>e.subject_type OR e.embedding_model='manual-pending') LIMIT 4""")]
 
 

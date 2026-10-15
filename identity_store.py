@@ -41,6 +41,8 @@ def ensure_identities(conn):
     ensure_photos(conn)
     from identity_analysis import ensure_analysis
     ensure_analysis(conn)
+    from evaluation_holdout import ensure_holdouts
+    ensure_holdouts(conn)
     # Notify existing Windows clients after a committed label change.
     if conn.execute("SELECT 1 FROM sqlite_master WHERE name='catalog_notifications'").fetchone():
         for event in ('INSERT', 'UPDATE', 'DELETE'):

@@ -1,0 +1,7 @@
+Controller 1.2.13 — 2026-10-15
+
+Fixed Analyze Clip returning HTTP 500 for completed Clips: SQLite propagated the outer queue UPSERT conflict policy into synchronization triggers, overriding their INSERT OR REPLACE and causing UNIQUE constraint failed: clip_sync_changes.catalog_id.
+
+Sync triggers now use an explicit ON CONFLICT(catalog_id) DO UPDATE. Existing trigger definitions are migrated transactionally without resetting sync epochs, revisions or change records. Trigger/file backups support rollback.
+
+Validation: 21 regressions passed, including reproduction with legacy triggers, migration preserving sync state, completed-Clip API reanalysis, incremental synchronization, and heartbeat checks. Recognition logic and confirmed identity data are unchanged.

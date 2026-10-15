@@ -53,7 +53,8 @@ def rank_types(references, vector, model):
     scores = (query-center)@coefficients+means
     result = []
     for kind,score in zip(KINDS,scores):
-        matches = sorted([(float(query@np.array(v)),r['catalog_id'],r['crop_hash']) for r,v in rows if r['subject_type']==kind],reverse=True)
+        matches = sorted([(float(query@np.array(v)),r['catalog_id'],r['crop_hash']) for r,v in rows
+                          if r['subject_type']==kind and not r.get('support_excluded',False)],reverse=True)
         distinct = []
         clips,images = set(),set()
         for similarity,clip,image in matches:
@@ -110,12 +111,15 @@ def in_person_region(animal, detections):
     if area <= 0:
         return False
     for item in detections:
-        if item['subject_type'] != 'Person' or item['confidence'] < .7:
+        if item['subject_type'] != 'Person' or (item['confidence'] < .7 and not item.get('detail_person_box')):
             continue
-        b = item['box']
-        intersection = max(0,min(a[2],b[2])-max(a[0],b[0]))*max(0,min(a[3],b[3])-max(a[1],b[1]))
-        if intersection/area >= .9:
-            return True
+        boxes = [item['box']] if item['confidence']>=.7 else []
+        if item.get('detail_person_box'):
+            boxes.append(item['detail_person_box'])
+        for b in boxes:
+            intersection = max(0,min(a[2],b[2])-max(a[0],b[0]))*max(0,min(a[3],b[3])-max(a[1],b[1]))
+            if intersection/area >= .9:
+                return True
     return False
 
 

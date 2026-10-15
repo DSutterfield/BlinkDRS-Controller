@@ -1,0 +1,7 @@
+Controller 1.2.16 — 2026-10-15
+
+Analyze Clip automatically places a manual analysis request first among eligible queued Clips, including completed/failed retries and Clips already queued. The most recently requested Clip is next. An actively running analysis is left unchanged; no duplicate job is created. Automatically queued recordings retain their existing order.
+
+The reservation uses the worker's existing queued timestamp ordering and a BEGIN IMMEDIATE transaction shared with job claims. No worker restart or catalog schema change is needed. The controller alone is restarted after Live View/recording/saving activity checks, with deployed-file backups and rollback available.
+
+Validation: 24 isolated analysis, sync and heartbeat checks passed, including background ordering, promotion of already queued Clips, completed/failed retries, duplicate prevention, and preservation of the active job.
