@@ -1,0 +1,13 @@
+Blink Controller 1.2.9 — October 14, 2026
+
+Installs the tested climbing-cat and Catio recognition improvements.
+Cat Type references retain recent confirmed examples and include older examples selected for visual diversity. Weak animal detector proposals can enter analysis only after strong agreement from multiple crop sizes and distinct confirmed references. Person evidence and conflicting species evidence veto recovery.
+
+Person detection, face features, the worker's tracking logic, and individual-identification requirements remain unchanged. Recordings, confirmed labels, profiles, and reference crops are preserved. Existing Clip labels are not automatically rewritten; subsequent analysis uses this release.
+
+Validation: 52 regression checks passed. All nine same-Clip comparisons preserved Person results, including all five appearances in 26078. The climbing views in 26098 and the first Catio animal view in 26079 resolve as Cat. Both known dogs remain Dog. Twenty-five reviewed background regions produced no Cat/Dog labels.
+
+Limits: later distant Catio views remain missed, and some partial animal views remain Unknown. These are development results, not a general accuracy benchmark.
+
+Previous deployed files: /home/dan/BlinkDRS-Controller/.climbing-install-20261014/backup
+Verification.json records the installed hashes, running release, service health, and worker readiness.

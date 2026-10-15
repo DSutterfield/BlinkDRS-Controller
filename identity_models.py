@@ -119,6 +119,88 @@ class LocalModels:
             output = self.pet_model(**self.processor(images=image, return_tensors='pt'))
         return output.last_hidden_state[0,0].tolist(), self.pet_version, quality
 
+    def animal_type_embedding(self, crop):
+        """Type features accept small animals; individual embedding stays unchanged."""
+        from PIL import Image
+        if min(crop.shape[:2]) < 16:
+            return None, None, 0
+        gray = self.cv2.cvtColor(crop, self.cv2.COLOR_BGR2GRAY)
+        quality = min(1., float(self.cv2.Laplacian(gray, self.cv2.CV_64F).var()) / 100.)
+        if quality < .2:
+            return None, None, quality
+        image = Image.fromarray(self.cv2.cvtColor(crop, self.cv2.COLOR_BGR2RGB))
+        with self.torch.inference_mode():
+            output = self.pet_model(**self.processor(images=image, return_tensors='pt'))
+        return output.last_hidden_state[0,0].tolist(), self.pet_version, quality
+
+    def _legacy_animal_type_features(self, frame, box, claimed_type, vector, model, quality, person_region=False):
+        """Guarded context fallback for uncertain usable animal crops only."""
+        from subject_type_check import resolve_animal_type, rank_types
+        if vector is None or quality < .2:
+            return vector, model, quality, list(box)
+        if resolve_animal_type(getattr(self, 'type_references', []), claimed_type, vector, model,
+                               person_region=person_region) != 'Unknown':
+            return vector, model, quality, list(box)
+        h,w=frame.shape[:2];a,b,c,d=box;cx=(a+c)/2;cy=(b+d)/2
+        variants=[]
+        for pad in (.25,.5):
+            cw=(c-a)*(1+2*pad);ch=(d-b)*(1+2*pad)
+            region=[max(0,int(cx-cw/2)),max(0,int(cy-ch/2)),min(w,int(cx+cw/2)),min(h,int(cy+ch/2))]
+            x1,y1,x2,y2=region
+            v,m,q=self.animal_type_embedding(frame[y1:y2,x1:x2])
+            ranks=rank_types(getattr(self,'type_references',[]),v,m)
+            if q < .2 or len(ranks)<3:
+                return vector,model,quality,list(box)
+            variants.append((v,m,q,region,ranks))
+        medium,wide=variants
+        mt,wt=medium[4][0],wide[4][0]
+        ms,ws=mt['independent_similarities'],wt['independent_similarities']
+        if (wt['subject_type'] in ('Cat','Dog') and mt['subject_type']==wt['subject_type']
+                and mt['score']>=.5 and mt['score']-medium[4][1]['score']>=.1
+                and wt['score']>=.75 and wt['score']-wide[4][1]['score']>=.3
+                and len(ms)>=2 and ms[1]>=.5 and len(ws)>=2 and ws[1]>=.5):
+            return wide[:4]
+        return vector,model,quality,list(box)
+
+    def confirmed_animal_context(self, frame, box, pads=(.1,.25,.5)):
+        """Require two strongly supported context crops to agree on animal Type."""
+        from subject_type_check import rank_types
+        h,w=frame.shape[:2];a,b,c,d=box;cx=(a+c)/2;cy=(b+d)/2
+        variants=[]
+        for pad in pads:
+            cw=(c-a)*(1+2*pad);ch=(d-b)*(1+2*pad)
+            region=[max(0,int(cx-cw/2)),max(0,int(cy-ch/2)),min(w,int(cx+cw/2)),min(h,int(cy+ch/2))]
+            x1,y1,x2,y2=region
+            v,m,q=self.animal_type_embedding(frame[y1:y2,x1:x2])
+            ranks=rank_types(getattr(self,'type_references',[]),v,m)
+            if q<.2 or len(ranks)<3:continue
+            top=ranks[0];support=top['independent_similarities']
+            if (top['score']<.75 or top['score']-ranks[1]['score']<.3
+                    or len(support)<2 or support[1]<.5):continue
+            if top['subject_type']=='Person':return None
+            if top['subject_type'] in ('Cat','Dog'):
+                variants.append((v,m,q,region,top['subject_type'],top['score']))
+        if len(variants)<2 or len({v[4] for v in variants})!=1:return None
+        return max(variants,key=lambda v:v[5])[:4]
+
+    def confirm_weak_animal_proposal(self, frame, box, claimed_type, person_region=False):
+        """Weak detector proposals need two strong Type confirmations, never Person."""
+        from subject_type_check import resolve_animal_type
+        if claimed_type not in ('Cat','Dog') or person_region:return False
+        a,b,c,d=box
+        v,m,q=self.animal_type_embedding(frame[b:d,a:c])
+        if q<.2 or resolve_animal_type(getattr(self,'type_references',[]),claimed_type,v,m) is None:return False
+        return self.confirmed_animal_context(frame,box) is not None
+
+    def choose_animal_type_features(self, frame, box, claimed_type, vector, model, quality, person_region=False):
+        from subject_type_check import resolve_animal_type
+        result=self._legacy_animal_type_features(frame,box,claimed_type,vector,model,quality,person_region)
+        if (claimed_type not in ('Cat','Dog') or vector is None or quality<.2
+                or result[3]!=list(box)
+                or resolve_animal_type(getattr(self,'type_references',[]),claimed_type,vector,model,person_region)!='Unknown'):
+            return result
+        return self.confirmed_animal_context(frame,box) or result
+
     def type_embedding(self, crop):
         # Use the same visual space for every Type, including people and vehicles.
         return self.embedding(crop, 'Cat')

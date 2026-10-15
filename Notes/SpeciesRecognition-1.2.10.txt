@@ -1,0 +1,9 @@
+Blink Controller 1.2.10 — 2026-10-14
+Installed the tested animal-only detail detector for distant Cats and Dogs.
+Person detection and individual identification requirements remain unchanged.
+61 regression tests passed; all nine Clips replayed with unchanged Person results.
+Catio 26079 gained Cat views at 3.75 and 7.49 seconds. Remaining distant views need further work.
+Production model: ai-models/fasterrcnn_mobilenet_v3_large_fpn-fb6a3cc7.pth
+SHA256: fb6a3cc702b1df54c18a44b26708cd083614211062d0c36d2ca7bf9270df3533
+Pi backups: /home/dan/BlinkDRS-Controller/.distant-install-20261014/backup
+No existing Clip results were rewritten. Interrupted analysis 26113 requeued.

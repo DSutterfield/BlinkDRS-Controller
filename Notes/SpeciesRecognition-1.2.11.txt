@@ -1,0 +1,15 @@
+Blink Controller 1.2.11 — 2026-10-14
+
+Install the tested small-animal detail refinement and guarded adjacent-view Type association. Person detection and individual identification requirements remain unchanged. Original detections keep priority; new weak views cannot start tracks, choose between nearby animals, extend stale tracks, or join tracks with individual-ID features.
+
+Validation: 83 regression tests, nine same-Clip replays with unchanged Person results, zero Cat/Dog labels in 25 reviewed background regions. Both known Dogs and the stationary/climbing Cat controls are preserved. All 31 accepted animal crops were visually reviewed. Catio 26079 recognizes six sampled walking-Cat views at 0.00, 1.87, 3.75, 5.62, 7.49 and 9.36 seconds. This is sampled coverage, not continuous per-frame detection or a general accuracy benchmark.
+
+No new weights or packages. Existing model asset: ai-models/fasterrcnn_mobilenet_v3_large_fpn-fb6a3cc7.pth
+SHA256: fb6a3cc702b1df54c18a44b26708cd083614211062d0c36d2ca7bf9270df3533
+Source: https://download.pytorch.org/models/fasterrcnn_mobilenet_v3_large_fpn-fb6a3cc7.pth
+Weights remain external to Git. Provision this asset as well as the standard SSD/DINO models on a fresh controller installation.
+
+Pi source backup: /home/dan/BlinkDRS-Controller/.temporal-install-20261014/backup
+Test study: /home/dan/BlinkDRS-Controller/.remaining-temporal-catio-20261014
+Evidence archive SHA256: 178c045f6ced629668fe722efbd60d85c9ca7562e6a99cb6181baa1e6805caaf
+Recordings, confirmed labels, identity profiles and existing Clip results are preserved. Only interrupted background analysis is requeued for retry.

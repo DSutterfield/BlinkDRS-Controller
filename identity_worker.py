@@ -24,6 +24,20 @@ def overlap(a, b):
     return intersection/union if union > 0 else 0
 
 
+def track_candidate(track, detection, seconds, sample_period):
+    animal = track['subject_type'] in ('Cat','Dog') and detection['subject_type'] in ('Cat','Dog')
+    if track['subject_type'] != detection['subject_type'] and not animal:
+        return False
+    elapsed = seconds-track['last_seen_seconds']
+    if elapsed < 0:
+        return False
+    if elapsed <= sample_period*1.5:
+        return True
+    # Four fine-search anchors can be several seconds apart. Bridge only a
+    # nearly unchanged animal box; do not extend Person tracking or moving boxes.
+    return animal and elapsed <= min(12.,sample_period*6.) and overlap(track['box'],detection['box']) >= .75
+
+
 def retain_view(track, seconds, jpeg, vector, version, quality, type_result=None):
     """Bounded complementary views; not additional confirmed training labels."""
     if vector is None or quality < .2 or not version:
@@ -93,10 +107,22 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                 if detection['subject_type'] == 'Vehicle' and not models.accepts_vehicle(crop):
                     continue
                 vector, version, quality = models.embedding(crop, detection['subject_type'])
+                type_vector, type_version, type_quality = vector, version, quality
+                if detection['subject_type'] in ('Cat','Dog'):
+                    type_features = getattr(models, 'animal_type_embedding', None)
+                    if type_features is not None:
+                        if vector is None or version != models.pet_version:
+                            type_vector, type_version, type_quality = type_features(crop)
+                type_box = box
+                choose_context = getattr(models, 'choose_animal_type_features', None)
+                if detection['subject_type'] in ('Cat','Dog') and choose_context is not None:
+                    type_vector,type_version,type_quality,type_box = choose_context(
+                        frame,box,detection['subject_type'],type_vector,type_version,type_quality,
+                        person_region=in_person_region(dict(detection,box=box),detections))
                 frame_type = detection['subject_type']
                 resolve_type = getattr(models, 'resolve_animal_type', None)
                 if detection['subject_type'] in ('Cat','Dog') and resolve_type is not None:
-                    kind = resolve_type(detection['subject_type'], vector, version,
+                    kind = resolve_type(detection['subject_type'], type_vector, type_version,
                                         person_region=in_person_region(dict(detection, box=box), detections))
                     if kind is None:
                         continue
@@ -113,9 +139,29 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                 encoded_ok, jpeg = cv2.imencode('.jpg', preview, [cv2.IMWRITE_JPEG_QUALITY,85])
                 if not encoded_ok:
                     raise ValueError('Could not encode a subject image.')
+                type_jpeg = jpeg.tobytes()
+                if detection['subject_type'] in ('Cat','Dog') and type_box != box:
+                    tx1,ty1,tx2,ty2=type_box
+                    type_crop=frame[ty1:ty2,tx1:tx2]
+                    ts=min(1.,256/max(type_crop.shape[:2]))
+                    type_preview=cv2.resize(type_crop,(max(1,int(type_crop.shape[1]*ts)),max(1,int(type_crop.shape[0]*ts))))
+                    type_ok,type_encoded=cv2.imencode('.jpg',type_preview,[cv2.IMWRITE_JPEG_QUALITY,85])
+                    if not type_ok:
+                        raise ValueError('Could not encode animal Type context.')
+                    type_jpeg=type_encoded.tobytes()
                 candidates = [(overlap(track['box'],box),index) for index,track in enumerate(tracks)
-                              if index not in used and track['subject_type']==detection['subject_type']
-                              and seconds-track['last_seen_seconds'] <= step/fps*1.5]
+                              if index not in used and track_candidate(track,detection,seconds,step/fps)]
+                if detection.get('detail_temporal_candidate'):
+                    from animal_type_temporal import temporal_animal_match
+                    eligible = [index for index,track in enumerate(tracks)
+                                if index not in used and temporal_animal_match(
+                                    track,detection,box,seconds,step/fps,vector,
+                                    type_vector,type_version,type_quality,models)]
+                    # An uncertain new view cannot start a track or choose
+                    # between nearby animals. Individual-ID tracks are excluded.
+                    if len(eligible) != 1:
+                        continue
+                    candidates = [(1.,eligible[0])]
                 best = max(candidates,default=(0,-1))
                 if best[0] >= .3:
                     index = best[1]
@@ -124,6 +170,11 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track['last_seen_seconds'] = seconds
                     track['box'] = box
                     retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
+                    if detection['subject_type'] in ('Cat','Dog'):
+                        holder = {'views': track.setdefault('type_views', [])}
+                        retain_view(holder,seconds,type_jpeg,type_vector,type_version,type_quality,type_result=frame_type)
+                        if type_quality > track.get('type_quality_score', -1):
+                            track.update(type_embedding=type_vector,type_embedding_model=type_version,type_quality_score=type_quality,type_crop_box=type_box,type_crop_jpeg=type_jpeg,type_crop_seconds=seconds)
                     if (track.get('embedding') is not None and vector is None) or (bool(vector) == bool(track.get('embedding')) and quality <= track['quality_score']):
                         used.add(index)
                         continue
@@ -135,10 +186,15 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                              'first_seen_seconds': seconds,'last_seen_seconds':seconds}
                     tracks.append(track)
                     retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
+                    if detection['subject_type'] in ('Cat','Dog'):
+                        holder = {'views': track.setdefault('type_views', [])}
+                        retain_view(holder,seconds,type_jpeg,type_vector,type_version,type_quality,type_result=frame_type)
+                        if type_quality > track.get('type_quality_score', -1):
+                            track.update(type_embedding=type_vector,type_embedding_model=type_version,type_quality_score=type_quality,type_crop_box=type_box,type_crop_jpeg=type_jpeg,type_crop_seconds=seconds)
                 used.add(index)
                 track.update(subject_type=detection['subject_type'],confidence=detection['confidence'],
                              crop_jpeg=jpeg.tobytes(),embedding=vector,embedding_model=version,
-                             quality_score=quality,detector_model=models.detector_version,box=box)
+                             quality_score=quality,detector_model=detection.get('detector_model',models.detector_version),box=box)
             time.sleep(.05)
         if sampled == 0:
             raise ValueError('No frames could be sampled.')
@@ -157,7 +213,8 @@ def process_one(db_path, archive_root, job, models, checkpoint=None):
     fingerprint = file_hash(path)
     from subject_type_learning import load_references
     models.type_references = load_references(db_path, models.pet_version, job['catalog_id'])
-    observations = analyze_video(path, models, checkpoint=checkpoint)
+    from animal_detail_refinement import RefinedAnimalSceneModels as AnimalSceneModels
+    observations = analyze_video(path, AnimalSceneModels(models, checkpoint), checkpoint=checkpoint)
     if file_hash(path) != fingerprint:
         raise ValueError('Recording changed during analysis; retry once it is stable.')
     publish_detections(db_path,job['catalog_id'],fingerprint,observations)

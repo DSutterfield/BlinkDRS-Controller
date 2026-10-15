@@ -1,0 +1,10 @@
+Blink Controller 1.2.8 — 2026-10-14
+
+Animal species recognition now uses a whole-scene search at 384-pixel windows on every sampled frame, plus 192-pixel windows every fourth sample. Searches run even when another animal is detected and preserve original Person/Vehicle proposals.
+Animal Type features are separate from individual-identification features. Stationary overlapping animal detections can retain temporal evidence. Cat/Dog correction rules use the same species evidence gates. Uncertain animal crops can use wider body context with agreement and reference-support guards.
+
+Validation before installation: 35 regression/integration checks; nine same-Clip replays matching the saved experimental results exactly; original Person detection and embedding methods unchanged; all five Person appearances in 26078 unchanged; 25 reviewed development background regions with no false Cat/Dog labels.
+
+Resolved examples: stationary cats in 26098 and 26096; confirmed cream-colored dog in 26076. Remaining work: climbing and partial animal views still Unknown; animal in Catio 26079 still missed. No claim of general detection accuracy.
+
+This installation changes future bAI analysis. Existing Clip labels are not automatically rewritten. Recordings, profiles, and confirmed crops are preserved. Previous deployed files are backed up in /home/dan/BlinkDRS-Controller/.species-install-20261014/backup.

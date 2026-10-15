@@ -83,16 +83,19 @@ def resolve_animal_type(references, claimed_type, vector, model, person_region=F
             and top['score'] >= .55 and top['score']-ranks[1]['score'] >= .1
             and len(support) >= 2 and support[1] >= .45):
         return None
-    reject = (top['subject_type'] != claimed_type and top['score'] >= .8
-              and top['score']-ranks[1]['score'] >= .3
-              and len(support) >= 2 and support[1] >= .5)
-    if reject:
-        return None if top['subject_type'] == 'Person' else top['subject_type']
-    if (top['subject_type'] == claimed_type and top['score'] >= .65
+    if top['subject_type'] == 'Person':
+        if (top['score'] >= .8 and top['score']-ranks[1]['score'] >= .3
+                and len(support) >= 2 and support[1] >= .5):
+            return None
+        return 'Unknown'
+    # Cat/Dog decisions use the same evidence gate regardless of the detector's
+    # species claim. The detector supplies location, not a preferred species.
+    if (top['subject_type'] in ('Cat','Dog') and top['score'] >= .65
             and top['score']-ranks[1]['score'] >= .2
             and len(support) >= 2 and support[1] >= .45):
-        return claimed_type
+        return top['subject_type']
     return 'Unknown'
+
 
 
 
@@ -117,43 +120,58 @@ def in_person_region(animal, detections):
 
 
 def resolve_track_type(references, track):
-    """Accept an animal with strong single-view or repeated species evidence."""
+    """Resolve animal Type from supported views; keep strong conflicts Unknown."""
     import math
     kind = track['subject_type']
-    if kind not in ('Cat', 'Dog'):
+    if kind not in ('Cat','Dog'):
         return kind
-    if track.get('quality_score', 0) < .2:
+    if track.get('type_quality_score', track.get('quality_score', 0)) < .2:
         return 'Unknown'
-    model = track.get('embedding_model')
-    ranks = rank_types(references, track.get('embedding'), model)
-    strong_single = False
-    if len(ranks) >= 3:
-        top = ranks[0]
-        support = top['independent_similarities']
-        if (top['subject_type'] == kind and top['score'] >= .75
-                and top['score']-ranks[1]['score'] >= .3
-                and len(support) >= 2 and support[1] >= .5):
-            strong_single = True
-    primary = resolve_animal_type(references, kind, track.get('embedding'), model)
-    if primary is None or primary in ('Cat','Dog') and primary != kind:
+    model = track.get('type_embedding_model', track.get('embedding_model'))
+    strong = set()
+    def evidence(vector):
+        ranks = rank_types(references, vector, model)
+        if len(ranks) < 3:
+            return None
+        top = ranks[0];support = top['independent_similarities']
+        margin = top['score']-ranks[1]['score']
+        if len(support) < 2 or support[1] < .5:
+            return None
+        if top['subject_type'] == 'Person':
+            return 'veto' if top['score'] >= .8 and margin >= .3 else None
+        if top['subject_type'] not in ('Cat','Dog'):
+            return None
+        if top['score'] >= .75 and margin >= .3:
+            strong.add(top['subject_type'])
+        if top['score'] >= .6 and margin >= .2:
+            return (top['subject_type'],top['score'],margin)
+        return None
+    if evidence(track.get('type_embedding',track.get('embedding'))) == 'veto':
         return 'Unknown'
-    accepted = []
-    for view in track.get('views', []):
-        if view.get('embedding_model') != model or view.get('quality_score', 0) < .2:
+    votes=[];seen=[]
+    for view in track.get('type_views',track.get('views',[])):
+        if view.get('embedding_model') != model or view.get('quality_score',0) < .2:
             continue
         try:
-            seconds = float(view['seconds'])
-        except (ValueError, TypeError, KeyError):
+            seconds=float(view['seconds'])
+        except (ValueError,TypeError,KeyError):
             continue
-        jpeg = view.get('crop_jpeg')
+        jpeg=view.get('crop_jpeg')
         if not math.isfinite(seconds) or not jpeg:
             continue
-        digest = hashlib.sha256(jpeg).digest()
-        if any(abs(seconds-old_time) < .5 or digest == old_hash for old_time, old_hash in accepted):
-            continue
-        resolved = resolve_animal_type(references, kind, view.get('embedding'), model)
-        if resolved is None or resolved in ('Cat','Dog') and resolved != kind:
+        result=evidence(view.get('embedding'))
+        if result == 'veto':
             return 'Unknown'
-        if resolved == kind:
-            accepted.append((seconds,digest))
-    return kind if strong_single or len(accepted) >= 2 else 'Unknown'
+        digest=hashlib.sha256(jpeg).digest()
+        if any(abs(seconds-t)<.5 or digest==h for t,h in seen):
+            continue
+        seen.append((seconds,digest))
+        if result is not None:
+            votes.append(result)
+    if len(strong)>1 or len({v[0] for v in votes})>1:
+        return 'Unknown'
+    if strong:
+        return next(iter(strong))
+    if len(votes)>=2 and sum(v[1] for v in votes)/len(votes)>=.65 and sum(v[2] for v in votes)/len(votes)>=.25:
+        return votes[0][0]
+    return 'Unknown'

@@ -40,6 +40,26 @@ def learn_pending(db_path, models, checkpoint):
         save_reference(db_path, item, vector, models.pet_version, quality)
 
 
+def diverse_cat_references(rows, limit=128):
+    """Keep recent Type examples plus visually varied older confirmed Cats.
+
+    Select in Type-feature space; no individual identity matching or labels.
+    """
+    if len(rows) <= limit:
+        return rows
+    import numpy as np
+    x = np.array([row['vector'] for row in rows])
+    selected = list(range(limit//2))
+    similarity = np.max(x@x[selected].T,axis=1)
+    similarity[selected] = np.inf
+    while len(selected) < limit:
+        index = int(np.argmin(similarity))
+        selected.append(index)
+        similarity = np.maximum(similarity,x@x[index])
+        similarity[selected] = np.inf
+    return [rows[index] for index in selected]
+
+
 def load_references(db_path, model, exclude_clip):
     references = []
     with connect(db_path) as conn:
@@ -48,14 +68,18 @@ def load_references(db_path, model, exclude_clip):
                 JOIN clip_detections d USING(detection_id)
                 WHERE d.confirmed=1 AND d.subject_type=t.subject_type AND t.subject_type=?
                 AND t.model_version=? AND t.embedding IS NOT NULL AND t.quality_score>=.2
-                AND d.catalog_id<>? ORDER BY t.detection_id DESC LIMIT 128""", (kind,model,exclude_clip))
+                AND d.catalog_id<>? ORDER BY t.detection_id DESC LIMIT ?""", (kind,model,exclude_clip,2048 if kind=='Cat' else 128))
+            usable = []
             for row in rows:
                 try:
                     item = dict(row)
                     item['vector'] = normalized(json.loads(item['embedding']))
-                    references.append(item)
+                    if kind=='Cat' and len(item['vector'])!=384:
+                        continue
+                    usable.append(item)
                 except (ValueError, TypeError):
                     continue
+            references.extend(diverse_cat_references(usable) if kind=='Cat' else usable)
     return references
 
 
