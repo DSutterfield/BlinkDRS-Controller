@@ -9,6 +9,13 @@ from identity_analysis import normalized
 REVIEW_MANIFEST_SHA256='5c45ee3eb9292f2620c40eeff1e2f4e02a759bcfe6bacac910c1dccd1741e875'
 
 
+def store_variant(cache, key, vector, quality):
+    """Concurrent workers may compute the same cache miss; the first write wins."""
+    cache.execute('INSERT OR IGNORE INTO variants VALUES(?,?,?)', (key, vector, quality))
+    cache.commit()
+    return cache.execute('SELECT vector,quality FROM variants WHERE key=?', (key,)).fetchone()
+
+
 def load_variants(db_path, models, references, checkpoint=None, cache_path=None, teaching_clip=None, review_manifest=None):
     if not references:return []
     import identity_models
@@ -51,7 +58,7 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
                         if image is None:continue
                         vector,model,quality=models.animal_type_embedding(image)
                         value=json.dumps(normalized(vector)) if vector and quality>=.2 and model==models.pet_version else None
-                        cache.execute('INSERT INTO variants VALUES(?,?,?)',(key,value,quality));cache.commit();saved=(value,quality)
+                        saved=store_variant(cache,key,value,quality)
                     if saved[0] is not None and saved[1]>=.2:
                         did='review:'+crop_hash[:20]
                         teacher=dict(detection_id=did,catalog_id=record['catalog_id'],subject_type='Cat',
@@ -76,8 +83,7 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
                     if image is None:continue
                     vector,model,quality=models.animal_type_embedding(image)
                     value=json.dumps(normalized(vector)) if vector and quality>=.2 and model==models.pet_version else None
-                    cache.execute('INSERT INTO variants VALUES(?,?,?)',(key,value,quality));cache.commit()
-                    saved=(value,quality)
+                    saved=store_variant(cache,key,value,quality)
                 if saved[0] is not None and saved[1]>=.2:
                     teacher=dict(detection_id=did,catalog_id=cid,subject_type='Cat',
                                  vector=json.loads(saved[0]),model_version=models.pet_version,
@@ -107,8 +113,7 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
                     if variant=='rotate':q=models.cv2.rotate(q,models.cv2.ROTATE_90_CLOCKWISE)
                     vector,model,quality=models.animal_type_embedding(q)
                     value=json.dumps(normalized(vector)) if vector and quality>=.2 and model==models.pet_version else None
-                    cache.execute('INSERT INTO variants VALUES(?,?,?)',(key,value,quality));cache.commit()
-                    saved=(value,quality)
+                    saved=store_variant(cache,key,value,quality)
                 if saved[0] is not None and saved[1]>=.2:
                     # Variants are the same original image, not independent
                     # reference photographs. Preserve its clip and image key.

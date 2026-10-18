@@ -1,5 +1,6 @@
-"""Sequential low-priority local AI worker, separate from the DVR/API process."""
+"""Low-priority local AI supervisor, separate from the DVR/API process."""
 import argparse
+import logging
 import math
 import os
 import time
@@ -250,21 +251,47 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
 
 
 def process_one(db_path, archive_root, job, models, checkpoint=None):
+    started = time.monotonic()
     path = archive_video(archive_root, job['video_path'])
     fingerprint = file_hash(path)
     from subject_type_learning import load_references
-    models.type_references = load_references(db_path, models.pet_version, job['catalog_id'])
+    from subject_type_check import prepare_references
+    models.type_references = prepare_references(load_references(db_path, models.pet_version, job['catalog_id']))
     from cat_type_variants import load_variants
-    models.cat_type_references = load_variants(db_path,models,models.type_references,checkpoint,
-                                              teaching_clip=job['catalog_id'])
+    models.cat_type_references = prepare_references(load_variants(db_path,models,models.type_references,checkpoint,
+                                              teaching_clip=job['catalog_id']))
     from person_scene_search import PersonConsensusModels as AnimalSceneModels
     observations = analyze_video(path, AnimalSceneModels(models, checkpoint, catalog_id=job['catalog_id']), checkpoint=checkpoint)
     if file_hash(path) != fingerprint:
         raise ValueError('Recording changed during analysis; retry once it is stable.')
     publish_detections(db_path,job['catalog_id'],fingerprint,observations)
+    logging.info('Analyzed clip %s in %.1f seconds; %s subject appearances',
+                 job['catalog_id'], time.monotonic()-started, len(observations))
+
+
+def wait_for_controller(pause, controller_url, on_pause=None):
+    if not pause:
+        return
+    import json
+    from urllib.request import urlopen
+    while True:
+        try:
+            base = controller_url.rstrip('/')
+            with urlopen(base+'/api/v1/liveview/status', timeout=3) as response:
+                busy = json.load(response)['active']
+            with urlopen(base+'/api/v1/liveview/recording', timeout=3) as response:
+                busy = busy or json.load(response)['state'] in ('recording', 'stopping', 'saving')
+        except Exception:
+            busy = True
+        if not busy:
+            return
+        if on_pause:
+            on_pause()
+        time.sleep(5)
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path)
     parser.add_argument('--archive', type=Path)
@@ -273,6 +300,7 @@ def main():
     parser.add_argument('--once', action='store_true')
     parser.add_argument('--new-clips', action='store_true')
     parser.add_argument('--pause-during-liveview', action='store_true')
+    parser.add_argument('--workers', type=int, choices=(1, 2, 3), default=1)
     parser.add_argument('--controller-url', default='http://127.0.0.1:8000')
     args = parser.parse_args()
     import signal
@@ -285,7 +313,7 @@ def main():
         return
     if not args.db or not args.db.is_file() or not args.archive:
         parser.error('An existing --db and --archive are required.')
-    # Kernel lock releases even after a crash; never run two inference workers.
+    # One supervisor owns recovery and learning, even with two clip processes.
     with open(str(args.db)+'.ai.lock','a+b') as lock:
         if os.name == 'posix':
             import fcntl
@@ -297,6 +325,7 @@ def main():
             msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
         failed = False
         heartbeat = None
+        parallel = None
         try:
             set_worker_status(args.db,'loading','Loading local models')
             heartbeat = WorkerHeartbeat(args.db)
@@ -308,22 +337,24 @@ def main():
             if args.new_clips:
                 enable_new_clip_queue(args.db)
             def checkpoint():
-                if not args.pause_during_liveview:
-                    return
-                import json
-                from urllib.request import urlopen
-                while True:
-                    try:
-                        with urlopen(args.controller_url.rstrip('/')+'/api/v1/liveview/status', timeout=3) as response:
-                            busy = json.load(response)['active']
-                    except Exception:
-                        busy = True
-                    if not busy:
-                        return
-                    set_worker_status(args.db,'paused','Waiting for Live View to finish or the controller to reconnect')
-                    time.sleep(5)
+                wait_for_controller(args.pause_during_liveview, args.controller_url,
+                    lambda: set_worker_status(args.db,'paused',
+                        'Waiting for Live View/recording to finish or the controller to reconnect'))
+            if args.workers > 1:
+                from identity_parallel import ParallelClips
+                parallel = ParallelClips(args.db, args.archive, args.models,
+                                         args.pause_during_liveview, args.controller_url, workers=args.workers)
+            submitted_once = False
             while True:
                 checkpoint()
+                if parallel:
+                    parallel.collect()
+                    if args.once and submitted_once and not parallel.active:
+                        break
+                    if len(parallel.active) == args.workers or (args.once and submitted_once):
+                        set_worker_status(args.db,'analyzing',parallel.message())
+                        time.sleep(1)
+                        continue
                 set_worker_status(args.db,'ready','Local AI worker ready')
                 for correction in pending_type_corrections(args.db):
                     checkpoint()
@@ -337,6 +368,15 @@ def main():
                 learn_pending(args.db, models, checkpoint)
                 from reference_photos import process_photos
                 process_photos(args.db, models, checkpoint)
+                if parallel:
+                    parallel.fill()
+                    submitted_once = True
+                    if parallel.active:
+                        set_worker_status(args.db,'analyzing',parallel.message())
+                    elif args.once:
+                        break
+                    time.sleep(1 if parallel.active else 5)
+                    continue
                 job = claim_job(args.db)
                 if job:
                     set_worker_status(args.db,'analyzing',f"Analyzing clip {job['catalog_id']}")
@@ -355,12 +395,16 @@ def main():
             set_worker_status(args.db,'failed',str(exc))
             raise
         finally:
-            if heartbeat is not None:
-                heartbeat.__exit__()
-            with connect(args.db) as conn:
-                conn.execute("UPDATE identity_analysis_jobs SET state='failed',message='Worker interrupted; retry analysis',updated_at=CURRENT_TIMESTAMP WHERE state='running'")
-            if not failed:
-                set_worker_status(args.db,'stopped','AI worker stopped')
+            try:
+                if parallel is not None:
+                    parallel.close()
+            finally:
+                if heartbeat is not None:
+                    heartbeat.__exit__()
+                with connect(args.db) as conn:
+                    conn.execute("UPDATE identity_analysis_jobs SET state='failed',message='Worker interrupted; retry analysis',updated_at=CURRENT_TIMESTAMP WHERE state='running'")
+                if not failed:
+                    set_worker_status(args.db,'stopped','AI worker stopped')
 
 
 if __name__ == '__main__':

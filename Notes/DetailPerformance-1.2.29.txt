@@ -1,0 +1,23 @@
+Detail inference performance — controller 1.2.29 (2026-10-17)
+
+1.2.28 profile: SSD 54.5%, detail detector 23.9%, YOLO 9.8%, DINO 6.3%.
+Detail box head took 222.2s; backbone 196.4s; output postprocessing 1.6s.
+Use the same two FP32 affine/ReLU layers through installed single-thread NumPy
+BLAS and channels-last convolution weight storage. No thresholds, sampling,
+input sizes, proposals, NMS caps or checkpoint weights changed. No quantization.
+Original Torch head and disabled-mode detector remain for fallback/diagnosis.
+
+133 targeted regressions passed. Six complete clips, including three full
+held-out videos; all 102 reviewed holdout crops through both detector paths.
+All discrete outputs, native crops, JPEG evidence, identities and human data
+preserved. Confidence rounding tolerance 1e-5; other full-output floats 1e-6.
+Raw crop boxes within 1e-3 pixels with exactly equal integer crop coordinates;
+all compared score gates and ordered consumed labels agree.
+
+Fresh unprofiled full-clip pairs: baseline 2056.543s summed, candidate 1824.867s;
+11.27% elapsed reduction; 12.70% observed throughput gain.
+Prior frozen 1.2.28 full-holdout outputs are quality baselines, not speed baselines.
+Different clip mix and run order mean no guaranteed daily backlog rate.
+API health p95 52.7ms; catalog p95 289.4ms.
+Three processes, Torch/CV/BLAS one thread each, shared CPUQuota300%, Nice19;
+existing semaphore mount and pause/resume behavior retained.

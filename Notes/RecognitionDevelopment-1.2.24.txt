@@ -1,0 +1,52 @@
+Recognition development, 2026-10-16 / controller 1.2.24
+
+Production change
+cat_identity_review.suggest no longer restricts the top candidate to Levi.
+It verifies an active Cat profile, retains score >= .60, margin >= .20,
+nearest >= .55, support from two other confirmed clips, and the confirmed
+unnamed Cat veto. Suggestions are read-only and still require explicit
+human confirmation. Existing human assignments are not overwritten.
+No Person feature/model/threshold changes were deployed.
+
+Independent development corpus
+Pi: /home/dan/BlinkDRS-Controller/.recognition-dev-20261016
+Read-only live database backup: development.sqlite
+manifest.json SHA256:
+a65152731376890c812e5e7bc0ad6fa0f96c67e4673d0acadedb9b290f7efd94
+406 confirmed local crops: 217 Cat, 189 Person, including unnamed negatives.
+All 24 unknown-v1 test clips and all 88 catalog exclusions were excluded.
+Hold out entire UTC days across all cameras and remove duplicate crop hashes
+from teachers. No benchmark examples or answers were used for tuning.
+Do not treat clothing/same-event appearance as stable individual identity.
+
+Cat review validation
+validate-cat-review.py calls the actual generalized suggest() against private
+in-memory copies, withholding all same-day/duplicate-image identity samples
+and confirmed-negative labels before predicting that day's crops.
+202 usable Cat crops, including nine unnamed negatives:
+33 suggestions, all matching human labels, across 20 clips.
+Kushka 17, Levi 15, Lola 1; no suggestions for unnamed negatives.
+Levi-only policy would retain 15: improvement is 18 additional suggestions.
+These are crop-level development results, not final benchmark accuracy.
+Evidence for additional cats remains insufficient; the matcher abstains.
+
+Rejected Person experiments
+DINO appearance vectors were stored only in features.json, not identity_samples.
+185 usable crops, 123 with same-person references on another day.
+Top1 69/185. Gate .60 score/.20 margin/two >= .55 supports: 22 accepted,
+only five correct. At .70/.30: 10 accepted, two correct.
+More permissive YuNet threshold .75, resize <=3x, min original face size20:
+37 vectors versus eight; SFace .50 + margin .05: four accepted, two correct.
+At .60 none accepted. Neither experiment is suitable for production.
+Next teaching priority: clear faces from distinct days/cameras; most named
+visitors have only one event and cannot support cross-day validation yet.
+
+Verification
+32 tests passed: test_cat_identity_review, test_evaluation_holdout,
+test_identity_candidates, using staged source and existing API/AI dependencies.
+Confirmed assignments and entire reserved-answer table exactly matched the
+pre-development snapshot after deployment. Zero excluded identity/type samples.
+Both services active; health okay; /api/v1/about reports 1.2.24 / 2026-10-16.
+Backup .recognition-dev-20261016/backup-20261016-162241.
+The 24-clip benchmark was not rerun. Keep its frozen references for a future
+controlled comparison; document any separate new-teaching-gallery comparison.

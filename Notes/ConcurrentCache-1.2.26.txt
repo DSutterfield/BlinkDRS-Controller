@@ -1,0 +1,28 @@
+BlinkDRS Controller 1.2.26 - Concurrent reference cache
+Updated: October 17, 2026
+
+Live verification of the two-worker optimization exposed a previously serial
+reference-cache assumption. Two workers can both observe a missing variants key,
+compute it independently, and then attempt to insert the same primary key.
+The second insertion raised UNIQUE constraint failed: variants.key.
+
+All three cache-writing paths now use INSERT OR IGNORE and read back the stored
+row. The first committed result wins, both workers use that result, and existing
+cached vectors/quality are never overwritten. Recognition rules and sampling are
+unchanged. The 1.2.25 CPU/thread/worker benchmark preference remains applicable.
+
+Validation: 57 regressions passed. Three new barrier-controlled cold-cache tests
+cover ordinary variants, manual crop teachers and reviewed examples. All three
+reproduce the exact duplicate-key failure against the original implementation
+and pass against the fix. Warm caches are also checked for identical output and
+no recomputation. A separate spawned-process check verifies one persisted row
+and identical results across both processes.
+
+The affected live clip 26366 and work interrupted for this correction were
+queued again. The two older unrelated failed jobs were preserved. Deployment checks idle state,
+backs up affected files, restores the tested two-worker unit and verifies health,
+release metadata, two active slots and stable failure count after startup.
+
+The preceding full-clip test completed both default-sampled clips (17 and 18
+frames) and verified all confirmed detections/evidence, profiles, teaching samples
+and evaluation holdout rows unchanged. Final cache tests use isolated catalogs.

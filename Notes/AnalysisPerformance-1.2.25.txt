@@ -1,0 +1,82 @@
+BlinkDRS Controller 1.2.25 - Analysis throughput
+Updated: October 17, 2026
+
+Changes
+- One supervisor can run two persistent clip inference processes. The supervisor
+  owns the queue lock, human-reference learning, worker heartbeat and recovery.
+  Each child has separate model state; transactional claims prevent duplicate
+  work. A freed slot accepts the next queued clip, including manual promotions.
+- Service now selects --workers 2, retains low CPU and idle I/O priority, and
+  raises the aggregate CPU allowance from 75% to 250% (2.5 of four CPU cores).
+- Torch and OpenCV threads are configurable independently from 1 to 3 through
+  BLINK_AI_THREADS and BLINK_AI_CV_THREADS. Both remain 1 in the installed unit.
+  BLAS/OMP and inter-op concurrency remain 1 to avoid oversubscription.
+- Prepare immutable reference-ranking inputs once per clip. Normalized samples,
+  gallery fingerprints and NumPy arrays are reused. Scores, independent support,
+  thresholds, model weights and normal sampling/tail checks are unchanged. Every next clip
+  reads a fresh reference snapshot; human updates and evaluation exclusions hold.
+- Both child processes and supervisor pause for Live View, recording/stopping/
+  saving, or controller unavailability. Shutdown joins terminated children before
+  recovering queue state. Idle pools exit gracefully. The service uses a private
+  /dev/shm tmpfs for worker synchronization so login-session IPC cleanup cannot
+  remove its named semaphores. No global login policy was changed.
+  Completed clip durations are logged to the service log.
+
+Measured screening comparison
+Identical Back Door clip 26363 and Water Bowl clip 26364, four actual sampled frames per
+clip (parameter max_frames=2 adds two existing tail checks, for four actual
+frames). Separate copied catalog and writable caches; original recordings read only.
+Sequential cases process both clips in order; concurrent case processes one each.
+All cases use the same frozen references, models and detector thresholds.
+Wall times include cold model initialization and polling, so production workers
+that keep models resident may have different absolute rates.
+
+Setting                                  Pair elapsed       Relative throughput
+Existing 75% CPU, one worker/thread       393.575 seconds     1.00x
+250% allowance, one worker/thread         296.061 seconds     1.33x
+One worker, two Torch/OpenCV threads      325.531 seconds     1.21x
+One worker, three Torch/OpenCV threads    323.447 seconds     1.22x
+Two workers, one thread each              183.182 seconds     2.15x
+
+The two-worker screening maximum temperature was 60.861 C. Its controller-status
+p95 latency was 38.8 ms. Subjects and sampled appearance times matched all other
+settings. These short tests establish a configuration preference, not a promise
+that every camera/clip or the whole backlog will achieve the same speedup.
+
+Reference microbenchmark: 390 real frozen references and 12 repeated queries
+after both paths warmed their model fit. Unprepared
+ranking took 4.222 seconds; prepared ranking took 0.070 seconds. Results were
+exactly identical. This measures ranking alone, not total analysis speed.
+
+Validation
+- 53 relevant regression checks pass: thread bounds, queue dispatch/refill,
+  shared-catalog concurrent claims/publication, confirmation protection,
+  heartbeat, evaluation holdout, Type gates, frozen-reference freshness and
+  exact numerical ranking equivalence.
+- A real two-process shutdown smoke test stopped and joined both children in
+  0.006 seconds without waiting for their sleeping tasks.
+- Full default-sampling validation passed (17 and 18 actual frames): both
+  clips completed and saved in 1002.615 seconds overall, including startup and
+  the controlled pause. Per-clip wall times were 659.3 and 974.3 seconds.
+  All human-confirmed detections/evidence, identity profiles, teaching samples
+  and evaluation holdout records exactly matched the untouched test snapshot.
+- Live View pause exercise on the actual supervisor and both inference children
+  passed. A local test endpoint forwarded real controller status and temporarily
+  reported active; analysis CPU fell to 0.0032 of one core, then work resumed.
+  No camera session or recording was started by the test.
+
+Operational notes
+- Initial queue: 698 queued and one running. The catalog showed 85 currently
+  completed records updated in 24 hours versus 394 clips imported in that time.
+  Even twice the former rate may not outpace a similarly busy arrival period;
+  the screening results must not be presented as a guaranteed drain deadline.
+- This Pi exposes cpu/cpuset/io/pids cgroup controllers, but no memory controller.
+  MemoryHigh/MemoryMax are configured appropriately for the new process count,
+  but cannot enforce a hard memory cap on this boot. Actual available memory
+  remained above 5 GB during initial full-run observation. No boot change made.
+- Test harness, frozen catalog, copied caches, results and logs are retained at
+  /home/dan/BlinkDRS-Controller/performance-20261017. Never use these test copies
+  as production catalogs or as new teaching material.
+- Deployment backs up affected files, verifies source hashes/syntax/unit, checks
+  for Live View and recording before service restarts, requeues work interrupted
+  by this installation, and verifies controller/worker health and About metadata.

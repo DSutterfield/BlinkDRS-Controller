@@ -479,6 +479,7 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False, *, _conn=Non
                 time_zone,
                 thumbnail_path,
                 COALESCE((SELECT state FROM identity_analysis_jobs a WHERE a.catalog_id=clips.id), 'not_analyzed') AS analysis_state,
+                (SELECT updated_at FROM identity_analysis_jobs a WHERE a.catalog_id=clips.id AND a.state='running') AS analysis_started_at,
                 COALESCE((SELECT status FROM clip_validation v WHERE v.catalog_id = clips.id), 'unchecked') AS validation_status
             FROM clips
             WHERE local_present = 1 AND {visibility}{changes}
@@ -506,6 +507,7 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False, *, _conn=Non
                     "catalog_id": row["id"],
                     "identities": clip_identities(conn, row["id"]),
                     "analysis_state": row["analysis_state"],
+                    "analysis_started_at": (row["analysis_started_at"].replace(" ", "T") + "Z") if row["analysis_started_at"] else None,
                     "validation_status": row["validation_status"],
                     "id": row["blink_media_id"],
                     "filename": row["filename"],
@@ -529,6 +531,8 @@ def list_clips(db_path, limit=100, offset=0, include_damaged=False, *, _conn=Non
         return {
             "total": total,
             "unreviewed_total": unreviewed_total,
+            "queued_analysis_total": conn.execute("""SELECT COUNT(*) FROM identity_analysis_jobs j
+                JOIN clips c ON c.id=j.catalog_id WHERE j.state='queued' AND c.local_present=1""").fetchone()[0],
             "offset": offset,
             "limit": limit,
             "count": len(clips),

@@ -1,5 +1,5 @@
 """Whole-scene animal search; preserve original Person and Vehicle proposals."""
-from PIL import Image
+from ssd_views import iter_ssd_views
 from identity_worker import overlap
 
 def containment(a,b):
@@ -15,21 +15,20 @@ class AnimalSceneModels:
   h,w=im.shape[:2];items=[]
   xs=sorted(set(range(0,max(1,w-size+1),stride))|{max(0,w-size)})
   ys=sorted(set(range(0,max(1,h-size+1),stride))|{max(0,h-size)})
-  for y in ys:
-   for x in xs:
-    self.checkpoint();tile=im[y:y+size,x:x+size]
-    rgb=Image.fromarray(self.cv2.cvtColor(tile,self.cv2.COLOR_BGR2RGB))
-    with self.models.torch.inference_mode():r=self.models.detector([self.models.detector_transform(rgb)])[0]
-    for label,score,box in zip(r['labels'],r['scores'],r['boxes']):
-     label=int(label);score=float(score)
-     if label not in (17,18) or score<.30:continue
-     b=box.tolist();items.append(dict(subject_type='Cat' if label==17 else 'Dog',confidence=score,box=[b[0]+x,b[1]+y,b[2]+x,b[3]+y]))
+  views=((im[y:y+size,x:x+size],x,y) for y in ys for x in xs)
+  for tile,x,y,r in iter_ssd_views(self.models,views,self.checkpoint):
+   for label,score,box in zip(r['labels'],r['scores'],r['boxes']):
+    label=int(label);score=float(score)
+    if label not in (17,18) or score<.30:continue
+    b=box.tolist();items.append(dict(subject_type='Cat' if label==17 else 'Dog',confidence=score,box=[b[0]+x,b[1]+y,b[2]+x,b[3]+y]))
   kept=[]
   for d in sorted(items,key=lambda d:d['confidence'],reverse=True):
    if not any(e['subject_type']==d['subject_type'] and overlap(e['box'],d['box'])>.35 for e in kept):kept.append(d)
   return kept
  def detect(self,im):
-  base=self.models.detect(im);idx=self.index;self.index+=1
+  checked=getattr(type(self.models),'detect_with_checkpoint',None)
+  base=checked(self.models,im,self.checkpoint) if checked else self.models.detect(im)
+  idx=self.index;self.index+=1
   proposals=self.grid(im,None,384,256)
   if idx%4==0:proposals+=self.grid(im,None,192,128)
   candidates=[d for d in base+proposals if d['subject_type'] in ('Cat','Dog') and d['confidence']>=.55]

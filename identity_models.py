@@ -1,6 +1,24 @@
 """Offline CPU inference. Downloads occur only in the explicit preparation command."""
 import hashlib
+import os
 from pathlib import Path
+
+
+def configure_cpu_threads(torch, cv2, environ=None):
+    """Bound inference parallelism; leave inter-op and BLAS oversubscription off."""
+    environ = os.environ if environ is None else environ
+    values = []
+    for name in ('BLINK_AI_THREADS', 'BLINK_AI_CV_THREADS'):
+        try:
+            value = int(environ.get(name, '1'))
+        except (TypeError, ValueError):
+            raise ValueError(f'{name} must be an integer from 1 to 3') from None
+        if not 1 <= value <= 3:
+            raise ValueError(f'{name} must be an integer from 1 to 3')
+        values.append(value)
+    torch.set_num_threads(values[0])
+    torch.set_num_interop_threads(1)
+    cv2.setNumThreads(values[1])
 
 
 def file_hash(path):
@@ -33,6 +51,16 @@ def prepare_models(folder):
         shutil.copyfile(downloaded, folder/name)
 
 
+def ssd_configuration(environ=None):
+    """Legacy mode is retained for differential validation and rollback."""
+    environ = os.environ if environ is None else environ
+    mode = environ.get('BLINK_SSD_OPTIMIZED', '1')
+    if mode not in ('0', '1'):
+        raise ValueError('BLINK_SSD_OPTIMIZED must be 0 or 1')
+    # Both SSD consumers require >= .30. Keep a margin below that floor.
+    return (2, .29) if mode == '1' else (1, .001)
+
+
 class LocalModels:
     def __init__(self, folder):
         import torch
@@ -40,13 +68,16 @@ class LocalModels:
         from torchvision.models.detection import ssdlite320_mobilenet_v3_large, SSDLite320_MobileNet_V3_Large_Weights
         from transformers import AutoImageProcessor, AutoModel
         self.torch, self.cv2 = torch, cv2
-        torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
-        cv2.setNumThreads(1)
+        configure_cpu_threads(torch, cv2)
         folder = Path(folder)
         detector_file = folder/'ssdlite320_mobilenet_v3_large_coco-a79551df.pth'
-        self.detector = ssdlite320_mobilenet_v3_large(weights=None, weights_backbone=None).eval()
+        self.ssd_batch_size, floor = ssd_configuration()
+        self.detector = ssdlite320_mobilenet_v3_large(
+            weights=None, weights_backbone=None).eval()
         self.detector.load_state_dict(torch.load(detector_file, map_location='cpu', weights_only=True))
+        from ssd_postprocess import EarlySsdPostprocess
+        self.detector.ssd_filter = EarlySsdPostprocess(self.detector, enabled=floor == .29)
+        self.detector.postprocess_detections = self.detector.ssd_filter
         self.detector_transform = SSDLite320_MobileNet_V3_Large_Weights.COCO_V1.transforms()
         self.detector_version = 'ssdlite-coco:'+file_hash(detector_file)
         self.processor = AutoImageProcessor.from_pretrained(folder/'dinov2-small', local_files_only=True, trust_remote_code=False, use_fast=False)
@@ -58,8 +89,11 @@ class LocalModels:
         self.face_recognizer = cv2.FaceRecognizerSF.create(str(recognition_file), '')
         self.face_version = 'sface-align-v1:'+file_hash(recognition_file)
 
-    def detect(self, bgr):
-        from PIL import Image
+    def detect_with_checkpoint(self, bgr, checkpoint):
+        return self.detect(bgr, checkpoint=checkpoint)
+
+    def detect(self, bgr, checkpoint=None):
+        from ssd_views import iter_ssd_views
         from identity_worker import overlap
         height,width = bgr.shape[:2]
         views = [(bgr,0,0)]
@@ -71,10 +105,7 @@ class LocalModels:
                     views.append((bgr[y:y+crop_h,x:x+crop_w],x,y))
         candidates = []
         kinds = {1:'Person',3:'Vehicle',4:'Vehicle',6:'Vehicle',8:'Vehicle',17:'Cat',18:'Dog'}
-        for view,x,y in views:
-            rgb = Image.fromarray(self.cv2.cvtColor(view,self.cv2.COLOR_BGR2RGB))
-            with self.torch.inference_mode():
-                result = self.detector([self.detector_transform(rgb)])[0]
+        for view,x,y,result in iter_ssd_views(self, views, checkpoint):
             for label,score,box in zip(result['labels'],result['scores'],result['boxes']):
                 label,score = int(label),float(score)
                 if label not in kinds or score < (.85 if kinds[label]=='Vehicle' else .65 if label==1 else .55):

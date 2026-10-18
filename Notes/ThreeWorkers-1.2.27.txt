@@ -1,0 +1,28 @@
+Three-worker analysis throughput — controller 1.2.27 (2026-10-17)
+
+Enable --workers 3 and pass the requested count to the existing bounded spawn pool.
+Production service uses three persistent inference processes, one Torch/CV/BLAS
+thread each, under one shared CPUQuota=300%, at low CPU/I/O priority.
+Live View, recording and controller-disconnection pause behavior is retained.
+Production model weights, sampling, thresholds and learning are unchanged.
+
+Controlled six-clip, continuously refilled queue trial, including supervisor model,
+reference loading, file hashes and isolated catalog publication:
+Two workers at 250% CPU: 581.699 seconds.
+Three workers at 300% CPU: 509.292 seconds.
+14.22% greater throughput; 12.45% less elapsed time in this trial.
+This used test-only max_frames=2 (four actual frames including tails), not full
+production sampling. One run per setting, two then three; derived cache reused.
+Do not treat the result as a guaranteed daily backlog clearance rate.
+
+Three-worker checks: all six jobs done, matching subject types and times; existing
+human confirmations, identities, training samples and holdouts unchanged. 58
+relevant regressions passed, including three-worker bounded dispatch and refill.
+97 probe rounds: no endpoint/video errors, Cloud healthy throughout, six distinct
+successful Cloud poll timestamps. P95 health 79.6ms, catalog 268.8ms, video 48.8ms;
+max catalog 867.5ms. Max temperature 65.244C; min available RAM 4465MiB;
+vcgencmd throttled=0x0. The Pi kernel has no memory cgroup controller, so service
+memory limits are not enforced on this boot; actual memory was measured.
+
+Initial three-clip screening gave 314.220s vs 229.518s. Its 36.9% apparent
+throughput gain benefited from batch size, so the six-clip result is used instead.

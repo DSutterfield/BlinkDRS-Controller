@@ -7,16 +7,22 @@ Type=simple
 User=dan
 Group=dan
 WorkingDirectory=/home/dan/BlinkDRS-Controller
-ExecStart=/home/dan/BlinkDRS-Controller/.venv-ai/bin/python /home/dan/BlinkDRS-Controller/identity_worker.py --db /home/dan/BlinkDVR/blink_catalog.db --archive /home/dan/BlinkDVR --models /home/dan/BlinkDRS-Controller/ai-models --new-clips --pause-during-liveview
+ExecStart=/home/dan/BlinkDRS-Controller/.venv-ai/bin/python /home/dan/BlinkDRS-Controller/identity_worker.py --db /home/dan/BlinkDVR/blink_catalog.db --archive /home/dan/BlinkDVR --models /home/dan/BlinkDRS-Controller/ai-models --new-clips --pause-during-liveview --workers 3
 Environment=HF_HUB_OFFLINE=1
 Environment=TRANSFORMERS_OFFLINE=1
 Environment=OMP_NUM_THREADS=1
 Environment=OPENBLAS_NUM_THREADS=1
+Environment=BLINK_AI_THREADS=1
+Environment=BLINK_AI_CV_THREADS=1
 Nice=10
 IOSchedulingClass=idle
-CPUQuota=75%
-MemoryHigh=1200M
-MemoryMax=1800M
+# Keep multiprocessing semaphores independent of login-session IPC cleanup.
+TemporaryFileSystem=/dev/shm:rw,nosuid,nodev,mode=1777,size=64M
+# Shared by the supervisor and three inference processes. Reserve CPU capacity
+# for the DVR/API and allow independent model state without memory reclaim stalls.
+CPUQuota=300%
+MemoryHigh=3600M
+MemoryMax=4800M
 Restart=on-failure
 RestartSec=15
 TimeoutStopSec=30

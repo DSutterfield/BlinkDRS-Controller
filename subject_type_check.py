@@ -1,21 +1,34 @@
 """Confirmed-Type crop checks. Ranking scores are not probabilities."""
 import hashlib
 from collections import Counter
+from types import MappingProxyType
 from identity_analysis import normalized
 
 _CACHE = {}
 KINDS = ('Person', 'Cat', 'Dog')
 
 
-def rank_types(references, vector, model):
-    if not model or not model.startswith('dinov2-small-cls-v1:') or vector is None:
-        return []
-    try:
-        query = normalized(vector)
-    except (ValueError, TypeError):
-        return []
-    if len(query) != 384:
-        return []
+class PreparedReferences(tuple):
+    """A frozen, per-clip reference snapshot with reusable ranking inputs."""
+    def __new__(cls, references):
+        rows = []
+        for row in references:
+            copy = dict(row)
+            if isinstance(copy.get('vector'), (list, tuple)):
+                copy['vector'] = tuple(copy['vector'])
+            rows.append(MappingProxyType(copy))
+        result = super().__new__(cls, rows)
+        result.rank_inputs = {}
+        return result
+
+
+def prepare_references(references):
+    return PreparedReferences(references)
+
+
+def ranking_inputs(references, model):
+    if isinstance(references, PreparedReferences) and model in references.rank_inputs:
+        return references.rank_inputs[model]
     rows = []
     for item in references:
         if item['subject_type'] not in KINDS or item['model_version'] != model:
@@ -29,10 +42,27 @@ def rank_types(references, vector, model):
         if len(sample) == 384:
             rows.append((item, sample))
     sources = {kind: len({r['catalog_id'] for r, v in rows if r['subject_type'] == kind}) for kind in KINDS}
+    import numpy as np
+    key = hashlib.sha256(repr([(r['subject_type'], r['catalog_id'], r['crop_hash'], v) for r,v in rows]).encode()).hexdigest()
+    inputs = rows, sources, key, [np.array(v) for r, v in rows]
+    if isinstance(references, PreparedReferences):
+        references.rank_inputs[model] = inputs
+    return inputs
+
+
+def rank_types(references, vector, model):
+    if not model or not model.startswith('dinov2-small-cls-v1:') or vector is None:
+        return []
+    try:
+        query = normalized(vector)
+    except (ValueError, TypeError):
+        return []
+    if len(query) != 384:
+        return []
+    rows, sources, key, arrays = ranking_inputs(references, model)
     if any(count < 2 for count in sources.values()):
         return []
     import numpy as np
-    key = hashlib.sha256(repr([(r['subject_type'], r['catalog_id'], r['crop_hash'], v) for r,v in rows]).encode()).hexdigest()
     if key in _CACHE:
         center, means, coefficients = _CACHE[key]
     else:
@@ -53,7 +83,7 @@ def rank_types(references, vector, model):
     scores = (query-center)@coefficients+means
     result = []
     for kind,score in zip(KINDS,scores):
-        matches = sorted([(float(query@np.array(v)),r['catalog_id'],r['crop_hash']) for r,v in rows
+        matches = sorted([(float(query@array),r['catalog_id'],r['crop_hash']) for (r,v),array in zip(rows,arrays)
                           if r['subject_type']==kind and not r.get('support_excluded',False)],reverse=True)
         distinct = []
         clips,images = set(),set()

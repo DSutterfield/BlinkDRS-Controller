@@ -85,3 +85,22 @@ class LeviReviewTests(unittest.TestCase):
         response=client.put('/api/v1/clips/catalog/1/identities',json=dict(identity_id=self.levi,subject_type='Cat',detection_id=item['detection_id']))
         self.assertEqual(response.status_code,200);self.assertTrue(response.json()[0]['confirmed'])
         self.assertEqual(client.get(url).json(),[])
+
+    def test_other_household_cat_is_suggested_only_with_own_support(self):
+        item=self.prepare()
+        item['embedding']=json.dumps(O)
+        ranks=[dict(identity_id=self.other,score=.8,nearest=.8),dict(identity_id=self.levi,score=.1)]
+        with connect(self.db) as c,patch('cat_identity_review.rank_candidates',return_value=ranks):
+            result=suggest(c,item,1)
+            self.assertEqual(result['suggested_identity_id'],self.other)
+            self.assertEqual(result['suggested_name'],'Other Cat')
+            c.execute('UPDATE identities SET active=0 WHERE identity_id=?',(self.other,))
+            self.assertIsNone(suggest(c,item,1))
+
+    def test_other_cat_with_only_one_teacher_is_not_suggested(self):
+        item=self.prepare();item['embedding']=json.dumps(O)
+        ranks=[dict(identity_id=self.other,score=.8,nearest=.8),dict(identity_id=self.levi,score=.1)]
+        with connect(self.db) as c,patch('cat_identity_review.rank_candidates',return_value=ranks):
+            # Remove enough independent teachers to require abstention.
+            c.execute('DELETE FROM identity_samples WHERE detection_id IN (SELECT detection_id FROM clip_detections WHERE catalog_id IN (6,7))')
+            self.assertIsNone(suggest(c,item,1))

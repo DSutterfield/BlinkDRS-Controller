@@ -1,0 +1,25 @@
+SSD performance — controller 1.2.28 (2026-10-17)
+
+Pair same-frame SSD views in original order, with pause checks before each pair.
+Early prune only unused scores below .29; every SSD consumer requires >=.30.
+Preserve the installed per-class CPU NMS path. Ties, crowding, original coordinate
+NMS and unsupported torchvision versions fall back to original postprocessing.
+Current supported fast-path torchvision version: 0.23.0.
+BLINK_SSD_OPTIMIZED=0 retains legacy serial/original postprocessing for diagnosis.
+FP32 weights, sample schedule, views, resize settings and acceptance gates unchanged.
+
+Validation: six complete clips at normal production sampling, including three
+held-out full videos; 102 available reviewed crops from
+102 held-out answers across 24 registered holdouts.
+All compared outputs and published identities/evidence agree; human confirmations,
+profiles, training samples, holdout membership/answers and exclusions preserved.
+107 targeted regressions passed, including boundary/tie/crowding/NMS tests and
+three concurrent iterators pausing through Live View and recording-saving.
+
+Fresh full holdout pairs: baseline 4749.576s summed, optimized 3472.137s summed;
+36.79% observed throughput increase. Run order and batch tail vary;
+this is not a guaranteed daily rate. Ordinary full clips use the exact prior
+profile's frozen data and published baseline; profiled times are not compared.
+Health p95 45.8ms; catalog p95 263.7ms.
+Three processes, one Torch/CV/BLAS thread each; shared CPUQuota300%, low priority.
+Private semaphore mount retained; kernel memory cgroup controller remains absent.

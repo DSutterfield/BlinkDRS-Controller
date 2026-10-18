@@ -1,4 +1,4 @@
-"""Read-only Levi review suggestions; only human assignments name a Cat."""
+"""Read-only household Cat review suggestions; only human assignments name a Cat."""
 import json
 import os
 import subprocess
@@ -20,20 +20,20 @@ def suggest(conn,item,catalog_id):
     except (ValueError,TypeError):
         return None
     if len(vector)!=384:return None
-    levi=conn.execute("SELECT identity_id,name FROM identities WHERE active=1 AND subject_type='Cat' AND name='Levi' COLLATE NOCASE").fetchall()
-    if len(levi)!=1:return None
     ranks=rank_candidates(conn,'Cat',model,vector,catalog_id)
     if len(ranks)<2:return None
     top,runner=ranks[:2]
-    if (top['identity_id']!=levi[0]['identity_id'] or top['score']<.60
+    if (top['score']<.60
             or top['score']-runner['score']<.20 or top['nearest']<.55):return None
+    profile=conn.execute("SELECT identity_id,name FROM identities WHERE active=1 AND subject_type='Cat' AND identity_id=?",(top['identity_id'],)).fetchone()
+    if profile is None:return None
     support=set()
     for row in conn.execute("""SELECT d.catalog_id,s.embedding FROM clip_detections d
             JOIN identity_samples s USING(detection_id)
             WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
             AND d.confirmed=1 AND d.subject_type='Cat' AND d.identity_id=s.identity_id
             AND s.identity_id=? AND d.catalog_id<>? AND s.model_version=? AND s.quality_score>=.2""",
-            (levi[0]['identity_id'],catalog_id,model)):
+            (profile['identity_id'],catalog_id,model)):
         try:sample=normalized(json.loads(row['embedding']))
         except (ValueError,TypeError):continue
         if len(sample)==384 and sum(a*b for a,b in zip(vector,sample))>=.55:support.add(row['catalog_id'])
@@ -47,7 +47,7 @@ def suggest(conn,item,catalog_id):
         if len(sample)==384:
             score=sum(a*b for a,b in zip(vector,sample))
             if score>=.65 and score>=top['nearest']-.03:return None
-    return dict(detection_id=item['detection_id'],suggested_identity_id=levi[0]['identity_id'],suggested_name=levi[0]['name'])
+    return dict(detection_id=item['detection_id'],suggested_identity_id=profile['identity_id'],suggested_name=profile['name'])
 
 
 def _review_in_process(db_path,catalog_id):

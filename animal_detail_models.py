@@ -15,6 +15,8 @@ class DetailAnimalDetector:
   self.models=models;self.version='fasterrcnn-mobilenet-v3-large-fpn:'+MODEL_SHA256
   self.detector=fasterrcnn_mobilenet_v3_large_fpn(weights=None,weights_backbone=None,min_size=640,max_size=1024).eval()
   self.detector.load_state_dict(models.torch.load(path,map_location='cpu',weights_only=True))
+  from detail_inference import optimize_detail_detector
+  self.detector,self.optimization=optimize_detail_detector(self.detector)
   self.transform=FasterRCNN_MobileNet_V3_Large_FPN_Weights.COCO_V1.transforms()
  def detect(self,frame,region=None):
   h,w=frame.shape[:2];a,b,c,e=region or [0,0,w,h]
