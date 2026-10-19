@@ -1,3 +1,5 @@
+October 19 correction: investigation found the ground cat is still detected and retained as another view in an existing Cat appearance. The apparent loss was changed overlap-based grouping and representative crop selection. See Notes/Clip24207-Diagnosis-20261019.txt. No zone-filtering fix was required for this cat.
+
 BlinkDRS handoff — October 18, 2026
 
 Dan requested stopping here and saving the follow-up for next session.

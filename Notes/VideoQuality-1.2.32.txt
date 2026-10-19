@@ -1,0 +1,12 @@
+Video quality control — controller 1.2.32, October 19, 2026
+
+Dan requested Best / Standard / Saver in settings for every owned camera and Best on all except battery-powered Front Door. Added controller-supplied choice for Original Mini, Mini 2, Outdoor sedona and Doorbell tulip. Reads video_quality; honors video_quality_support when reported; hides unknown/unsupported configuration rather than guessing. Saves only video_quality using the camera family's established config route and confirms via fresh readback. No blind repeated writes. Installed Windows 1.1.44 already renders this descriptor correctly, verified by an STA renderer harness for all three choices; no Windows source/version change needed.
+
+Validation: 61 current camera-settings unit tests passed (new quality tests plus device, mini, light, smart detection and LED suites). Syntax checks and staged/deployed hashes passed. Initial Pi test copy was obsolete; replaced staging tests with current local repository copies and all passed. Deployed with prior-file backup, LiveView/recording idle checks and rollback support. Both services active, health OK, Blink connected, About reports 1.2.32 / 2026-10-19. Normal AI resumed; only exact WorkerInterrupted deployment jobs were requeued.
+
+All 13 camera reads verified: 12 on Best, Front Door unchanged at Standard. Back Door was already Best before this batch. Well House first write returned 502; fresh read showed Standard; a subsequent requested save and independent read confirmed Best. Other exposed camera settings unchanged for all 13. Front Door received no quality write. No motion zones, brightness or identity pipeline changes in this release. Recognition benefit remains to be evaluated on newly captured higher-quality recordings.
+
+Evidence and backup: /home/dan/BlinkDRS-Controller/quality-20261019
+User-facing result C:/Users/DanSu/Documents/Codex/2026-10-18/sag/outputs/BlinkDRS-video-quality-results.json
+
+Lost ground-cat appearance in reserved clip 24207 remains unresolved and deferred while Dan supplies behavior changes. Existing checkpoints remain the prior baseline. This change is not committed or pushed.

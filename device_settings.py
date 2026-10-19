@@ -12,12 +12,62 @@ class SettingChange(BaseModel):
     model_config = ConfigDict(extra='forbid')
     # Wire values remain strings for the existing choice renderer. Adapters
     # validate each setting's narrower range and convert to Blink's field type.
-    value: str = Field(strict=True, pattern=r'^(?:off|on|recording|auto|low|medium|high|[1-9]|[1-5][0-9]|60|180|300|600)$')
+    value: str = Field(strict=True, pattern=r'^(?:Best|Standard|Saver|off|on|recording|auto|low|medium|high|[1-9]|[1-5][0-9]|60|180|300|600)$')
 
 
 class LightChange(BaseModel):
     model_config = ConfigDict(extra='forbid')
     enabled: bool = Field(strict=True)
+
+
+
+QUALITY_MODES = {'Best': 'best', 'Standard': 'standard', 'Saver': 'saver'}
+
+
+def video_quality_settings(config):
+    value = config.get('video_quality')
+    if type(value) is not str or value not in QUALITY_MODES.values():
+        return []
+    supported = config.get('video_quality_support', list(QUALITY_MODES.values()))
+    if not isinstance(supported, list):
+        return []
+    options = [label for label, wire in QUALITY_MODES.items() if wire in supported]
+    label = next(label for label, wire in QUALITY_MODES.items() if wire == value)
+    if label not in options:
+        return []
+    return [{'key': 'video_quality', 'label': 'Video quality', 'kind': 'choice',
+             'value': label, 'options': options}]
+
+
+async def write_video_quality(adapter, camera, value):
+    settings = await adapter.read(camera)
+    current = next((item for item in settings if item['key'] == 'video_quality'), None)
+    if current is None:
+        raise HTTPException(400, 'Video quality is unavailable for this camera configuration.')
+    if type(value) is not str or value not in current['options']:
+        raise HTTPException(422, 'This video quality is not supported by this camera.')
+    if current['value'] == value:
+        return settings
+    payload = json.dumps({'video_quality': QUALITY_MODES[value]})
+    if camera.product_type == 'tulip':
+        response = await api.http_post(camera.sync.blink, adapter.url(camera), json=False, data=payload)
+    else:
+        route = 'owl' if camera.product_type in ('owl', 'hawk') else 'catalina'
+        response = await api.request_update_config(camera.sync.blink, camera.sync.network_id,
+                                                   camera.camera_id, product_type=route, data=payload)
+    if response is None or response.status != 200:
+        raise HTTPException(502, 'Blink did not accept the video quality command.')
+    result = await response.json()
+    if (not isinstance(result, dict) or result.get('command') != 'config_set' or
+            result.get('state_condition', result.get('state')) in ('failed', 'error') or 'code' in result):
+        raise HTTPException(502, 'Blink did not accept the video quality command.')
+    for attempt in range(3):
+        confirmed = await adapter.read(camera)
+        if any(item['key'] == 'video_quality' and item['value'] == value for item in confirmed):
+            return confirmed
+        if attempt < 2:
+            await asyncio.sleep(.5)
+    raise HTTPException(409, 'Blink has not confirmed the requested video quality.')
 
 
 def status_led_settings(config, options):
@@ -186,7 +236,7 @@ class OriginalMiniSettings:
         if value not in self.options:
             raise HTTPException(502, 'Blink did not return a recognized night vision setting.')
         return [{'key': 'night_vision', 'label': 'Night vision', 'kind': 'choice',
-                 'value': value, 'options': self.options}] + self.additional_settings(data) + status_led_settings(data, ['on', 'off', 'recording'])
+                 'value': value, 'options': self.options}] + self.additional_settings(data) + status_led_settings(data, ['on', 'off', 'recording']) + video_quality_settings(data)
 
     async def write_config(self, camera, key, value):
         # Mini 2 uses the same verified owl route, not BlinkPy's unsupported hawk route.
@@ -222,6 +272,8 @@ class OriginalMiniSettings:
         raise HTTPException(409, 'Blink has not confirmed the requested setting.')
 
     async def write(self, camera, key, value):
+        if key == 'video_quality':
+            return await write_video_quality(self, camera, value)
         if key == 'status_led':
             return await write_status_led(self, camera, value)
         if key in self.numeric_settings or key in ('end_clip_early', 'ir_intensity'):
@@ -266,6 +318,8 @@ class Mini2Settings(OriginalMiniSettings):
         return settings
 
     async def write(self, camera, key, value):
+        if key == 'video_quality':
+            return await write_video_quality(self, camera, value)
         if key in SMART_DETECTION:
             return await write_smart_detection(self, camera, key, value)
         if key in ('night_vision', 'manual_light_duration', 'motion_light_activation'):
@@ -352,9 +406,11 @@ class OutdoorSettings:
                 settings.append({'key': key, 'label': label, 'kind': 'choice',
                                  'value': next(mode for mode, number in mapping.items() if number == value),
                                  'options': ['auto', 'on', 'off'] if key == 'night_vision' else list(mapping)})
-        return settings + smart_detection_settings(await read_smart_detection(camera)) + status_led_settings(config, ['off', 'recording'])
+        return settings + smart_detection_settings(await read_smart_detection(camera)) + status_led_settings(config, ['off', 'recording']) + video_quality_settings(config)
 
     async def write(self, camera, key, value):
+        if key == 'video_quality':
+            return await write_video_quality(self, camera, value)
         if key in SMART_DETECTION:
             return await write_smart_detection(self, camera, key, value)
         if key == 'status_led':
@@ -457,9 +513,11 @@ class DoorbellSettings:
         settings.append({'key': 'ir_intensity', 'label': 'IR intensity', 'kind': 'choice',
                          'value': next(label for label, number in self.intensities.items() if number == intensity),
                          'options': list(self.intensities)})
-        return settings + smart_detection_settings(config) + status_led_settings(config, ['off', 'recording'])
+        return settings + smart_detection_settings(config) + status_led_settings(config, ['off', 'recording']) + video_quality_settings(config)
 
     async def write(self, camera, key, value):
+        if key == 'video_quality':
+            return await write_video_quality(self, camera, value)
         if key in SMART_DETECTION:
             return await write_smart_detection(self, camera, key, value)
         if key == 'status_led':

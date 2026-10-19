@@ -1,3 +1,5 @@
+October 19 correction: investigation found the ground cat is still detected and retained as another view in an existing Cat appearance. The apparent loss was changed overlap-based grouping and representative crop selection. See Notes/Clip24207-Diagnosis-20261019.txt. No zone-filtering fix was required for this cat.
+
 Water Bowl spinner reserved replay — October 18, 2026
 
 Ran clips 23919, 24207, 25798 with production 1.2.31 source, current 52/256 inactive zones, frozen prior references and unmodified recordings in isolated catalogs. Integrity checks passed; normal AI resumed and both services active/healthy. Interrupted production IDs 25398,26468,26470 requeued.
