@@ -21,7 +21,7 @@ def initialize_models(folder):
 def analyze_job(db_path, archive_root, job, pause, controller_url):
     from identity_worker import process_one, wait_for_controller
     process_one(db_path, archive_root, job, _models,
-                checkpoint=lambda: wait_for_controller(pause, controller_url))
+                checkpoint=lambda: wait_for_controller(pause, controller_url), controller_url=controller_url)
 
 
 class ParallelClips:

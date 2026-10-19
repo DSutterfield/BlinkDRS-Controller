@@ -110,7 +110,11 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
             seconds = frame_index/fps
             used = set()
             from subject_type_check import in_person_region
-            detections = sorted(models.detect(frame), key=lambda item: item['subject_type'] != 'Person')
+            from identity_motion_zones import permits
+            zones = getattr(models, 'motion_zones', None)
+            raw = [] if zones is not None and not zones.active else models.detect(frame)
+            detections = sorted((d for d in raw if permits(models,d['box'],frame.shape)),
+                                key=lambda item: item['subject_type'] != 'Person')
             for detection in detections:
                 height,width = frame.shape[:2]
                 box = detection['box']
@@ -250,7 +254,10 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
         capture.release()
 
 
-def process_one(db_path, archive_root, job, models, checkpoint=None):
+def process_one(db_path, archive_root, job, models, checkpoint=None, *, motion_zones=None, controller_url="http://127.0.0.1:8000"):
+    from identity_motion_zones import load_camera_zones
+    if motion_zones is None:
+        motion_zones = load_camera_zones(db_path, job["catalog_id"], controller_url)
     started = time.monotonic()
     path = archive_video(archive_root, job['video_path'])
     fingerprint = file_hash(path)
@@ -261,7 +268,14 @@ def process_one(db_path, archive_root, job, models, checkpoint=None):
     models.cat_type_references = prepare_references(load_variants(db_path,models,models.type_references,checkpoint,
                                               teaching_clip=job['catalog_id']))
     from person_scene_search import PersonConsensusModels as AnimalSceneModels
-    observations = analyze_video(path, AnimalSceneModels(models, checkpoint, catalog_id=job['catalog_id']), checkpoint=checkpoint)
+    previous_zones = getattr(models, 'motion_zones', None)
+    models.motion_zones = motion_zones
+    try:
+        observations = analyze_video(path, AnimalSceneModels(models, checkpoint, catalog_id=job['catalog_id']), checkpoint=checkpoint)
+    finally:
+        models.motion_zones = previous_zones
+    logging.info('Clip %s motion zones %s: suppressed %s proposals, skipped %s views',
+                 job['catalog_id'], motion_zones.revision, motion_zones.suppressed, motion_zones.skipped_views)
     if file_hash(path) != fingerprint:
         raise ValueError('Recording changed during analysis; retry once it is stable.')
     publish_detections(db_path,job['catalog_id'],fingerprint,observations)
@@ -381,7 +395,7 @@ def main():
                 if job:
                     set_worker_status(args.db,'analyzing',f"Analyzing clip {job['catalog_id']}")
                     try:
-                        process_one(args.db,args.archive,job,models,checkpoint=checkpoint)
+                        process_one(args.db,args.archive,job,models,checkpoint=checkpoint,controller_url=args.controller_url)
                     except Exception as exc:
                         finish_job(args.db,job['catalog_id'],'failed',str(exc))
                 if args.once:

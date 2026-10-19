@@ -40,7 +40,8 @@ class DetailedAnimalSceneModels(AnimalSceneModels):
  def type_evidence(self,frame,d,detections,use_context=False):
   from subject_type_check import in_person_region
   h,w=frame.shape[:2];a,b,c,e=map(int,d['box']);box=[max(0,a),max(0,b),min(w,c),min(h,e)];a,b,c,e=box
-  if min(c-a,e-b)<16:return None,None
+  from identity_motion_zones import permits
+  if not permits(self,box,frame.shape) or min(c-a,e-b)<16:return None,None
   # Strong same-frame Person coverage cannot generate a supplemental animal.
   if in_person_region(dict(d,box=box),detections):return None,None
   v,m,q=self.models.animal_type_embedding(frame[b:e,a:c])

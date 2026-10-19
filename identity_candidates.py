@@ -32,8 +32,8 @@ def rank_candidates(conn,kind,model,vector,exclude_clip=None):
  for n,value in zip(names,values):
   own=[(r,v) for r,v in rows if r['identity_id']==n];results.append(dict(identity_id=n,name=own[0][0]['name'],score=float(value),reference_clips=len({r['catalog_id'] for r,v in own if r['catalog_id'] is not None}),nearest=float(max(query@v for r,v in own))))
  return sorted(results,key=lambda r:r['score'],reverse=True)
-def store_candidates(conn,did,kind,model,vector,catalog_id):
- ranks=rank_candidates(conn,kind,model,vector,catalog_id)
+def store_candidates(conn,did,kind,model,vector,catalog_id,ranks=None):
+ if ranks is None:ranks=rank_candidates(conn,kind,model,vector,catalog_id)
  conn.execute('DELETE FROM identity_candidates WHERE detection_id=?',(did,))
  for index,r in enumerate(ranks[:3]):conn.execute('INSERT INTO identity_candidates(detection_id,identity_id,rank,score,method) VALUES(?,?,?,?,?)',(did,r['identity_id'],index+1,r['score'],'household-ridge-v1-possible'))
  return ranks

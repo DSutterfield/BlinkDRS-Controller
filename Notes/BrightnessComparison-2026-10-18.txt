@@ -1,0 +1,18 @@
+BlinkDRS brightness experiment - October 18, 2026
+
+Decision: do not deploy blanket gamma 0.85 brightening. Production remains controller 1.2.30. All 24 reserved clips completed both full variants using isolated catalogs and fixed references; no training, live answer changes, or recording changes.
+
+Clip 25398: preserved the zero-byte original, downloaded the exact Blink media again (3,229,149 bytes; 29.963 seconds; H264 1280x720). Full ffmpeg decoding and first/last frame OpenCV checks passed. Requeued; running at the production postcheck.
+
+Full-clip expected animal-name coverage: Dog 8/13 original versus 7/13 brightened. Cat stored names 0/19 in both (advisory-only policy); matching advisory names 1/19 versus 2/19, with the new possible Lola suggestion not individually human-verified. Cat type coverage 6/9 in both; Dog type coverage 8/11 versus 7/11. Generic Person coverage 19/19 in both; individual person names were not evaluated. Coverage is not exhaustive detection precision or crop-to-individual accuracy.
+
+Matched human-confirmed crop test, correct animal type supplied: 26 Dog crops, 14 correct names versus 13, no wrong names. 27 Cat crops, one correct advisory in each variant, no stored assignments. No training.
+
+Transform cost: 2.811 seconds across 432 brightened sampled frames (about 0.117 seconds per clip). Sum of worker processing times -0.70%; warm 21 pairs -0.30%; median paired change -0.03%. Single paired runs and changed downstream detections do not establish a speed improvement.
+
+Manual review: original 23919 had two Vehicle crops depicting the house; brightened removed both. The Water Bowl pole spinner was falsely Cat in both variants of 24207: original 5118, brightened 5120, near x1188-1227/y421-492. Nearby cats on ground are real; no negative labels were saved. Earlier garden-container occlusion examples remain unresolved. Motion-zone identity exclusions recorded in IdentityDetectionZones-backlog.txt; not implemented in this experiment.
+
+Production resumed: DVR active, three AI workers, health ok, Blink connected, no failed jobs at postcheck. Interrupted jobs 25398, 26219, 26468 requeued. Production inference source and frozen references unchanged.
+
+Reviewable report: C:/Users/DanSu/Documents/Codex/2026-10-18/sag/outputs/BlinkDRS-brightness-comparison.html
+Machine-readable summary: same directory, BlinkDRS-brightness-comparison.json

@@ -1,0 +1,33 @@
+Identity discovery motion zones - controller 1.2.31, 2026-10-18
+
+Deployed after completing all 24 reserved clips and 502 automated regression tests. Brightness remains unchanged.
+
+Each clip resolves its catalog camera to Blink camera/system identifiers through a read-only SQLite lookup, then requests that camera's saved motion cells. All 13 cameras passed live and simulated-offline settings-client checks (5x5 and 16x16 grids). The existing editor and protocol remain compatible. Confirmed zone reads and saves update a per-camera cache immediately; temporary connection failures may use a verified policy no more than 24 hours old. Corrupt, expired, unknown-camera and unsupported-format settings never create an all-active fallback. Cache files live beside the catalog in identity-motion-zones/. Atomic replacement and per-camera locking prevent partial files; older GET replies cannot overwrite a newer verified save. The API and AI services both run as dan.
+
+A clipped detector box must have its center in an active row-major cell. Grid coordinates scale using each actual frame's width and height, including square Front Door footage. Entirely inactive SSD/detail search views are skipped before inference; excluded proposals are filtered before crop/type/name recognition. Full-scene models retain original pixels for context. Accepted crops retain source pixels; no blackout masks, brightness transforms or training labels are introduced. Existing human confirmations, teaching references, source recordings and unresolved garden-container cases are preserved.
+
+The 24 clips used fixed teaching references, identical recordings/model assets/sampling and isolated catalogs. They were compared with the prior completed unbrightened original runs. This is a controlled recognition comparison, not contemporaneous paired timing. The immutable reserved-run source was retained. The final settings/cache client was tested separately; detector-box geometry AST and every other frame-processing file were verified identical to that snapshot. Runtime settings fetch/cache time is outside the supplied-policy video timings.
+
+All-active camera controls: 6/6 clips identical in type, animal names, crop hash and track time range. Baseline appearances 148; with zones 145. Entirely inactive search views skipped: 789. Excluded proposal checks: 1019 (repeated proposal checks, not distinct animals).
+
+Cat: type coverage 6/9 -> 6/9; stored animal names 0/19 -> 0/19; including advisory 1 -> 1.
+Dog: type coverage 8/11 -> 8/11; stored animal names 8/13 -> 8/13; including advisory 8 -> 8.
+Person: type coverage 19/19 -> 19/19; no individual person-name evaluation.
+
+Coverage includes every prior annotation, including areas now excluded. It is not per-crop identity accuracy or exhaustive detection precision; a matching name still requires association with the correct animal. Cat names remain advisory. Individual-name evaluation covers Cat/Dog only, with generic Person category checks.
+
+Clip 20600: two removed Unknown crops depict siding and shadows. Both centers are in inactive Back Door cells; the active-area Unknown appearance and Duke/Stubby output remain unchanged.
+
+Clip 22322: the same Person crop and clip-level presence are retained. The track ends at 18.73s instead of 22.47s because its qualifying FRCNN box centers at 20.60s and 22.47s enter inactive Advanced row 2, column 11. At 18.73s the box center is in active row 3, column 10. YOLO corroboration boxes lie slightly below that boundary; corroboration alone does not create a standalone Person result. The existing category-consensus rule is unchanged.
+
+Clip 25386: the one removed Unknown crop is the black door handle on the opened screen door, verified in the full source frame at 0.914s. Its center is in an inactive Front Door cell. The three retained appearances are unchanged; the earlier Lucy miss is unchanged.
+
+Clip 23919: all ten outputs match the baseline. Its two previously verified house-as-Vehicle boxes have active centers, so they remain eligible under the saved Water Bowl mask. The filter does not create new exclusions around these fixtures.
+
+The Water Bowl spinner center is in an ACTIVE saved cell: Advanced row 11, column 16 (one-based), in the 16x16 grid. Current zones therefore do not exclude that known false Cat appearance. The verified original box is [1189,421,1225,492] in 1280x720 footage. A geometry-only in-memory test disabling that one cell blocked this known spinner box while preserving the three inspected nearby ground-cat boxes. No camera settings were changed, and this does not claim every rotated spinner view fits that single cell.
+
+Deployment files were backed up to /home/dan/BlinkDRS-Controller/zones-20261018/deployment-backup. Source hashes and the old production foundation were checked before replacement; Live View/recording activity was checked and allowed to finish before service stops. Post-deployment About reports 1.2.31 / 2026-10-18; DVR/API health is ok, Blink is connected, three AI workers are present, and no failed jobs were found. Known interruptions were requeued. Clip 25398's recovered recording remains intact; its postcheck job state was queued.
+
+Experiment, frozen masks, raw outputs and verification: /home/dan/BlinkDRS-Controller/zones-20261018
+User report: C:/Users/DanSu/Documents/Codex/2026-10-18/sag/outputs/BlinkDRS-motion-zone-comparison.html
+Machine-readable summary: C:/Users/DanSu/Documents/Codex/2026-10-18/sag/outputs/BlinkDRS-motion-zone-comparison.json

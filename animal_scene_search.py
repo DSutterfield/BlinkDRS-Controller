@@ -15,12 +15,16 @@ class AnimalSceneModels:
   h,w=im.shape[:2];items=[]
   xs=sorted(set(range(0,max(1,w-size+1),stride))|{max(0,w-size)})
   ys=sorted(set(range(0,max(1,h-size+1),stride))|{max(0,h-size)})
-  views=((im[y:y+size,x:x+size],x,y) for y in ys for x in xs)
+  from identity_motion_zones import search_view,permits
+  views=((im[y:y+size,x:x+size],x,y) for y in ys for x in xs
+         if search_view(self,[x,y,min(w,x+size),min(h,y+size)],im.shape))
   for tile,x,y,r in iter_ssd_views(self.models,views,self.checkpoint):
    for label,score,box in zip(r['labels'],r['scores'],r['boxes']):
     label=int(label);score=float(score)
     if label not in (17,18) or score<.30:continue
-    b=box.tolist();items.append(dict(subject_type='Cat' if label==17 else 'Dog',confidence=score,box=[b[0]+x,b[1]+y,b[2]+x,b[3]+y]))
+    b=box.tolist()
+    if not permits(self,[b[0]+x,b[1]+y,b[2]+x,b[3]+y],im.shape):continue
+    items.append(dict(subject_type='Cat' if label==17 else 'Dog',confidence=score,box=[b[0]+x,b[1]+y,b[2]+x,b[3]+y]))
   kept=[]
   for d in sorted(items,key=lambda d:d['confidence'],reverse=True):
    if not any(e['subject_type']==d['subject_type'] and overlap(e['box'],d['box'])>.35 for e in kept):kept.append(d)
@@ -28,6 +32,8 @@ class AnimalSceneModels:
  def detect(self,im):
   checked=getattr(type(self.models),'detect_with_checkpoint',None)
   base=checked(self.models,im,self.checkpoint) if checked else self.models.detect(im)
+  from identity_motion_zones import permits
+  base=[d for d in base if permits(self,d["box"],getattr(im,"shape",()))]
   idx=self.index;self.index+=1
   proposals=self.grid(im,None,384,256)
   if idx%4==0:proposals+=self.grid(im,None,192,128)

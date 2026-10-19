@@ -1,0 +1,10 @@
+Water Bowl spinner reserved replay — October 18, 2026
+
+Ran clips 23919, 24207, 25798 with production 1.2.31 source, current 52/256 inactive zones, frozen prior references and unmodified recordings in isolated catalogs. Integrity checks passed; normal AI resumed and both services active/healthy. Interrupted production IDs 25398,26468,26470 requeued.
+
+MIXED result: 23919 all 10 crops identical; 25798 all 20 identical. 24207 retains 22/24 crops, no new crops: removes known spinner (original 5118/prior zoned 5116), but ALSO removes a real white/gray ground-cat appearance (original 5122/prior zoned 5120; 13.5135–19.305 seconds). Full source frame confirms real cat at box [1121,530,1173,581], outside excluded cell. Three earlier geometry-tested nearby real-cat crop hashes remain identical; that limited geometry check did not cover every cat. Do not call this a clean pass. Cause not traced; adaptive region/temporal search may change after removing a proposal, but this remains a hypothesis.
+
+Follow-up: trace why excluding spinner affects discovery of the separate ground-cat appearance in active area; keep source pictures unchanged and confirmed crops protected. Camera remains at Dan's requested one-cell exclusion; no additional cells or code changed by this replay.
+
+Remote evidence /home/dan/BlinkDRS-Controller/spinner-replay-20261018
+Local report C:/Users/DanSu/Documents/Codex/2026-10-18/sag/outputs/BlinkDRS-Water-Bowl-spinner-replay.html

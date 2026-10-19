@@ -1,0 +1,13 @@
+BlinkDRS handoff — October 18, 2026
+
+Dan requested stopping here and saving the follow-up for next session.
+
+Next task: investigate why disabling Water Bowl Advanced row 11, column 16 removes a separate real ground-cat appearance in reserved clip 24207. Do not call the mask test a clean pass. Spinner excluded; three earlier checked nearby ground-cat crops retained, but original detection 5122 (prior zone replay 5120) is lost. Its source crop [1121,530,1173,581] at 13.5135 seconds is in active ground. Adaptive search/temporal changes are an unverified hypothesis. Do not broaden the exclusion or label real cats negative.
+
+Reserved replay: clips 23919 and 25798 retain all 10 and 20 prior crops respectively; clip 24207 retains 22/24, removing spinner plus ground-cat appearance. Integrity checks passed, no saved confirmation/training changes. Both Pi services healthy and active; normal queue restored and interrupted IDs requeued. Remote evidence: /home/dan/BlinkDRS-Controller/spinner-replay-20261018. Controller 1.2.31. Windows 1.1.44 installed; confirmed Motion display is exactly No Visible Subject - Confirmed. Not an animal review feature recorded in Windows ROADMAP.md for later.
+
+Dan authorized checkpoint commits in both repositories on October 18. This handoff is included in the controller checkpoint; the lost ground-cat appearance remains unresolved. No push requested.
+
+Read both repositories' AGENTS.md before coding/deployment. Preserve recordings, confirmed crops, references and prior experiment evidence. See controller Notes/WaterBowlSpinnerReplay-20261018.txt for detailed evidence.
+
+Report: C:/Users/DanSu/Documents/Codex/2026-10-18/sag/outputs/BlinkDRS-Water-Bowl-spinner-replay.html

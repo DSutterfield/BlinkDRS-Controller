@@ -114,6 +114,8 @@ class CatSearchModels(SubjectConsensusModels):
         idx=self.index;self.frame_features={};self.current_cat_continuations=[]
         kept=super().detect(frame)
         self.scene_proposals=[] if self.proposal_detector is None else self.proposal_detector.detect(frame)
+        from identity_motion_zones import permits
+        self.scene_proposals=[d for d in self.scene_proposals if permits(self,d["box"],frame.shape)]
         pending=[];anchors=[];h,w=frame.shape[:2]
         # Existing detections supply the preceding view for later weak
         # proposals. Keeping their crop must not discard this evidence.

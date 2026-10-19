@@ -9,6 +9,9 @@ class RefinedAnimalSceneModels(DetailedAnimalSceneModels):
   super().__init__(*args,**kwargs);self.raw_cache={};self.previous_strong=[]
  def raw_detail_detections(self,frame,region=None):
   """Low-score animal locations are search proposals, never final Types."""
+  from identity_motion_zones import permits,search_view
+  h,w=frame.shape[:2]
+  if not search_view(self,region or [0,0,w,h],frame.shape):return []
   self.checkpoint();key=tuple(region) if region is not None else None
   if key in self.raw_cache:return self.raw_cache[key]
   if self.detail is None:self.detail=DetailAnimalDetector(self.models,self.model_path)
@@ -18,6 +21,8 @@ class RefinedAnimalSceneModels(DetailedAnimalSceneModels):
   found=[];people=[]
   for label,score,box in zip(result['labels'],result['scores'],result['boxes']):
    label=int(label);score=float(score)
+   x,y,z,t=box.tolist()
+   if not permits(self,[x+a,y+b,z+a,t+b],frame.shape):continue
    if label==1 and score>=.90:
     x,y,z,t=box.tolist();people.append(dict(subject_type='Person',confidence=score,box=[x+a,y+b,z+a,t+b],detector_model=self.detail.version))
    if label not in (17,18) or score<.10:continue

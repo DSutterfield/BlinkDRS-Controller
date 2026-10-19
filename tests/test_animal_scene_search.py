@@ -26,7 +26,8 @@ class SearchTests(unittest.TestCase):
   import identity_worker as w
   models=Mock();job=dict(video_path='test.mp4',catalog_id=1)
   with patch.object(w,'archive_video',return_value='video'),patch.object(w,'file_hash',return_value='hash'),patch('subject_type_learning.load_references',return_value=[]),patch.object(w,'analyze_video',return_value=[]) as analyze,patch.object(w,'publish_detections') as publish:
-   w.process_one('db','archive',job,models)
+   from identity_motion_zones import MotionZones
+   w.process_one('db','archive',job,models,motion_zones=MotionZones(dict(basic_rows=1,basic_columns=1,sub_rows=1,sub_columns=1,cells=[1])))
    self.assertIsInstance(analyze.call_args.args[1],AnimalSceneModels)
    self.assertIs(analyze.call_args.args[1].models,models)
    publish.assert_called_once_with('db',1,'hash',[])

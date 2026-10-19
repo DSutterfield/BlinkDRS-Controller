@@ -3,8 +3,30 @@ import hashlib
 import json
 import math
 import threading
+import sqlite3
+import logging
+from functools import wraps
 from datetime import datetime, timezone, timedelta
 from identity_store import connect, require_clip
+
+
+def is_database_busy(exc):
+    # Extended SQLITE_BUSY codes include BUSY_SNAPSHOT; do not hide other errors.
+    code = getattr(exc, 'sqlite_errorcode', None)
+    return isinstance(exc, sqlite3.OperationalError) and code is not None and (code & 255) in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)
+
+
+def defer_when_busy(function):
+    @wraps(function)
+    def call(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except sqlite3.OperationalError as exc:
+            if not is_database_busy(exc):
+                raise
+            logging.warning('%s deferred: catalog is busy', function.__name__)
+            return None
+    return call
 
 
 def ensure_analysis(conn):
@@ -81,8 +103,9 @@ def job_status(db_path, catalog_id):
                 'worker': dict(worker) if worker else None}
 
 
+@defer_when_busy
 def set_worker_status(db_path, state, message):
-    with connect(db_path) as conn:
+    with connect(db_path, timeout=.25) as conn:
         ensure_analysis(conn)
         conn.execute("""INSERT INTO identity_worker_status(id,state,message) VALUES(1,?,?)
             ON CONFLICT(id) DO UPDATE SET state=excluded.state,message=excluded.message,
@@ -129,6 +152,7 @@ def enable_new_clip_queue(db_path):
         """)
 
 
+@defer_when_busy
 def claim_job(db_path):
     with connect(db_path) as conn:
         ensure_analysis(conn)
@@ -186,29 +210,50 @@ def match_identity(conn, subject_type, model, vector, threshold, margin):
 
 def publish_detections(db_path, catalog_id, fingerprint, observations):
     """A retry never alters confirmed labels and never recreates explicitly removed evidence."""
-    with connect(db_path) as conn:
-        ensure_analysis(conn)
+    prepared = []
+    with connect(db_path, timeout=30) as conn:
+        require_clip(conn, catalog_id)
+        # A confirmed no-subject clip must bypass recognition entirely.
+        if conn.execute('SELECT 1 FROM clip_unknown_motion WHERE catalog_id=?', (catalog_id,)).fetchone():
+            conn.execute('BEGIN IMMEDIATE')
+            if conn.execute('SELECT 1 FROM clip_unknown_motion WHERE catalog_id=?', (catalog_id,)).fetchone():
+                conn.execute('DELETE FROM clip_detections WHERE catalog_id=? AND confirmed=0 AND detection_id IN (SELECT detection_id FROM identity_evidence WHERE catalog_id=?)', (catalog_id,catalog_id))
+                conn.execute("UPDATE identity_analysis_jobs SET state='done',message='Kept confirmed Unknown Motion / No Visible Subject.',updated_at=CURRENT_TIMESTAMP WHERE catalog_id=?", (catalog_id,))
+                return
+            conn.commit()
+        for item in observations:
+            if item['subject_type'] == 'Unknown':
+                iid, similarity = None, None
+            elif item['subject_type'] == 'Dog':
+                from identity_candidates import dog_recommendation
+                iid, similarity = dog_recommendation(conn, item, catalog_id), None
+            else:
+                iid, similarity = match_identity(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'),
+                                                 .90 if item['subject_type'] != 'Person' else .50, .05)
+            ranks = []
+            if item['subject_type'] in ('Cat', 'Dog'):
+                from identity_candidates import rank_candidates
+                ranks = rank_candidates(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'), catalog_id)
+            prepared.append((item, iid, similarity, ranks))
+    with connect(db_path, timeout=30) as conn:
+        conn.execute('BEGIN IMMEDIATE')
         require_clip(conn, catalog_id)
         conn.execute('DELETE FROM clip_detections WHERE catalog_id=? AND confirmed=0 AND detection_id IN (SELECT detection_id FROM identity_evidence WHERE catalog_id=?)', (catalog_id,catalog_id))
         if conn.execute('SELECT 1 FROM clip_unknown_motion WHERE catalog_id=?', (catalog_id,)).fetchone():
             conn.execute("UPDATE identity_analysis_jobs SET state='done',message='Kept confirmed Unknown Motion / No Visible Subject.',updated_at=CURRENT_TIMESTAMP WHERE catalog_id=?", (catalog_id,))
             return
-        for item in observations:
+        for item, iid, similarity, ranks in prepared:
             key = hashlib.sha256(f"{fingerprint}:{item['key']}".encode()).hexdigest()
             if conn.execute('SELECT 1 FROM identity_rejections WHERE catalog_id=? AND detection_key=?', (catalog_id,key)).fetchone():
                 continue
             existing = conn.execute('SELECT d.detection_id,d.confirmed FROM identity_evidence e JOIN clip_detections d USING(detection_id) WHERE e.catalog_id=? AND e.detection_key=?', (catalog_id,key)).fetchone()
             if existing and existing['confirmed']:
                 continue
-            if item['subject_type'] == 'Unknown':
-                iid, similarity = None, None
-            elif item['subject_type'] == 'Dog':
-                from identity_candidates import dog_recommendation
-                iid = dog_recommendation(conn,item,catalog_id)
-                similarity = None  # Household classifier scores are not cosine or probabilities.
-            else:
-                iid, similarity = match_identity(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'),
-                                                 .90 if item['subject_type'] != 'Person' else .50, .05)
+            # A profile may be deleted/deactivated while ranking runs.
+            valid_ids = {r[0] for r in conn.execute('SELECT identity_id FROM identities WHERE active=1 AND subject_type=?', (item['subject_type'],))}
+            if iid not in valid_ids:
+                iid = None
+            ranks = [rank for rank in ranks if rank['identity_id'] in valid_ids]
             if existing:
                 did = existing['detection_id']
                 conn.execute('UPDATE clip_detections SET identity_id=? WHERE detection_id=? AND confirmed=0', (iid,did))
@@ -224,7 +269,7 @@ def publish_detections(db_path, catalog_id, fingerprint, observations):
                  item.get('embedding_model'),item.get('quality_score'),similarity,))
             if item['subject_type'] in ('Cat','Dog'):
                 from identity_candidates import store_candidates
-                store_candidates(conn,did,item['subject_type'],item.get('embedding_model'),item.get('embedding'),catalog_id)
+                store_candidates(conn,did,item['subject_type'],item.get('embedding_model'),item.get('embedding'),catalog_id,ranks=ranks)
             for view in item.get('views', [])[:4]:
                 conn.execute('''INSERT OR IGNORE INTO identity_track_views
                     (detection_id,seconds,crop_jpeg,embedding,embedding_model,quality_score)

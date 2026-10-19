@@ -1,0 +1,6 @@
+Controller 1.2.30 — 2026-10-18
+
+Move identity recommendation and candidate ranking before the publication write transaction.
+Recheck confirmations, removed evidence, and Unknown Motion under BEGIN IMMEDIATE before publishing.
+Allow up to 30 seconds for publication contention. Status writes defer on SQLite busy/locked only; queue claims retry on the next supervisor pass. Other database errors still propagate.
+Preserve recordings, human confirmations, holdouts, and failed video diagnostics.

@@ -103,6 +103,8 @@ class LocalModels:
             for y in (0,height-crop_h):
                 for x in (0,width-crop_w):
                     views.append((bgr[y:y+crop_h,x:x+crop_w],x,y))
+        from identity_motion_zones import permits, search_view
+        views = [(v,x,y) for v,x,y in views if search_view(self,[x,y,x+v.shape[1],y+v.shape[0]],bgr.shape)]
         candidates = []
         kinds = {1:'Person',3:'Vehicle',4:'Vehicle',6:'Vehicle',8:'Vehicle',17:'Cat',18:'Dog'}
         for view,x,y,result in iter_ssd_views(self, views, checkpoint):
@@ -113,6 +115,7 @@ class LocalModels:
                 if len(views)>1 and (x or y or view.shape != bgr.shape) and kinds[label] in ('Person','Vehicle'):
                     continue
                 box=box.tolist()
+                if not permits(self,[box[0]+x,box[1]+y,box[2]+x,box[3]+y],bgr.shape):continue
                 candidates.append({'subject_type':kinds[label],'confidence':score,'full_view':view.shape==bgr.shape,
                                    'box':[box[0]+x,box[1]+y,box[2]+x,box[3]+y]})
         def containment(a,b):

@@ -547,7 +547,19 @@ class DeviceSettings:
             async with asyncio.timeout(25):
                 async with lock:
                     if zones:
-                        return await execute_zones(camera, zone_request)
+                        result = await execute_zones(camera, zone_request)
+                        catalog = getattr(self.controller, 'catalog_db_path', None)
+                        if catalog is not None:
+                            # Cache confirmed reads/writes immediately, so a later
+                            # temporary outage cannot resurrect a prior UI mask.
+                            import time
+                            import logging
+                            from identity_motion_zones import remember_zones
+                            try:
+                                remember_zones(catalog,device_id,system_id,result,time.time())
+                            except OSError:
+                                logging.warning('Verified motion zones could not be cached for camera %s',device_id)
+                        return result
                     if light:
                         return (await adapter.read_light(camera) if value is None
                                 else await adapter.write_light(camera, value))

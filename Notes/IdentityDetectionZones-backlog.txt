@@ -1,0 +1,7 @@
+Identity detection zones - implemented October 18, 2026
+
+Implemented and deployed in controller 1.2.31 after the reserved-clip comparison. See IdentityDetectionZones-1.2.31.txt for policy, tests, results and deployment verification.
+
+Dan's Water Bowl cat-shaped spinner is a fixture on the right side of the frame. Its verified center is currently in an ACTIVE Advanced motion cell (row 11, column 16, one-based). The new filtering respects the saved camera zones; no zone settings were changed. Nearby real ground cats were kept distinct from the spinner, and earlier unresolved garden-container/occlusion examples were not relabeled.
+
+The earlier brightness experiment remains separate and no brightness adjustment was deployed. Motion zones now filter identity-discovery proposals using their detector-box centers and skip wholly inactive search views while preserving source pixels and human-confirmed evidence.
