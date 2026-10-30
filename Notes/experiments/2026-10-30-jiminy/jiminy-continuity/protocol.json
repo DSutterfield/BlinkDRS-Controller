@@ -1,0 +1,19 @@
+{
+  "max_link_gap_seconds": 3.0,
+  "template_minimum": 0.85,
+  "template_unique_margin": 0.03,
+  "frame_scale": 0.5,
+  "min_points": 6,
+  "max_points": 80,
+  "forward_backward_error_pixels": 1.5,
+  "min_retained_fraction": 0.5,
+  "min_target_fraction": 0.6,
+  "min_smaller_box_overlap": 0.5,
+  "target_expansion": 0.1,
+  "require_unique_incoming_outgoing": true,
+  "review_required": true,
+  "training": false,
+  "deploy": false,
+  "crop_experiments": "paused",
+  "limits": "No detector or neural feature inference. Saved crop localization and consecutive-frame optical flow only. Trait presence is not automatically inferred. No use of confirmations for motion or naming."
+}

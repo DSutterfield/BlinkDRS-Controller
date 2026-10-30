@@ -22,16 +22,16 @@ def load_backgrounds(folder, model):
     return vectors
 
 
-def foreground_supported(references, negatives, vector):
-    if vector is None or len(negatives)<4:return False
+def foreground_score(references, negatives, vector):
+    if vector is None or len(negatives)<4:return None
     query=normalized(vector)
-    if len(query)!=384:return False
+    if len(query)!=384:return None
     positives=[r for r in references if r['subject_type']=='Cat' and r['quality_score']>=.2]
     clips={r['catalog_id'] for r in positives}
-    if len(clips)<2:return False
+    if len(clips)<2:return None
     counts={clip:sum(r['catalog_id']==clip for r in positives) for clip in clips}
     x=np.array([normalized(r['vector']) for r in positives]+negatives)
-    if x.shape[1]!=384 or not np.isfinite(x).all():return False
+    if x.shape[1]!=384 or not np.isfinite(x).all():return None
     key=hashlib.sha256(x.tobytes()+repr([r['catalog_id'] for r in positives]).encode()).hexdigest()
     if key not in _CACHE:
         weights=np.array([1/(len(clips)*counts[r['catalog_id']]) for r in positives]
@@ -47,4 +47,9 @@ def foreground_supported(references, negatives, vector):
     center,mean,coefficient=_CACHE[key]
     # This is a ranking score, not a calibrated probability. It is a veto in
     # addition to, never instead of, the independent Cat-Type evidence gate.
-    return float((np.array(query)-center)@coefficient+mean)>=.5
+    return float((np.array(query)-center)@coefficient+mean)
+
+
+def foreground_supported(references, negatives, vector):
+    score=foreground_score(references, negatives, vector)
+    return score is not None and score>=.5

@@ -1,0 +1,14 @@
+{
+  "confirmations_verified": 23,
+  "removed_observations_still_absent": 3,
+  "source_pins_unchanged": 105,
+  "original_video_hashes_match": 4,
+  "all_eight_excluded": true,
+  "protected_samples": {
+    "identity_samples": 0,
+    "subject_type_samples": 0
+  },
+  "crop_experiments": "paused",
+  "trained": false,
+  "deployed": false
+}

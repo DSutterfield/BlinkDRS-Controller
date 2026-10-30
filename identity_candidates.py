@@ -1,7 +1,7 @@
 """Household-specific candidate ranking. Cats remain possibilities, never confirmations."""
 import hashlib,json,math
 _CACHE={}
-def rank_candidates(conn,kind,model,vector,exclude_clip=None):
+def rank_candidates(conn,kind,model,vector,exclude_clip=None,*,prepared_head=False):
  if kind not in ('Cat','Dog') or not model or not model.startswith('dinov2-small-cls-v1:') or vector is None or len(vector)!=384:return []
  import numpy as np
  from identity_analysis import normalized
@@ -28,6 +28,9 @@ def rank_candidates(conn,kind,model,vector,exclude_clip=None):
   head=(names,xm,ym,coef,rows)
   if len(_CACHE)>=16:_CACHE.clear()
   _CACHE[cachekey]=head
+ # Return this exact gallery's immutable head to bounded background scorers.
+ # They must not search or clear the shared process cache by model/name alone.
+ if prepared_head:return head
  names,xm,ym,coef,rows=head;values=(query-xm)@coef+ym;results=[]
  for n,value in zip(names,values):
   own=[(r,v) for r,v in rows if r['identity_id']==n];results.append(dict(identity_id=n,name=own[0][0]['name'],score=float(value),reference_clips=len({r['catalog_id'] for r,v in own if r['catalog_id'] is not None}),nearest=float(max(query@v for r,v in own))))

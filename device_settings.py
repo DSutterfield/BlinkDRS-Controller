@@ -598,7 +598,11 @@ class DeviceSettings:
             raise HTTPException(400, 'Additional settings are not yet supported for this camera type.')
         if light and camera.product_type != 'hawk':
             raise HTTPException(400, 'Light control is only supported for Mini 2 cameras.')
-        if not (camera.online and camera.sync.available):
+        # Motion zones are saved in Blink's cloud and remain readable while
+        # the physical camera/Sync Module is offline. Let that read prove its
+        # own availability; all camera setting writes retain the offline gate.
+        read_only_zones = zones and zone_request is None
+        if not (camera.online and camera.sync.available) and not read_only_zones:
             raise HTTPException(503, 'This camera or its Sync Module is offline.')
         lock = self.locks.setdefault((system_id, device_id), asyncio.Lock())
         try:

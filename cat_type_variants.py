@@ -32,8 +32,12 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
         cache.execute('CREATE TABLE IF NOT EXISTS variants (key TEXT PRIMARY KEY, vector TEXT, quality REAL)')
         from evaluation_holdout import excluded_ids
         excluded=excluded_ids(source)
+        blocked=list(source.execute('SELECT detection_id,crop_sha256 FROM subject_analysis_exclusions'))
+        blocked_ids={r[0] for r in blocked};blocked_hashes={r[1] for r in blocked}
         result=[r for r in result if r['catalog_id'] not in excluded]
+        result=[r for r in result if r['detection_id'] not in blocked_ids and r['crop_hash'] not in blocked_hashes]
         selected=[r for r in selected if r['catalog_id'] not in excluded]
+        selected=[r for r in selected if r['detection_id'] not in blocked_ids and r['crop_hash'] not in blocked_hashes]
         historical=set()
         if source.execute("SELECT 1 FROM sqlite_master WHERE name='evaluation_holdout_clips'").fetchone():
             historical={r[0] for r in source.execute('SELECT catalog_id FROM evaluation_holdout_clips')}
@@ -43,12 +47,14 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
                 if hashlib.sha256(manifest.read_bytes()).hexdigest()!=REVIEW_MANIFEST_SHA256:
                     raise ValueError('Reviewed Cat example manifest fingerprint mismatch')
                 for record in json.loads(manifest.read_text())['examples'][:16]:
+                    if record.get('detection_id') in blocked_ids:continue
                     if record['subject_type']!='Cat':continue
                     if record['catalog_id'] in excluded or record['catalog_id'] in historical:continue
                     path=(manifest.parent/record['image_file']).resolve()
                     if not path.is_relative_to(manifest.parent.resolve()):
                         raise ValueError('Reviewed Cat image must stay in its model directory')
                     jpeg=path.read_bytes();crop_hash=hashlib.sha256(jpeg).hexdigest()
+                    if crop_hash in blocked_hashes:continue
                     if crop_hash!=record['crop_hash']:raise ValueError('Reviewed Cat image fingerprint mismatch')
                     key=hashlib.sha256((crop_hash+models.pet_version+'originalmanualv1').encode()).hexdigest()
                     saved=cache.execute('SELECT vector,quality FROM variants WHERE key=?',(key,)).fetchone()
@@ -70,7 +76,7 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
             # recording. It must never count as independent other-clip support.
             teachers=source.execute('''SELECT d.detection_id,d.catalog_id,e.crop_jpeg
                 FROM clip_detections d JOIN identity_evidence e USING(detection_id)
-                WHERE d.catalog_id=? AND d.confirmed=1 AND d.subject_type='Cat'
+                WHERE d.catalog_id=? AND d.confirmed=1 AND d.detection_id NOT IN (SELECT detection_id FROM subject_analysis_exclusions) AND d.subject_type='Cat'
                 AND d.model_version='manual-crop:v1'
                 ORDER BY d.detection_id DESC LIMIT 4''',(teaching_clip,)).fetchall()
             for did,cid,jpeg in teachers:
@@ -92,7 +98,7 @@ def load_variants(db_path, models, references, checkpoint=None, cache_path=None,
         for row in selected:
             jpeg=(review_crops[row['detection_id']],) if row['detection_id'] in review_crops else source.execute('''SELECT e.crop_jpeg FROM clip_detections d
                 JOIN identity_evidence e USING(detection_id)
-                WHERE d.detection_id=? AND d.confirmed=1 AND d.subject_type=?''',
+                WHERE d.detection_id=? AND d.confirmed=1 AND d.detection_id NOT IN (SELECT detection_id FROM subject_analysis_exclusions) AND d.subject_type=?''',
                 (row['detection_id'],row['subject_type'])).fetchone()
             if not jpeg or hashlib.sha256(jpeg[0]).hexdigest()!=row['crop_hash']:continue
             image=None

@@ -43,6 +43,18 @@ def ensure_identities(conn):
     ensure_analysis(conn)
     from evaluation_holdout import ensure_holdouts
     ensure_holdouts(conn)
+    from cat_review_cache import ensure as ensure_review_cache
+    ensure_review_cache(conn)
+    from subject_exclusions import ensure as ensure_subject_exclusions
+    ensure_subject_exclusions(conn)
+    from pc_helper_revisions import ensure as ensure_helper_revisions
+    ensure_helper_revisions(conn)
+    from dog_review_cache import ensure as ensure_dog_review_cache
+    ensure_dog_review_cache(conn)
+    from name_first_review_config import enabled as name_first_enabled
+    if name_first_enabled():
+        from name_first_review import ensure as ensure_name_first
+        ensure_name_first(conn)
     # Notify existing Windows clients after a committed label change.
     if conn.execute("SELECT 1 FROM sqlite_master WHERE name='catalog_notifications'").fetchone():
         for event in ('INSERT', 'UPDATE', 'DELETE'):
@@ -133,6 +145,18 @@ def clip_identities(conn, catalog_id):
     for row in rows:
         row["confirmed"] = bool(row["confirmed"])
         row["crop_available"] = bool(row["crop_available"])
+    from cat_review_cache import attach
+    attach(conn,rows)
+    from dog_review_config import enabled as dog_pilot
+    if dog_pilot():
+        from dog_review_cache import attach as attach_dog
+        attach_dog(conn,rows)
+    from name_first_review_config import enabled as name_first_enabled
+    if name_first_enabled():
+        from name_first_review import attach as attach_name_first
+        attach_name_first(conn,rows)
+    excluded={r[0] for r in conn.execute("SELECT detection_id FROM subject_analysis_exclusions")}
+    for row in rows:row["analysis_excluded"]=row["detection_id"] in excluded
     if not rows:
         marked = conn.execute('SELECT 1 FROM clip_unknown_motion WHERE catalog_id=?', (catalog_id,)).fetchone()
         analyzed = conn.execute("SELECT 1 FROM identity_analysis_jobs WHERE catalog_id=? AND state='done'", (catalog_id,)).fetchone()
@@ -194,6 +218,8 @@ def assign_identity(db_path, catalog_id, identity_id, subject_type, detection_id
                 (identity_id, subject_type, catalog_id, detection_id))
             if result.rowcount != 1:
                 raise LookupError('Detection not found for this clip.')
+            # Explicit Confirm / Change restores this crop to normal use.
+            conn.execute("DELETE FROM subject_analysis_exclusions WHERE detection_id=?",(detection_id,))
             # A corrected label invalidates old reference samples for this detection.
             conn.execute('DELETE FROM identity_samples WHERE detection_id=?', (detection_id,))
             from identity_analysis import learn_confirmed

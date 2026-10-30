@@ -1,5 +1,7 @@
 """Human-selected image evidence from an unchanged archived recording."""
 import json
+import sqlite3
+import time
 import math
 import subprocess
 import uuid
@@ -115,13 +117,31 @@ def clip_frame(db_path, archive, catalog_id, seconds, box=None):
         raise ValueError('Unable to read this recording frame. Choose another frame or retry.') from exc
 
 
-def save_crop(db_path, archive, catalog_id, seconds, box, identity_id, subject_type):
+def save_crop(db_path, archive, catalog_id, seconds, box, identity_id, subject_type, analysis_excluded=False):
+    if analysis_excluded and identity_id is not None:raise ValueError("No Identifiable Subject cannot have a named identity.")
     if subject_type not in ('Person','Cat','Dog','Vehicle','Unknown'):
         raise ValueError('Choose Person, Cat, Dog, Vehicle, or Unknown.')
     if subject_type in ('Vehicle','Unknown') and identity_id is not None:
         raise ValueError('Vehicles are labeled Unknown Vehicle.')
     jpeg = clip_frame(db_path, archive, catalog_id, seconds, box)
-    with connect(db_path) as conn:
+    # Decode once, outside the short write transaction and any retry.
+    from identity_analysis import is_database_busy
+    for attempt in range(4):
+        try:
+            return _store_crop(db_path, catalog_id, seconds, jpeg, identity_id, subject_type, analysis_excluded)
+        except sqlite3.OperationalError as exc:
+            if not is_database_busy(exc) or attempt == 3:
+                raise
+            time.sleep(.1 * (attempt + 1))
+
+
+def _store_crop(db_path, catalog_id, seconds, jpeg, identity_id, subject_type, analysis_excluded=False):
+    if analysis_excluded and identity_id is not None:raise ValueError("No Identifiable Subject cannot have a named identity.")
+    with connect(db_path, timeout=2) as conn:
+        # Schema initialization may use its own transaction. Reserve the writer
+        # before reading labels, avoiding a stale WAL snapshot upgrade.
+        conn.commit()
+        conn.execute('BEGIN IMMEDIATE')
         require_clip(conn, catalog_id)
         if identity_id is not None and not conn.execute(
                 'SELECT 1 FROM identities WHERE identity_id=? AND active=1 AND subject_type=?',
@@ -132,9 +152,14 @@ def save_crop(db_path, archive, catalog_id, seconds, box, identity_id, subject_t
                            (catalog_id,identity_id,subject_type,seconds,seconds,'manual-crop:v1')).lastrowid
         conn.execute('INSERT INTO identity_evidence VALUES(?,?,?,?,?,?,?,?,?)',
                      (did,catalog_id,'manual:'+uuid.uuid4().hex,subject_type,jpeg,None,'manual-pending',0,None))
+        if analysis_excluded:
+            import hashlib
+            conn.execute("INSERT INTO subject_analysis_exclusions(detection_id,crop_sha256) VALUES(?,?)",
+                         (did,hashlib.sha256(jpeg).hexdigest()))
         # Whole-clip labels for the selected name are redundant after explicit image confirmation.
         if identity_id is not None:
             conn.execute('DELETE FROM identity_samples WHERE detection_id IN (SELECT detection_id FROM clip_detections WHERE catalog_id=? AND identity_id=? AND first_seen_seconds IS NULL)', (catalog_id,identity_id))
             conn.execute('DELETE FROM clip_detections WHERE catalog_id=? AND identity_id=? AND first_seen_seconds IS NULL',(catalog_id,identity_id))
-    from identity_store import get_clip_identities
-    return get_clip_identities(db_path,catalog_id)
+        from identity_store import clip_identities
+        labels = clip_identities(conn, catalog_id)
+    return labels

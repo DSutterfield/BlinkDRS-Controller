@@ -1,4 +1,5 @@
 """Manual identity foundation; automatic inference is a later stage."""
+import sqlite3
 from fastapi import HTTPException, Query
 from fastapi.responses import Response
 from identity_analysis import queue_clip, job_status, crop_image
@@ -32,6 +33,7 @@ class ManualCrop(BaseModel):
     height: int = Field(ge=16)
     identity_id: Optional[int] = Field(default=None, gt=0)
     subject_type: Literal['Person','Cat','Dog','Vehicle','Unknown']
+    analysis_excluded: bool = False
 
 
 def install_identity_api(app, controller):
@@ -87,8 +89,18 @@ def install_identity_api(app, controller):
     @app.post('/api/v1/clips/catalog/{catalog_id}/manual-crops')
     def manual_crop(catalog_id: int, body: ManualCrop):
         from manual_crops import save_crop
-        return run(save_crop, controller.archive_root, catalog_id, body.seconds,
-                   (body.x,body.y,body.width,body.height), body.identity_id, body.subject_type)
+        try:
+            if body.analysis_excluded:
+                return run(save_crop, controller.archive_root, catalog_id, body.seconds,
+                           (body.x,body.y,body.width,body.height), body.identity_id, body.subject_type, True)
+            return run(save_crop, controller.archive_root, catalog_id, body.seconds,
+                       (body.x,body.y,body.width,body.height), body.identity_id, body.subject_type)
+        except sqlite3.OperationalError as exc:
+            from identity_analysis import is_database_busy
+            if not is_database_busy(exc):
+                raise
+            raise HTTPException(503, 'The clip catalog is busy. Your crop was not saved; please retry.',
+                                headers={'Retry-After': '2'}) from exc
 
     @app.post('/api/v1/clips/catalog/{catalog_id}/analysis')
     def analyze(catalog_id: int):
@@ -147,6 +159,11 @@ def install_identity_api(app, controller):
     @app.get('/api/v1/clips/catalog/{catalog_id}/identities')
     def labels(catalog_id: int):
         return run(get_clip_identities, catalog_id)
+
+    @app.post('/api/v1/clips/catalog/{catalog_id}/identities/{detection_id}/unidentifiable')
+    def no_identifiable_subject(catalog_id: int, detection_id: int):
+        from subject_exclusions import mark
+        return run(mark,catalog_id,detection_id)
 
     @app.post('/api/v1/clips/catalog/{catalog_id}/unknown-motion')
     def no_visible_subject(catalog_id: int):

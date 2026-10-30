@@ -1,0 +1,50 @@
+BlinkDRS stopping point — October 30, 2026
+
+LIVE: controller 1.2.55, Windows 1.1.62, PC helper 1.0.5. Pi + two PC helper
+slots provide five workers. PC helper starts at sign-in and runs independently
+of the Windows UI. Name-first and softer Cat-name preservation are live;
+all suggestions require human review. Human confirmations take precedence.
+No new installation or service restart performed for this checkpoint.
+
+STOPPED HERE: Jiminy continuity experiment completed, no identification gain;
+do not deploy. User describes small white chest spot and straight non-bushy tail
+as identifying clues, often visible only across a stream. Current whole-image
+features do not explicitly measure those traits. Motion linked 31037 fragments
+but produced no additional Jiminy name; 31030's separated Jiminy fragments did
+not safely link. All eight baseline Type/name/tier outputs remained unchanged.
+This does not disprove a dedicated temporal trait approach. Do not continue
+tuning votes or blanket thresholds as though a trait recognizer already exists.
+
+OTHER OFFLINE FINDINGS: unnamed-Cat ambiguity rather than hard veto added two
+correct Possible Jiminy suggestions on older tracks, but did not recover31030
+or31037. Remains offline. Reference audit found small/dark/cage-dominated
+examples, not a proven incorrect name. Named and unnamed sightings in21047 and
+30546 may be continuations of the same cat. Preserve existing labels until
+explicit context review. Large barrel-shaped shelter beneath Back Door window
+is background per Dan; exact shelter crop not validated/trained. Identity
+scoring changes do not fix that object detection false alarm.
+
+PERMANENT HOLDOUTS:29703,29699,29700,29702,29678,29682,29689,29698.
+Keep out of identity AND Type training, including existing neighboring-clip
+exclusions. 29700 hidden cat remains Unknown Cat; do not infer Gus. Holdout
+sample counts both zero at last verification. Preserve recordings, references,
+confirmations, manually saved crops and prior removals. Crop experiments paused.
+
+VALIDATION: softer-rule deployment had42 focused tests passing, matched47-case
+replay, unchanged42controls/eight baseline, and existing Windows1.1.62 UI tests.
+Broad110-check comparison had107passes and3same preexisting failures in native
+and staged source:two legacy Cat mocks and one helper reference-edit expectation.
+Latest offline continuity preservation verified23confirmations,3prior removals,
+105source pins and4original video hashes. No training/deployment in Jiminy tests.
+
+NEXT SESSION: discuss whether a small explicit chest/tail temporal recognizer
+is worth designing, with abstention and other black-cat controls. It is not
+implemented or authorized for deployment. Stop and agree on a bounded method
+before another broad experiment. Review-only labels remain mandatory.
+
+Local evidence root:
+C:/Users/DanSu/Documents/Codex/2026-10-24/good-moring/outputs/
+Subfolders:soft-cat-live,jiminy-audit,unnamed-cat-ambiguity,
+jiminy-reference-audit,jiminy-continuity. Original media/catalogs/features remain
+local/on Pi and are deliberately not included in Git. Text summaries and small
+protocol/result reports accompany this checkpoint in Notes/experiments.

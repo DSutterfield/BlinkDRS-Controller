@@ -148,13 +148,24 @@ class LocalModels:
             aligned = self.face_recognizer.alignCrop(crop, faces[0])
             vector = self.face_recognizer.feature(aligned).reshape(-1).tolist()
             return vector, self.face_version, quality
-        image = Image.fromarray(self.cv2.cvtColor(crop, self.cv2.COLOR_BGR2RGB))
-        with self.torch.inference_mode():
-            output = self.pet_model(**self.processor(images=image, return_tensors='pt'))
-        return output.last_hidden_state[0,0].tolist(), self.pet_version, quality
+        return self._pet_features(crop), self.pet_version, quality
+
+    def review_embedding(self,crop,kind):
+        if kind=='Cat':return self.animal_type_embedding(crop)
+        return self.embedding(crop,kind)
+
+    def _pet_features(self, crop):
+        from pet_feature_cache import pet_vector
+        from PIL import Image
+        def compute():
+            image = Image.fromarray(self.cv2.cvtColor(crop, self.cv2.COLOR_BGR2RGB))
+            with self.torch.inference_mode():
+                output = self.pet_model(**self.processor(images=image, return_tensors='pt'))
+            return output.last_hidden_state[0,0].tolist()
+        return pet_vector(self, crop, compute)
 
     def animal_type_embedding(self, crop):
-        """Type features accept small animals; individual embedding stays unchanged."""
+        """Type features accept small animals; Cat identity uses the same pixel floor."""
         from PIL import Image
         if min(crop.shape[:2]) < 16:
             return None, None, 0
@@ -162,10 +173,7 @@ class LocalModels:
         quality = min(1., float(self.cv2.Laplacian(gray, self.cv2.CV_64F).var()) / 100.)
         if quality < .2:
             return None, None, quality
-        image = Image.fromarray(self.cv2.cvtColor(crop, self.cv2.COLOR_BGR2RGB))
-        with self.torch.inference_mode():
-            output = self.pet_model(**self.processor(images=image, return_tensors='pt'))
-        return output.last_hidden_state[0,0].tolist(), self.pet_version, quality
+        return self._pet_features(crop), self.pet_version, quality
 
     def _legacy_animal_type_features(self, frame, box, claimed_type, vector, model, quality, person_region=False):
         """Guarded context fallback for uncertain usable animal crops only."""

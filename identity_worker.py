@@ -90,7 +90,9 @@ def sampled_frame_indices(frames, max_frames=16):
 
 def analyze_video(path, models, max_frames=16, checkpoint=None):
     cv2 = models.cv2
-    capture = cv2.VideoCapture(str(path))
+    from identity_video_decode import SampledFrameReader
+    reader = SampledFrameReader(path,cv2,checkpoint)
+    capture = reader.capture
     tracks = []
     try:
         fps = capture.get(cv2.CAP_PROP_FPS)
@@ -102,10 +104,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
         for frame_index in frame_indices:
             if checkpoint:
                 checkpoint()
-            capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
-            ok, frame = capture.read()
-            if not ok:
-                raise ValueError('A sampled video frame could not be decoded.')
+            frame = reader.read(frame_index)
             sampled += 1
             seconds = frame_index/fps
             used = set()
@@ -212,7 +211,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                         continue
                     index = len(tracks)
                     track = {'key': f"{frame_index}:{detection['subject_type']}:{box}",
-                             'first_seen_seconds': seconds,'last_seen_seconds':seconds}
+                             'first_seen_seconds': seconds,'last_seen_seconds':seconds,'first_box':list(box)}
                     tracks.append(track)
                     retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
                     if detection['subject_type'] in ('Cat','Dog'):
@@ -249,9 +248,17 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
             for track in tracks:
                 if track['subject_type'] in ('Cat','Dog'):
                     track['subject_type'] = finalize_type(track)
-        return [track for track in tracks if (track['subject_type'] != 'Vehicle' and not track.get('detail_person_only')) or track.get('sample_hits', 1) >= 2]
+        tracks = [track for track in tracks if (track['subject_type'] != 'Vehicle' and not track.get('detail_person_only')) or track.get('sample_hits', 1) >= 2]
+        from animal_track_cleanup import cleanup
+        tracks, audit = cleanup(tracks, step/fps, models)
+        if hasattr(models, '__dict__'):
+            models.__dict__['_track_cleanup_audit'] = audit
+        logging.info('Animal track cleanup: merged %s fragments, rejected %s background Unknowns',
+                     len(audit['merged_fragments']), len(audit['background_unknowns']))
+        from cat_review_small import enrich
+        return enrich(tracks,models)
     finally:
-        capture.release()
+        reader.close()
 
 
 def process_one(db_path, archive_root, job, models, checkpoint=None, *, motion_zones=None, controller_url="http://127.0.0.1:8000"):
@@ -267,11 +274,12 @@ def process_one(db_path, archive_root, job, models, checkpoint=None, *, motion_z
     from cat_type_variants import load_variants
     models.cat_type_references = prepare_references(load_variants(db_path,models,models.type_references,checkpoint,
                                               teaching_clip=job['catalog_id']))
-    from person_scene_search import PersonConsensusModels as AnimalSceneModels
+    from person_scene_search import PersonConsensusModels
     previous_zones = getattr(models, 'motion_zones', None)
     models.motion_zones = motion_zones
     try:
-        observations = analyze_video(path, AnimalSceneModels(models, checkpoint, catalog_id=job['catalog_id']), checkpoint=checkpoint)
+        scene = PersonConsensusModels(models, checkpoint, catalog_id=job['catalog_id'])
+        observations = analyze_video(path, scene, checkpoint=checkpoint)
     finally:
         models.motion_zones = previous_zones
     logging.info('Clip %s motion zones %s: suppressed %s proposals, skipped %s views',
@@ -302,6 +310,17 @@ def wait_for_controller(pause, controller_url, on_pause=None):
         if on_pause:
             on_pause()
         time.sleep(5)
+
+
+def refresh_requested_reviews(db_path,last_refresh):
+    """A bounded refresh opportunity even when every clip slot is occupied."""
+    if time.monotonic()-last_refresh<15:return last_refresh
+    try:
+        from cat_identity_review import backfill_requested
+        backfill_requested(db_path,limit=1)
+    except Exception:
+        logging.exception('Optional Dog review refresh failed; clip workers continue')
+    return time.monotonic()
 
 
 def main():
@@ -347,7 +366,8 @@ def main():
             from identity_models import LocalModels
             models = LocalModels(args.models)
             with connect(args.db) as conn:
-                conn.execute("UPDATE identity_analysis_jobs SET state='failed',message='Worker interrupted; retry analysis' WHERE state='running'")
+                from pc_helper_queue import recover_local_jobs
+                recover_local_jobs(args.db)
             if args.new_clips:
                 enable_new_clip_queue(args.db)
             def checkpoint():
@@ -359,6 +379,7 @@ def main():
                 parallel = ParallelClips(args.db, args.archive, args.models,
                                          args.pause_during_liveview, args.controller_url, workers=args.workers)
             submitted_once = False
+            last_requested_refresh = 0.0
             while True:
                 checkpoint()
                 if parallel:
@@ -366,6 +387,8 @@ def main():
                     if args.once and submitted_once and not parallel.active:
                         break
                     if len(parallel.active) == args.workers or (args.once and submitted_once):
+                        if not args.once:
+                            last_requested_refresh=refresh_requested_reviews(args.db,last_requested_refresh)
                         set_worker_status(args.db,'analyzing',parallel.message())
                         time.sleep(1)
                         continue
@@ -376,8 +399,12 @@ def main():
                     crop = models.cv2.imdecode(np.frombuffer(correction['crop_jpeg'],dtype=np.uint8),models.cv2.IMREAD_COLOR)
                     if crop is None:
                         raise ValueError('A confirmed subject image could not be decoded')
-                    vector,version,quality = models.embedding(crop,correction['subject_type'])
+                    vector,version,quality = models.review_embedding(crop,correction['subject_type'])
+                    # Mark unusable Cat attempts with this model so tiny/blank crops do not loop.
+                    if correction['subject_type']=='Cat' and version is None:version=models.pet_version
                     rebuild_reference(args.db,correction,vector,version,quality)
+                from cat_identity_review import backfill_pending
+                backfill_pending(args.db)
                 from subject_type_learning import learn_pending
                 learn_pending(args.db, models, checkpoint)
                 from reference_photos import process_photos
@@ -416,7 +443,8 @@ def main():
                 if heartbeat is not None:
                     heartbeat.__exit__()
                 with connect(args.db) as conn:
-                    conn.execute("UPDATE identity_analysis_jobs SET state='failed',message='Worker interrupted; retry analysis',updated_at=CURRENT_TIMESTAMP WHERE state='running'")
+                    from pc_helper_queue import recover_local_jobs
+                    recover_local_jobs(args.db)
                 if not failed:
                     set_worker_status(args.db,'stopped','AI worker stopped')
 

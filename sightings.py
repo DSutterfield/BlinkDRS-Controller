@@ -108,6 +108,8 @@ def confirm_batch(db,identity_id,members):
    require_clip(conn,row['catalog_id']);checked.append(row)
   from identity_analysis import learn_confirmed
   for row in checked:
+   from subject_exclusions import blocked
+   if blocked(conn,row['detection_id']):raise ValueError('This subject was marked No Identifiable Subject; review it in Clip Identities first.')
    conn.execute('UPDATE clip_detections SET identity_id=?,confirmed=1,confirmed_at=CURRENT_TIMESTAMP WHERE detection_id=?',(identity_id,row['detection_id']))
    conn.execute('DELETE FROM identity_samples WHERE detection_id=?',(row['detection_id'],));learn_confirmed(conn,row['detection_id'])
   return dict(confirmed=len(checked),identity_id=identity_id)
