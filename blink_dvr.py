@@ -17,7 +17,7 @@ from pathlib import Path
 from aiohttp import ClientSession
 from blinkpy.auth import Auth, BlinkTwoFARequiredError
 from responsive_blink import ResponsiveBlink as Blink
-from archive_io import archive_io, read_archive_sidecars, missing_sidecars
+from archive_io import archive_io, archive_mutation_guard, read_archive_sidecars, missing_sidecars
 
 import uvicorn
 from controller_api import create_app
@@ -388,8 +388,9 @@ async def download_new_clips(blink):
 
     return len(new_files)
 
-def cleanup_old_clips():
-    return cleanup_expired_clips(CATALOG_DB, OUTPUT_DIR, load_clip_retention(LOCAL_CONFIG_PATH))
+def cleanup_old_clips(mutation_guard=None):
+    return cleanup_expired_clips(CATALOG_DB, OUTPUT_DIR, load_clip_retention(LOCAL_CONFIG_PATH),
+                                 mutation_guard=mutation_guard)
 
 class EmbeddedUvicornServer(uvicorn.Server):
     """Uvicorn server embedded inside the Blink Controller process."""
@@ -469,8 +470,8 @@ class BlinkController:
                     f"Downloaded {downloaded} new clip(s)"
                 )
 
-            async with self.playback_lock:
-                await archive_io(cleanup_old_clips)
+            await archive_io(cleanup_old_clips,
+                             mutation_guard=archive_mutation_guard(self.playback_lock))
             return status_ok
 
     async def refresh_blink_status(self, minimum_age_seconds=10):

@@ -3,8 +3,8 @@ import asyncio
 import contextlib
 
 
-async def archive_io(function, *args):
-    worker = asyncio.create_task(asyncio.to_thread(function, *args))
+async def archive_io(function, *args, **kwargs):
+    worker = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
     try:
         return await asyncio.shield(worker)
     except asyncio.CancelledError:
@@ -20,6 +20,23 @@ async def archive_io(function, *args):
         with contextlib.suppress(BaseException):
             worker.result()
         raise
+
+
+def archive_mutation_guard(lock):
+    """A fair playback lock for each worker-thread file mutation, not scans.
+
+    archive_io still retains its caller's archive lock through cancellation.
+    Return playback access between files so a viewer cannot wait a whole batch.
+    """
+    loop = asyncio.get_running_loop()
+    @contextlib.contextmanager
+    def guard():
+        asyncio.run_coroutine_threadsafe(lock.acquire(), loop).result()
+        try:
+            yield
+        finally:
+            loop.call_soon_threadsafe(lock.release)
+    return guard
 
 
 def read_archive_sidecars(folder):

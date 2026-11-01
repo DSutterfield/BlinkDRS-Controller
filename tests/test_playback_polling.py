@@ -4,6 +4,7 @@ import asyncio
 import logging
 import sqlite3
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,7 +12,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from controller_api import create_app, coordinate_clip_delete
 from fault_log import FaultLog
-from archive_io import archive_io
+from archive_io import archive_io, archive_mutation_guard
 
 
 class Viewer:
@@ -49,8 +50,13 @@ class PollingPlaybackTests(unittest.IsolatedAsyncioTestCase):
         cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'BlinkController')
         method = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == 'poll_once')
         self.download = AsyncMock(return_value=0)
-        self.cleanup = Mock()
-        namespace = dict(archive_io=archive_io, download_new_clips=self.download, cleanup_old_clips=self.cleanup,
+        self.mutated = threading.Event()
+        def cleanup(mutation_guard):
+            with mutation_guard():
+                self.mutated.set()
+        self.cleanup = Mock(side_effect=cleanup)
+        namespace = dict(archive_io=archive_io, archive_mutation_guard=archive_mutation_guard,
+                         download_new_clips=self.download, cleanup_old_clips=self.cleanup,
                          log=logging.getLogger('test'))
         exec(compile(ast.Module(body=[method], type_ignores=[]), 'blink_dvr.py', 'exec'), namespace)
         self.poll = lambda: namespace['poll_once'](self.controller)
@@ -99,7 +105,8 @@ class PollingPlaybackTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await asyncio.sleep(.02)
                 self.download.assert_awaited_once()
-                self.cleanup.assert_not_called()
+                self.cleanup.assert_called_once()
+                self.assertFalse(self.mutated.is_set())
                 self.assertFalse(poll.done())
             finally:
                 release.set()
@@ -107,6 +114,63 @@ class PollingPlaybackTests(unittest.IsolatedAsyncioTestCase):
         self.cleanup.assert_called_once()
         self.assertFalse(self.controller.archive_lock.locked())
         self.assertFalse(self.controller.playback_lock.locked())
+
+    async def test_uncached_playback_does_not_wait_for_retention_scan(self):
+        entered = asyncio.Event(); release = threading.Event()
+        loop = asyncio.get_running_loop()
+        def cleanup(mutation_guard):
+            loop.call_soon_threadsafe(entered.set)
+            release.wait(3)
+            with mutation_guard():self.mutated.set()
+        self.cleanup.side_effect = cleanup
+        pending = asyncio.create_task(self.poll())
+        try:
+            await asyncio.wait_for(entered.wait(), 1)
+            self.assertTrue(self.controller.archive_lock.locked())
+            self.assertFalse(self.controller.playback_lock.locked())
+            with patch('clip_playback._convert', side_effect=self.convert):
+                result = await asyncio.wait_for(self.endpoint('one.mp4', Viewer()), 1)
+            self.assertEqual(result.path, self.cached)
+            self.assertFalse(pending.done())
+        finally:
+            release.set();await asyncio.wait_for(pending, 1)
+
+    async def test_waiting_viewer_runs_between_file_mutations(self):
+        entered = asyncio.Event(); release = threading.Event(); order = []
+        loop = asyncio.get_running_loop()
+        def cleanup(mutation_guard):
+            with mutation_guard():
+                order.append('first');loop.call_soon_threadsafe(entered.set);release.wait(3)
+            with mutation_guard():order.append('second')
+        self.cleanup.side_effect = cleanup
+        async def convert(source,cached):
+            order.append('viewer');await self.convert(source,cached)
+        pending = asyncio.create_task(self.poll());video = None
+        try:
+            await asyncio.wait_for(entered.wait(),1)
+            with patch('clip_playback._convert',side_effect=convert):
+                video=asyncio.create_task(self.endpoint('one.mp4',Viewer()))
+                await asyncio.sleep(.03);self.assertFalse(video.done());release.set()
+                await asyncio.wait_for(asyncio.gather(video,pending),1)
+            self.assertEqual(order,['first','viewer','second'])
+        finally:
+            release.set()
+            if not pending.done():await asyncio.wait_for(pending,1)
+            if video and not video.done():await asyncio.wait_for(video,1)
+
+    async def test_cancellation_keeps_archive_lock_until_mutation_finishes(self):
+        entered=asyncio.Event();release=threading.Event();loop=asyncio.get_running_loop()
+        def cleanup(mutation_guard):
+            with mutation_guard():
+                loop.call_soon_threadsafe(entered.set);release.wait(3)
+        self.cleanup.side_effect=cleanup;pending=asyncio.create_task(self.poll())
+        try:
+            await asyncio.wait_for(entered.wait(),1);pending.cancel();await asyncio.sleep(.03)
+            self.assertTrue(self.controller.archive_lock.locked());self.assertTrue(self.controller.playback_lock.locked());self.assertFalse(pending.done())
+        finally:
+            release.set()
+            with self.assertRaises(asyncio.CancelledError):await asyncio.wait_for(pending,1)
+        self.assertFalse(self.controller.archive_lock.locked());self.assertFalse(self.controller.playback_lock.locked())
 
     async def test_delete_waits_for_conversion_and_removes_completed_cache(self):
         entered, release = asyncio.Event(), asyncio.Event()

@@ -1,0 +1,38 @@
+Playback versus retention coordination — controller1.2.57,2026-11-01
+
+Problem confirmed fromWindowsrecorded-playback diagnostics andPi journal:
+31339attemptstarted19:02:17UTCabandonedafter16.6swithnoheaders;retry19:02:38
+receivedheaders7.271slater,rightafter13:02:44CSTcleanupfinished+~1saudioprep.
+31336attemptabandonedafter8.5sduringanothercleanup. Cachedopens~10-20msheaders;
+PCfileopeningusually~.3-.8s. Audio-adjustedcoldcopytypically~1-3s,notalllatency
+wasretention. The1.2.56cleanupheldplayback_lockthroughscansandall200deletions,
+causingavoidablebatchwaits~50s. Thiswasaretention-update regression.
+
+Fix: archive_io bridges a synchronousworker-thread mutation guard to the fair
+asyncplaybacklock. Scans/validation no longerholdplaybackaccess;eachfile-removal
+transaction/cacheremovaldoes. Waitingviewers gettheirturnbetweenfiles. Theouter
+archivelock isretained untilthethreadfinishes,includingrepeatedcancellation.
+Nochange toaudio filter,videoquality,models/recognitionrulesorretentionpolicy.
+New logs recordcleanupstart/duration forcorrelation.
+
+50PiregressionchecksPASS:actualpoll_onceAST/productionplaybackendpointsduring
+cloudwork,scan,betweendeletions,cancellation;range/cache/conversion/disconnect
+paths;learningarchivefailclosed/exactmatchingafterexpiry;holdout/historyand
+15daysettingsAPI. Local30coretestsalsopassed;fullpollingdependenciesavailableonPi.
+
+InstallationpreservationhashesmatchedbeforeAPIresume.106sourcepins verified
+Pi/PC/native. Windows1.1.62/helper1.0.5 unchanged;bothPCslotsresumed.
+Oneinterruptedjob31341requeued. Priorstartuphealthcheck45swasinsufficientbecause
+APIstartupwaitsinitialcleanup;firstattemptrolledbackwithoutdatarestore.Retrywas
+blockedbyautoapprovalreviewuntilDanexplicitlyapprovedinstallation;successful
+retryallowed180sstartup. Nochange toproductionstartuporderinginthispatch.
+
+15dayexpiry/independentlearningarchive remainenabled. Eighttestcopiesprotected,
+excludedfromidentity/Typelearning;cropexperimentspaused,allnamesrequire review.
+Backupsandtest/evaluationreports:
+/home/dan/BlinkDVR/bai-evaluation/playback-lock-fix-20261101
+C:/Users/DanSu/Documents/Codex/2026-10-24/good-moring/outputs/playback-lock-fix
+Benchmarkresultsstoredthereafterverifiedactiveretentionmeasurement. Pi-local
+HTTPtimings isolatepreparation;notanend-to-endWindows/networkguarantee.
+
+LIVE BENCHMARK19:23UTC whilecleanupactive: cold31341response1.396s,repeat.006s;cold31335response2.336s,repeat.009s. HTTP206onebyteranges; ordinaryaudio-cachecreationonly,noreview/identitychanges. Cleanupstart19:22:57UTC hadnotendedwhenbothresponsescompleted19:23:01UTC. Thisconfirmsresponseconcurrencywithcleanup,notaguarantyofallWindowsopentimes.

@@ -30,7 +30,7 @@ NoIdentifiableexclusions, durableholdoutanswers/copies and existingretentionAPI.
 All suggestionsrequire review;crop experimentspaused. Eightpermanenttestclips
 remain excludedfromidentityANDTypelearning;independentrecordingssurviveexpiry.
 
-The first large sweep is gradual. Do not run old archive_maintenance.py against
+The first large sweep is gradual. Do not run pre-1.2.56 archive_maintenance.py against
 retained-learning stubs: old code would delete their working metadata. Emergency
 response: disable retention first; keep current preservation code and archive;
 never restore an oldcatalog over newer human confirmations. Catalogbackup and
@@ -39,3 +39,4 @@ oldsource are recovery aids, not automatic rollback once expiry has started.
 Live artifacts/backup: /home/dan/BlinkDVR/bai-evaluation/learning-retention-20261101
 Local test/deployment reports: Documents/Codex/2026-10-24/good-moring/outputs/learning-retention
 No privatecatalog,recordings or learningarchive committed toGit.
+

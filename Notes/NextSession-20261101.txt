@@ -1,3 +1,20 @@
+LATEST UPDATE — controller1.2.57 live,2026-11-01
+
+Dan explicitly approved installing the tested playback fix. Retention no longer
+holds playback preparation for an entire200-filebatch: scans outside playback
+lock, fair lock around individual file removals, archive ownership retained on
+cancellation.50Pi testsPASS. Duringactivecleanup,coldHTTPresponses1.396/2.336s;
+repeat.006/.009s. Windows1.1.62/helper1.0.5 unchanged;106sourcepins verified,
+bothhelperslotsalive. Allprotectedtablehashes matched beforeAPIresume.
+Retention15andindependentlearningarchive remainactive;8testclipsprotectedand
+excluded;cropexperimentspaused;noAI-rule/modelchanges. Currentconfirmations2671,
+identityrefs1686,Typerefs2386 (8newhumanconfirmationslearned since earlieraudit).
+31341interruptedbyrestartrequeued;older31041/31052lockfailuresremainseparate.
+SeePlaybackRetention-1.2.57.txt and local outputs/playback-lock-fix for evidence.
+Oneearlierinstallationrolledbackbecause45sstartuphealthwindowwasinsufficient;
+successfulapprovedretryallowed180s. Do not restore oldercatalog overhumanedits.
+
+EARLIER1.2.56 CHECKPOINT (historical)
 2026-11-01 LIVE learning-preserving retention checkpoint
 
 Controller1.2.56 live; Windows1.1.62/helper1.0.5 unchanged.106sourcepins verified
@@ -35,3 +52,4 @@ RecognitionworkremainsatOct30stoppingpoint: Jiminywhole-streamtraitidea not
 implementedasexplicittraitrecognizer. ContinuityandunnamedCatambiguitytrials
 remainoffline;nodetectionfixforBackDoorshelterdeployed. FocusnowonBlinkDRS
 usabilityandsteadyconfirmedreferencelearningratherthanbroadcrop/modelexperiments.
+

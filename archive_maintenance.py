@@ -4,7 +4,7 @@ import re
 import sqlite3
 import stat
 import time
-from contextlib import closing
+from contextlib import closing, nullcontext
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -32,13 +32,14 @@ def clip_artifact_paths(archive_root, filename, sidecar_path=None, thumbnail_pat
     return unique
 
 
-def reconcile_local_presence(db_path, archive_dir):
+def reconcile_local_presence(db_path, archive_dir, mutation_guard=None):
     """Hide missing clips, preserving confirmed evidence before row cleanup.
 
     Scan first: directory/I/O failures abort before any changes. If artifact
     removal fails, keep the row hidden so the next cleanup can retry it.
     """
     archive_dir = Path(archive_dir)
+    guard = mutation_guard or nullcontext
     if not archive_dir.is_dir() or not Path(db_path).is_file():
         raise FileNotFoundError('Archive directory or catalog unavailable')
     missing, restored = [], []
@@ -64,17 +65,16 @@ def reconcile_local_presence(db_path, archive_dir):
             conn.executemany('UPDATE clips SET local_present=1 WHERE id=?',restored)
         for catalog_id, paths in missing:
             from learning_archive import preserve, verified_stub
-            with conn:
-                conn.execute('BEGIN IMMEDIATE')
-                keep = verified_stub(conn, catalog_id) or preserve(conn, archive_dir.parent, catalog_id)
-            if keep:
-                # Keep the small metadata/evidence records available to matching,
-                # but local_present=0 excludes them from Recorded Clips/playback.
-                continue
-            for path in paths:
-                path.unlink(missing_ok=True)
-            with conn:
-                conn.execute('DELETE FROM clips WHERE id=?',(catalog_id,))
+            with guard():
+                with conn:
+                    conn.execute('BEGIN IMMEDIATE')
+                    keep = verified_stub(conn, catalog_id) or preserve(conn, archive_dir.parent, catalog_id)
+                if keep:
+                    continue
+                for path in paths:
+                    path.unlink(missing_ok=True)
+                with conn:
+                    conn.execute('DELETE FROM clips WHERE id=?',(catalog_id,))
         # Older manual deletions did not enable SQLite foreign-key cascades.
         if conn.execute("SELECT 1 FROM sqlite_master WHERE name='clip_validation'").fetchone():
             with conn:
@@ -94,14 +94,18 @@ def reconcile_local_presence(db_path, archive_dir):
             # Reuse containment checks before deleting any derived artifact.
             allowed = clip_artifact_paths(root, stem+'.mp4')
             if path.resolve() in allowed:
-                path.unlink(missing_ok=True)
+                with guard():
+                    path.unlink(missing_ok=True)
     if missing:
         log.info('Removed %s missing clip entries and their local artifacts',len(missing))
     return len(missing)+len(restored)
 
 
-def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_delete=200):
-    reconcile_local_presence(db_path, archive_dir)
+def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_delete=200, mutation_guard=None):
+    started = time.monotonic()
+    log.info('Local retention cleanup started (%s days); playback protected per file', retention_days)
+    guard = mutation_guard or nullcontext
+    reconcile_local_presence(db_path, archive_dir, mutation_guard=guard)
     if retention_days <= 0:
         return 0
     cutoff = (time.time() if now is None else now) - retention_days * 86400
@@ -114,7 +118,7 @@ def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_de
                 continue
             # Validate all paths before removing the original.
             artifacts = clip_artifact_paths(Path(archive_dir).parent, video.name)
-            with closing(sqlite3.connect(db_path, timeout=30)) as conn:
+            with guard(), closing(sqlite3.connect(db_path, timeout=30)) as conn:
                 conn.execute('PRAGMA foreign_keys=ON')
                 with conn:
                     conn.execute('BEGIN IMMEDIATE')
@@ -131,11 +135,11 @@ def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_de
                     video.unlink()
                     if row:
                         conn.execute('UPDATE clips SET local_present=0 WHERE id=?', (row[0],))
-            count += 1
-            for artifact in artifacts:
-                artifact.unlink(missing_ok=True)
+                count += 1
+                for artifact in artifacts:
+                    artifact.unlink(missing_ok=True)
     finally:
-        reconcile_local_presence(db_path, archive_dir)
+        reconcile_local_presence(db_path, archive_dir, mutation_guard=guard)
     if count:
-        log.info('Local retention (%s days) removed %s expired videos; confirmed learning preserved',retention_days,count)
+        log.info('Local retention (%s days) removed %s expired videos in %.3fs; confirmed learning preserved',retention_days,count,time.monotonic()-started)
     return count
