@@ -1,4 +1,4 @@
-"""Local archive cleanup. Does not issue Blink cloud deletion requests."""
+"""Local video cleanup, preserving confirmed learning; no cloud deletions."""
 import logging
 import re
 import sqlite3
@@ -33,7 +33,7 @@ def clip_artifact_paths(archive_root, filename, sidecar_path=None, thumbnail_pat
 
 
 def reconcile_local_presence(db_path, archive_dir):
-    """Remove missing clips and their saved references, under the archive lock.
+    """Hide missing clips, preserving confirmed evidence before row cleanup.
 
     Scan first: directory/I/O failures abort before any changes. If artifact
     removal fails, keep the row hidden so the next cleanup can retry it.
@@ -53,6 +53,9 @@ def reconcile_local_presence(db_path, archive_dir):
             except FileNotFoundError:
                 exists = False
             if not exists:
+                from learning_archive import verified_stub
+                if not present and verified_stub(conn, catalog_id):
+                    continue
                 missing.append((catalog_id,clip_artifact_paths(archive_dir.parent, filename, sidecar, thumbnail)))
             elif not present:
                 restored.append((catalog_id,))
@@ -60,6 +63,14 @@ def reconcile_local_presence(db_path, archive_dir):
             conn.executemany('UPDATE clips SET local_present=0 WHERE id=?',[(i,) for i,_ in missing])
             conn.executemany('UPDATE clips SET local_present=1 WHERE id=?',restored)
         for catalog_id, paths in missing:
+            from learning_archive import preserve, verified_stub
+            with conn:
+                conn.execute('BEGIN IMMEDIATE')
+                keep = verified_stub(conn, catalog_id) or preserve(conn, archive_dir.parent, catalog_id)
+            if keep:
+                # Keep the small metadata/evidence records available to matching,
+                # but local_present=0 excludes them from Recorded Clips/playback.
+                continue
             for path in paths:
                 path.unlink(missing_ok=True)
             with conn:
@@ -89,24 +100,42 @@ def reconcile_local_presence(db_path, archive_dir):
     return len(missing)+len(restored)
 
 
-def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None):
+def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_delete=200):
     reconcile_local_presence(db_path, archive_dir)
     if retention_days <= 0:
         return 0
     cutoff = (time.time() if now is None else now) - retention_days * 86400
     count = 0
     try:
-        for video in Path(archive_dir).glob('*.mp4'):
+        for video in sorted(Path(archive_dir).glob('*.mp4'), key=lambda p: (p.stat().st_mtime, p.name)):
+            if count >= max_delete:
+                break
             if video.stat().st_mtime >= cutoff:
                 continue
             # Validate all paths before removing the original.
             artifacts = clip_artifact_paths(Path(archive_dir).parent, video.name)
-            video.unlink()
+            with closing(sqlite3.connect(db_path, timeout=30)) as conn:
+                conn.execute('PRAGMA foreign_keys=ON')
+                with conn:
+                    conn.execute('BEGIN IMMEDIATE')
+                    row = conn.execute('SELECT id FROM clips WHERE filename=?', (video.name,)).fetchone()
+                    if row:
+                        jobs = conn.execute("SELECT 1 FROM sqlite_master WHERE name='identity_analysis_jobs'").fetchone()
+                        if jobs and conn.execute("SELECT 1 FROM identity_analysis_jobs WHERE catalog_id=? AND state='running'", (row[0],)).fetchone():
+                            continue
+                        from learning_archive import preserve
+                        preserve(conn, Path(archive_dir).parent, row[0], video)
+                    # No unlink is reachable until the independent learning
+                    # archive was committed and verified. Lock human edits until
+                    # the marker and hidden catalog stub are safely committed.
+                    video.unlink()
+                    if row:
+                        conn.execute('UPDATE clips SET local_present=0 WHERE id=?', (row[0],))
             count += 1
             for artifact in artifacts:
                 artifact.unlink(missing_ok=True)
     finally:
         reconcile_local_presence(db_path, archive_dir)
     if count:
-        log.info('Local retention (%s days) removed %s expired clips and references',retention_days,count)
+        log.info('Local retention (%s days) removed %s expired videos; confirmed learning preserved',retention_days,count)
     return count

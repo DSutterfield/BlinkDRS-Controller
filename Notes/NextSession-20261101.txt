@@ -1,0 +1,37 @@
+2026-11-01 LIVE learning-preserving retention checkpoint
+
+Controller1.2.56 live; Windows1.1.62/helper1.0.5 unchanged.106sourcepins verified
+Pi/PC/native. Suggestions review-only;crop experimentspaused. Eighttestclips
+excluded fromidentityANDTypelearning; durabletestrecordingcopiesintact.
+
+Dan approved actual15-day localvideoexpiry preservingconfirmedcrops/references.
+Setting15enabled viaexistingAPI after612older learningclips prearchived and
+verified. SeparatePi file:/home/dan/BlinkDVR/learning/confirmed-learning.sqlite
+(~19.2MBinitial). Hashchecked/versioned compressedJSON snapshots. Hiddenworking
+catalog stubs preserve joins/sourceclipdiversity; expiredvideospresent0hidefrom
+RecordedClips. Uploadedreferencephotosindependentandnotexpired. No neuralweight
+training enabled/changed. Latestlearningaudit eligiblemissingidentityrefs0,
+Typepending0,all66uploadedphotosready.
+
+33Piregressiontests pass, including unchangedidentity/Type ranks afterexpiry,
+sourcehistory/cropbytes, failclosedarchiveerrors, activejobskip andholdouts.
+Allprotectedtablehashesmatched acrossinstallation beforeAPIresume. Source/catalog
+backups in /home/dan/BlinkDVR/bai-evaluation/learning-retention-20261101/backup.
+Firstnormalcleanupremoved200videos: visible18135->17935,confirmations2663,
+identitysamples1678,Typesamples2378unchanged. Largeinitialsweepcontinues200perpoll
+(poll60secsplusnetwork/cleanup). Do not claim full13862expiredbacklogclearedyet.
+
+31339/31340 interruptedbyinstallationmarkedfailed byworkerstop; explicitly
+requeuedonlythesetwounreviewedjobs; nowrunning. Olderfailures31041/31052 database
+lockedremainuntouchedandareseparatefollowup. PCsignintaskRunningbothslotsalive.
+No Windowsbinaryreplacementorappclosurerequired.
+
+Recovery: disableexpiryfirstifproblem; doNOTrevert tooldcleanupcode after stubs
+exist andneverrestoreoldcatalogoverhumanreviews. Archiveisindependentexpiry
+snapshot;currentcatalogworkingcopyauthoritativeforlateredits. Runtimecatalogs,
+photos/videos/archivefilesremainprivateandoutofGit. SeeLearningRetention-1.2.56.txt.
+
+RecognitionworkremainsatOct30stoppingpoint: Jiminywhole-streamtraitidea not
+implementedasexplicittraitrecognizer. ContinuityandunnamedCatambiguitytrials
+remainoffline;nodetectionfixforBackDoorshelterdeployed. FocusnowonBlinkDRS
+usabilityandsteadyconfirmedreferencelearningratherthanbroadcrop/modelexperiments.

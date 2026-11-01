@@ -1,0 +1,41 @@
+Learning-preserving local retention — controller 1.2.56 (2026-11-01)
+
+Dan approved deleting local videos after15days while preserving confirmations,
+reference evidence and provenance. Setting applies to local file age, not Cloud.
+Cloud retention unchanged. Default cleanup batch200; active analysis skipped.
+
+Independent file on Pi: /home/dan/BlinkDVR/learning/confirmed-learning.sqlite
+Format clip_snapshots, versioned compressedJSON with SHA256 integrity check.
+Each confirmed clip snapshot contains sourceclip metadata/videoSHA256, identity
+profiles, confirmations, rawcropJPEGs, model-specific features, useful savedviews,
+Type/identitysamples, candidate metadata and exclusions. Bytes encodedbase64;
+no executablepickle. Archive commit/readback verification precedes originalvideo
+unlink. Archive failure prevents expiry. Immutable snapshots record historical
+truth at expiry; the current catalog is authoritative for later edits.
+
+Hidden catalog stubs keep the existing matcher sourcejoins and referenceclip
+counts intact. local_present0 hides expired recordings from RecordedClips and
+prevents playback/reanalysis; no video is promised afterexpiry. Learningmetadata
+and cropbytes remain in catalog as working copy and independentarchive as durable
+expiry snapshot. Uploadedreferencephotos are separately stored already and are
+not expired. No pretrainedneuralweights are retrained by this update.
+
+612older learning/review clips prearchived/verified before enabling15days.
+Initialarchive19,210,240bytes. Backup catalog627,949,568bytes capturedbeforeinstall.
+All protected tables hashmatched beforeAPIresume. Tests33pass onPi: exact
+identity/Type ranks before/afterexpiry, nonorphaned samples/sourcehistory,
+originalcropbytes, retry/failclosed paths, corrupt/missingarchive, activejobs,
+NoIdentifiableexclusions, durableholdoutanswers/copies and existingretentionAPI.
+106sourcepins matchingPi/PC/native. Windows1.1.62 binary/helper1.0.5 unchanged.
+All suggestionsrequire review;crop experimentspaused. Eightpermanenttestclips
+remain excludedfromidentityANDTypelearning;independentrecordingssurviveexpiry.
+
+The first large sweep is gradual. Do not run old archive_maintenance.py against
+retained-learning stubs: old code would delete their working metadata. Emergency
+response: disable retention first; keep current preservation code and archive;
+never restore an oldcatalog over newer human confirmations. Catalogbackup and
+oldsource are recovery aids, not automatic rollback once expiry has started.
+
+Live artifacts/backup: /home/dan/BlinkDVR/bai-evaluation/learning-retention-20261101
+Local test/deployment reports: Documents/Codex/2026-10-24/good-moring/outputs/learning-retention
+No privatecatalog,recordings or learningarchive committed toGit.
