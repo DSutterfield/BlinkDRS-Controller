@@ -57,7 +57,7 @@ def consolidate(tracks,period,models):
         for field in ['views','type_views']:
             holder={'views':[]}
             for view in sorted(a.get(field,[])+b.get(field,[]),key=lambda v:v['seconds']):
-                retain_view(holder,view['seconds'],view['crop_jpeg'],view['embedding'],view['embedding_model'],view['quality_score'],view.get('type_result'))
+                retain_view(holder,view['seconds'],view['crop_jpeg'],view['embedding'],view['embedding_model'],view['quality_score'],view.get('type_result'),box=view.get('box'))
             joined[field]=holder['views']
         type_best=max([a,b],key=lambda t:t.get('type_quality_score',-1))
         for k in ['type_embedding','type_embedding_model','type_quality_score','type_crop_box','type_crop_jpeg','type_crop_seconds']:

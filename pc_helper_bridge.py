@@ -3,6 +3,34 @@ import argparse,json,sys,re,os,shutil
 from pathlib import Path
 from pc_helper_queue import Coordinator,path_in,ReferenceChanged
 from pc_helper_wire import MAX_PACKET,sha,decode
+def cleanup_transfers(root,db,limit=16):
+    """Remove only known inactive lease transport copies; never catalog evidence."""
+    import sqlite3
+    from contextlib import closing
+    root=Path(root).resolve()
+    with closing(sqlite3.connect(db,timeout=30)) as c:
+        rows=c.execute("SELECT token FROM pc_helper_leases WHERE status<>'leased' ORDER BY rowid DESC").fetchall()
+    cleaned=0
+    for (token,) in rows:
+        if cleaned>=limit:break
+        if not re.fullmatch('[a-f0-9]{32}',token):continue
+        folder=root/'outgoing'/token;packet=root/'incoming'/(token+'.partial')
+        if folder.is_symlink() or packet.is_symlink():continue
+        if not folder.exists() and not packet.exists():continue
+        if folder.exists():
+            for name in ('video.mp4','references.sqlite','manifest.json'):
+                file=folder/name
+                if file.is_file() and not file.is_symlink():
+                    try:file.unlink()
+                    except FileNotFoundError:pass
+            try:folder.rmdir()
+            except OSError:pass
+        if packet.is_file():
+            try:packet.unlink()
+            except FileNotFoundError:pass
+        cleaned+=1
+    return cleaned
+
 def dispatch(root,request):
     root=Path(root).resolve();sandbox=root/'.pc-helper-sandbox.json';live=not sandbox.is_file()
     config=json.loads((root/'config.json' if live else sandbox).read_text())
@@ -46,18 +74,19 @@ def dispatch(root,request):
             cached=json.loads(cache_path(db,*mapping).read_text());policies[row[0]]=cached['zones']
     queue=Coordinator(db,archive,config['contract'],zones,ready);action=request.get('action')
     if action=='claim':
+        cleanup_transfers(root,db)
         manifest=queue.claim(request['owner'],request['contract'])
         if manifest is None:return None
         try:return queue.export(manifest['token'],path_in(root,'outgoing/'+manifest['token']))
         except ReferenceChanged as exc:
-            queue.retry_reference_change(manifest['token'],exc);raise
+            queue.retry_reference_change(manifest['token'],exc);cleanup_transfers(root,db);raise
         except BaseException:
-            queue.release(manifest['token']);raise
+            queue.release(manifest['token']);cleanup_transfers(root,db);raise
     token=request.get('token')
     if not isinstance(token,str) or not re.fullmatch('[a-f0-9]{32}',token):raise ValueError('Invalid attempt token')
     if action=='heartbeat':return queue.heartbeat(token)
-    if action=='release':queue.release(token);return dict(status='released')
-    if action=='cancel':queue.cancel(token);return dict(status='canceled')
+    if action=='release':queue.release(token);cleanup_transfers(root,db);return dict(status='released')
+    if action=='cancel':queue.cancel(token);cleanup_transfers(root,db);return dict(status='canceled')
     if action=='commit':
         path=path_in(root,'incoming/'+str(token)+'.partial')
         if path.stat().st_size>MAX_PACKET:raise ValueError('Evidence packet too large')
@@ -66,7 +95,7 @@ def dispatch(root,request):
         if decode(data)[0]['token']!=token:raise ValueError('Attempt token does not match packet')
         try:result=queue.commit(data)
         except ReferenceChanged as exc:
-            queue.retry_reference_change(token,exc);raise
+            queue.retry_reference_change(token,exc);cleanup_transfers(root,db);raise
         # Only redundant transport copies are removed, never archive files or
         # evidence in the catalog. Receipts survive lost acknowledgements.
         folder=path_in(root,'outgoing/'+token)

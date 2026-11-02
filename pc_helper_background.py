@@ -1,7 +1,7 @@
-"""BlinkDRS PC helper 1.0.5: two independent, supervised background slots."""
+"""BlinkDRS PC helper 1.0.6: two independent, supervised background slots."""
 import os,sys,json,time,uuid,subprocess,threading,logging,gc,re,shutil
 from pathlib import Path
-VERSION='1.0.5'
+VERSION='1.0.6'
 def atomic_json(path,data):
     path=Path(path);stage=path.with_name(path.name+'.'+uuid.uuid4().hex+'.partial');stage.write_text(json.dumps(data,indent=2));os.replace(stage,path)
 class Transport:
@@ -41,8 +41,14 @@ def log_setup(data,name):
     from logging.handlers import RotatingFileHandler
     logs=Path(data)/'logs';logs.mkdir(exist_ok=True);stream=(logs/(name+'-console.log')).open('a',buffering=1);sys.stdout=stream;sys.stderr=stream
     handler=RotatingFileHandler(logs/(name+'.log'),maxBytes=2*1024*1024,backupCount=3);handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'));logging.basicConfig(handlers=[handler],level=logging.INFO,force=True)
+def review_pilot_environment(config):
+    value='1' if config.get('saved_view_review_pilot') is True else '0'
+    return dict(BLINK_SAVED_VIEW_REVIEW_PILOT=value,BLINK_SAVED_VIEW_REVIEW_INFERENCE=value)
+
 def slot(config_path,number):
     config=configured(config_path);data=Path(config['data']);log_setup(data,'slot-'+str(number));os.environ.update(BLINK_AI_THREADS='2',BLINK_AI_CV_THREADS='1',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1');sys.path[:0]=config['libraries']
+    os.environ.update(review_pilot_environment(config))
+    logging.info('Saved-view review pilot configured: %s; all suggestions require review',config.get('saved_view_review_pilot') is True)
     if os.name=='nt':
         import ctypes
         ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(),0x4000)

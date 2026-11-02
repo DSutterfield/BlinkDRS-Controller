@@ -40,7 +40,7 @@ def track_candidate(track, detection, seconds, sample_period):
     return animal and elapsed <= min(12.,sample_period*6.) and overlap(track['box'],detection['box']) >= .75
 
 
-def retain_view(track, seconds, jpeg, vector, version, quality, type_result=None):
+def retain_view(track, seconds, jpeg, vector, version, quality, type_result=None, box=None):
     """Bounded complementary views; not additional confirmed training labels."""
     if vector is None or quality < .2 or not version:
         return
@@ -62,6 +62,7 @@ def retain_view(track, seconds, jpeg, vector, version, quality, type_result=None
         views.remove(old)
     view = dict(seconds=seconds,crop_jpeg=jpeg,embedding=current,
                 embedding_model=version,quality_score=quality,type_result=type_result)
+    if box is not None: view['box'] = list(box)
     if len(views) >= 4:
         replaceable = [v for v in views if v.get('type_result') not in ('Cat','Dog')
                        or v.get('type_result') == type_result
@@ -193,7 +194,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track['sample_hits'] = track.get('sample_hits', 1) + 1
                     track['last_seen_seconds'] = seconds
                     track['box'] = box
-                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
+                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type,box=review_box)
                     if detection['subject_type'] in ('Cat','Dog'):
                         holder = {'views': track.setdefault('type_views', [])}
                         retain_view(holder,seconds,type_jpeg,type_vector,type_version,type_quality,type_result=frame_type)
@@ -213,7 +214,7 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
                     track = {'key': f"{frame_index}:{detection['subject_type']}:{box}",
                              'first_seen_seconds': seconds,'last_seen_seconds':seconds,'first_box':list(box)}
                     tracks.append(track)
-                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type)
+                    retain_view(track,seconds,jpeg.tobytes(),vector,version,quality,type_result=frame_type,box=review_box)
                     if detection['subject_type'] in ('Cat','Dog'):
                         holder = {'views': track.setdefault('type_views', [])}
                         retain_view(holder,seconds,type_jpeg,type_vector,type_version,type_quality,type_result=frame_type)
@@ -256,7 +257,8 @@ def analyze_video(path, models, max_frames=16, checkpoint=None):
         logging.info('Animal track cleanup: merged %s fragments, rejected %s background Unknowns',
                      len(audit['merged_fragments']), len(audit['background_unknowns']))
         from cat_review_small import enrich
-        return enrich(tracks,models)
+        from review_link_pilot import annotate
+        return annotate(path,enrich(tracks,models),models,checkpoint)
     finally:
         reader.close()
 
@@ -424,7 +426,8 @@ def main():
                     try:
                         process_one(args.db,args.archive,job,models,checkpoint=checkpoint,controller_url=args.controller_url)
                     except Exception as exc:
-                        finish_job(args.db,job['catalog_id'],'failed',str(exc))
+                        from identity_analysis import record_job_error
+                        record_job_error(args.db,job['catalog_id'],exc)
                 if args.once:
                     break
                 if not job:

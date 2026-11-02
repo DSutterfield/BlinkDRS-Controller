@@ -1,0 +1,7 @@
+Checkpoint — 2026-11-02
+Dan requested committing/pushing finished work, then letting normal analysis and reference learning run.
+Live: Windows 1.1.65; controller 1.2.62; PC helper 1.0.6. PC-only saved-view review pilot remains enabled; suggestions require review. Pi extra linking off. All crop/tracking/reference/identification experiments shelved, including Stubby. No deployment or restart performed for this checkpoint.
+Preserve recordings, confirmations and learning references. Eight permanent evaluation clips 29703,29699,29700,29702,29678,29682,29689,29698 remain excluded from training. Normal 15-day recording-date retention continues with learning preservation.
+Latest read-only learning audit: 301/312 eligible named animal crop updates since previous audit have usable identity references; 280 also usable Type references. Verified retained recent predictions: 73 correct names, 1 wrong, 67 unnamed. Selective crop sample; sustained improvement and incremental pilot benefit not established. Continue ordinary reviews without resuming experiments automatically.
+Checkpoint validation: 7 recording-date retention, 16 reference-snapshot guard, 17 review-link pilot tests passed using existing helper libraries; offline Windows IdentityLabelSync harness passed. Earlier release validation remains documented in component notes. Initial local test attempts needed existing cv2 libraries and dotnet asset restore; corrected runs passed.
+Local detailed audit: C:/Users/DanSu/Documents/Codex/2026-10-24/good-moring/outputs/learning-progress-current/findings.txt.

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone, timedelta
 import sqlite3
 import tempfile
 import unittest
@@ -19,7 +20,7 @@ class ArchiveMaintenanceTests(unittest.TestCase):
             c.executescript((Path(__file__).parents[1]/'sql/catalog_schema_v1.sql').read_text())
             for i in range(1,4):
                 c.execute('INSERT INTO clips (id,filename,video_path,captured_at,watched,cloud_present) VALUES (?,?,?,?,0,1)',
-                          (i,f'{i}.mp4',f'clips/{i}.mp4',f'2026-08-{i:02}T00:00:00'))
+                          (i,f'{i}.mp4',f'clips/{i}.mp4',(datetime.now(timezone.utc)-timedelta(days=31 if i==1 else 0)).isoformat()))
         for i in (1,2):
             (self.clips/f'{i}.mp4').write_bytes(b'video')
         os.utime(self.clips/'1.mp4',(1,1))

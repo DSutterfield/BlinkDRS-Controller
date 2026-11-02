@@ -17,32 +17,86 @@ def clip_context(conn,cid):
         ('confirmed-images','SELECT e.detection_id,e.crop_jpeg FROM identity_evidence e JOIN clip_detections d USING(detection_id) WHERE d.catalog_id=? AND d.confirmed=1 ORDER BY e.detection_id',(cid,)),
         ('confirmed-views','SELECT v.* FROM identity_track_views v JOIN clip_detections d USING(detection_id) WHERE d.catalog_id=? AND d.confirmed=1 ORDER BY v.view_id',(cid,))])
 
-def reference_context(conn,cid):
-    # Mirror the candidate pools read by subject_type_learning.load_references.
-    # Individual names/samples and unrelated confirmed images are not PC inputs.
-    eligible="""d.confirmed=1 AND d.subject_type=t.subject_type
-        AND d.catalog_id<>? AND t.embedding IS NOT NULL AND t.quality_score>=.2
-        AND d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips)
-        AND d.detection_id NOT IN (SELECT detection_id FROM subject_analysis_exclusions)"""
-    versions=[r[0] for r in conn.execute('SELECT DISTINCT t.model_version FROM subject_type_samples t JOIN clip_detections d USING(detection_id) WHERE '+eligible+' AND t.model_version IS NOT NULL ORDER BY t.model_version',(cid,))]
-    queries=[('holdouts','SELECT catalog_id FROM evaluation_excluded_clips ORDER BY catalog_id',()),
-             ('holdout-history','SELECT catalog_id FROM evaluation_holdout_clips ORDER BY catalog_id',()),
-             # These IDs/hashes also veto cached reviewed-image variants.
-             ('excluded-crops','SELECT detection_id,crop_sha256 FROM subject_analysis_exclusions ORDER BY detection_id',())]
+# Conservative candidate pool: the same capped inputs the existing Type loader
+# can select. No inference/ranking/threshold changes are made here.
+ELIGIBLE="""d.confirmed=1 AND d.subject_type=t.subject_type AND d.catalog_id<>?
+ AND t.embedding IS NOT NULL AND t.quality_score>=.2
+ AND d.catalog_id NOT IN(SELECT catalog_id FROM evaluation_excluded_clips)
+ AND d.detection_id NOT IN(SELECT detection_id FROM subject_analysis_exclusions)"""
+REFERENCE_ROW="""SELECT t.detection_id,t.subject_type,t.embedding,t.model_version,
+ t.quality_score,t.crop_hash,d.catalog_id,e.crop_jpeg,
+ EXISTS(SELECT 1 FROM subject_analysis_exclusions x WHERE x.crop_sha256=t.crop_hash)
+ FROM subject_type_samples t JOIN clip_detections d USING(detection_id)
+ LEFT JOIN identity_evidence e USING(detection_id) WHERE """+ELIGIBLE
+
+
+def _row_hash(row):
+    return hashlib.sha256(repr(tuple(row)).encode()).hexdigest()
+
+
+def _policy(conn):
+    # Durable definitions survive retention. Dynamic neighbor membership does not.
+    return digest(conn,[('protected-policy',
+        'SELECT blink_media_id,catalog_id,dataset_id,device_id,captured_at FROM evaluation_holdout_clips ORDER BY blink_media_id',())])
+
+
+def _review_asset():
+    import json
+    from pathlib import Path
+    path=Path(__file__).resolve().parent/'ai-models/cat-reviewed-examples-v1.json'
+    if not path.is_file():return None,[]
+    raw=path.read_bytes()
+    return hashlib.sha256(raw).hexdigest(),json.loads(raw)['examples'][:16]
+
+
+def _allowed_reviewed(conn,record):
+    did=record.get('detection_id');cid=record['catalog_id'];crop=record['crop_hash']
+    return (record['subject_type']=='Cat' and not conn.execute(
+        'SELECT 1 FROM evaluation_excluded_clips WHERE catalog_id=? UNION ALL SELECT 1 FROM evaluation_holdout_clips WHERE catalog_id=?',(cid,cid)).fetchone()
+        and not conn.execute('SELECT 1 FROM subject_analysis_exclusions WHERE detection_id=? OR crop_sha256=?',(did,crop)).fetchone())
+
+
+def reference_guard(conn,cid):
+    asset,records=_review_asset();rows=[]
+    versions=[r[0] for r in conn.execute('SELECT DISTINCT t.model_version FROM subject_type_samples t JOIN clip_detections d USING(detection_id) WHERE '+ELIGIBLE+' AND t.model_version IS NOT NULL ORDER BY t.model_version',(cid,))]
     for model in versions:
         for kind in ('Person','Cat','Dog','Vehicle'):
-            queries.append(('type:'+model+':'+kind,
-                '''SELECT t.detection_id,t.subject_type,t.embedding,t.model_version,t.quality_score,
-                    t.crop_hash,d.catalog_id,e.crop_jpeg FROM subject_type_samples t
-                    JOIN clip_detections d USING(detection_id) LEFT JOIN identity_evidence e USING(detection_id)
-                    WHERE '''+eligible+''' AND t.model_version=? AND t.subject_type=?
-                    ORDER BY t.detection_id DESC LIMIT ?''',(cid,model,kind,2048 if kind=='Cat' else 128)))
-    return digest(conn,queries)
+            for row in conn.execute(REFERENCE_ROW+' AND t.model_version=? AND t.subject_type=? ORDER BY t.detection_id DESC LIMIT ?',(cid,model,kind,2048 if kind=='Cat' else 128)):
+                rows.append([row[0],_row_hash(row)])
+    reviewed=[dict(detection_id=r.get('detection_id'),catalog_id=r['catalog_id'],crop_hash=r['crop_hash'],subject_type='Cat') for r in records if _allowed_reviewed(conn,r)]
+    return dict(version=1,policy=_policy(conn),rows=rows,review_asset=asset,reviewed=reviewed)
+
+
+def validate_reference_guard(conn,cid,guard):
+    """New references cannot replace a running job's pinned inputs.
+
+    Revalidate EVERY pinned candidate, even if new rows displace it from today's
+    capped pool. A changed/retracted/newly excluded input still invalidates work.
+    """
+    if guard.get('version')!=1 or _policy(conn)!=guard['policy']:return False
+    asset,_=_review_asset()
+    if asset!=guard['review_asset']:return False
+    expected=dict(guard['rows']);found={};ids=list(expected)
+    for offset in range(0,len(ids),800):
+        batch=ids[offset:offset+800]
+        for row in conn.execute(REFERENCE_ROW+' AND t.detection_id IN ('+','.join('?'*len(batch))+')',(cid,*batch)):
+            found[row[0]]=_row_hash(row)
+    return found==expected and all(_allowed_reviewed(conn,r) for r in guard['reviewed'])
+
+
+def guard_context(guard):
+    import json
+    return hashlib.sha256(json.dumps(guard,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+
+def reference_context(conn,cid):
+    return guard_context(reference_guard(conn,cid))
+
 
 def context_parts(conn,cid):
     own=clip_context(conn,cid);refs=reference_context(conn,cid)
     return dict(clip_context_sha256=own,reference_context_sha256=refs,
-                context_sha256=hashlib.sha256(('pc-inference-v2:'+own+':'+refs).encode()).hexdigest())
+                context_sha256=hashlib.sha256(('pc-inference-v3:'+own+':'+refs).encode()).hexdigest())
 
 def context(conn,cid):return context_parts(conn,cid)['context_sha256']
 

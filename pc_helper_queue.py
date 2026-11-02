@@ -95,14 +95,25 @@ class Coordinator:
                          ('Reference/review inputs changed; retrying: '+str(reason)[:750],row['catalog_id']))
 
     def _verify_inputs(self,conn,cid,manifest):
+        # One consistent view for the short guard check. Do not hold this read
+        # snapshot through expensive name scoring, and never end caller writes.
+        if not conn.in_transaction:
+            conn.execute('BEGIN')
+            try:return self._verify_inputs(conn,cid,manifest)
+            finally:conn.rollback()
         path=path_in(self.archive,conn.execute('SELECT video_path FROM clips WHERE id=?',(cid,)).fetchone()[0])
         if sha(path.read_bytes())!=manifest['video_sha256']:raise Conflict('Recording changed during analysis')
         epoch=inference_revision(conn,cid)
         cache=(manifest['context_sha256'],epoch)
         if epoch!=tuple(manifest['input_revision']) and getattr(self,'_verified_input',None)!=cache:
-            current=context_parts(conn,cid)
-            if current['clip_context_sha256']!=manifest['clip_context_sha256']:raise ReviewChanged('This clip was reviewed or edited during analysis')
-            if current['reference_context_sha256']!=manifest['reference_context_sha256']:raise ReferenceChanged('Type references or exclusion policy changed during analysis')
+            from pc_helper_inputs import clip_context
+            current_own=clip_context(conn,cid)
+            if current_own!=manifest['clip_context_sha256']:raise ReviewChanged('This clip was reviewed or edited during analysis')
+            if 'reference_guard' in manifest:
+                from pc_helper_inputs import validate_reference_guard
+                if not validate_reference_guard(conn,cid,manifest['reference_guard']):raise ReferenceChanged('A pinned Type reference was corrected, removed or excluded')
+            elif context_parts(conn,cid)['reference_context_sha256']!=manifest['reference_context_sha256']:
+                raise ReferenceChanged('Type references or exclusion policy changed during analysis')
             if inference_revision(conn,cid)!=epoch:raise ReferenceChanged('Inputs changed while checking the result; retry with fresh inputs')
         self._verified_input=cache
         if self.zones(cid)!=manifest['zones']:raise ReviewChanged('Motion zones changed during analysis')
@@ -116,8 +127,18 @@ class Coordinator:
         with closing(sqlite3.connect(self.db,timeout=30)) as conn:
             conn.row_factory=sqlite3.Row;row,manifest=self._lease(conn,token)
         from pc_helper_snapshot import export_references
-        snapshot_epoch=export_references(self.db,snapshot,manifest['catalog_id'],manifest['context_sha256'],manifest['input_revision'])
-        self._verified_input=(manifest['context_sha256'],snapshot_epoch)
+        snapshot_epoch=export_references(self.db,snapshot,manifest['catalog_id'],manifest['context_sha256'],manifest['input_revision'],expected_clip_context=manifest['clip_context_sha256'])
+        from pc_helper_inputs import reference_guard,guard_context
+        # Bind the guard to what the copied DB ACTUALLY contains, not a gallery
+        # read before export. Additions during export belong to exactly one copy.
+        with closing(sqlite3.connect('file:'+str(snapshot)+'?mode=ro',uri=True)) as copied:
+            copied.row_factory=sqlite3.Row
+            manifest['reference_guard']=reference_guard(copied,manifest['catalog_id'])
+            manifest['reference_context_sha256']=guard_context(manifest['reference_guard'])
+        manifest['input_revision']=list(snapshot_epoch)
+        manifest['context_sha256']=sha(('pc-inference-v3:'+manifest['clip_context_sha256']+':'+manifest['reference_context_sha256']).encode())
+        # Force revalidation, including an exclusion/correction made during copy.
+        self._verified_input=None
         with closing(sqlite3.connect(self.db,timeout=30)) as conn:
             conn.row_factory=sqlite3.Row;row,current=self._lease(conn,token)
             epoch=self._verify_inputs(conn,manifest['catalog_id'],manifest)
@@ -125,10 +146,16 @@ class Coordinator:
         shutil.copyfile(video,folder/'video.mp4')
         if sha((folder/'video.mp4').read_bytes())!=manifest['video_sha256']:raise Conflict('Recording changed during export')
         manifest['references_sha256']=sha(snapshot.read_bytes());manifest['references_bytes']=snapshot.stat().st_size
-        with transaction(self.db) as conn:
-            row,current=self._lease(conn,token)
-            if inference_revision(conn,manifest['catalog_id'])!=epoch:raise ReferenceChanged('Inputs changed during snapshot export')
-            conn.execute('UPDATE pc_helper_leases SET manifest=? WHERE token=?',(canonical(manifest).decode(),token))
+        for attempt in range(3):
+            with closing(sqlite3.connect(self.db,timeout=30)) as reader:
+                reader.row_factory=sqlite3.Row
+                epoch=self._verify_inputs(reader,manifest['catalog_id'],manifest)
+            with transaction(self.db) as conn:
+                row,current=self._lease(conn,token)
+                if inference_revision(conn,manifest['catalog_id'])!=epoch:continue
+                conn.execute('UPDATE pc_helper_leases SET manifest=? WHERE token=?',(canonical(manifest).decode(),token))
+                break
+        else:raise ReferenceChanged('Inputs kept changing while publishing snapshot metadata')
         (folder/'manifest.json').write_bytes(canonical(manifest));return manifest
     def commit(self,data):
         packet,observations=decode(data);digest=sha(data)
@@ -150,7 +177,7 @@ class Coordinator:
                 epoch=self._verify_inputs(conn,cid,manifest)
                 scoring_revision=identity_revision(conn)
                 from identity_analysis import prepare_detections,publish_prepared
-                prepared=prepare_detections(conn,cid,observations)
+                prepared=prepare_detections(conn,cid,observations,fingerprint=packet['video_sha256'])
                 if inference_revision(conn,cid)!=epoch or identity_revision(conn)!=scoring_revision:continue
             if not self.ready():raise Paused('Controller is busy or unavailable')
             with transaction(self.db) as conn:

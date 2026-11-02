@@ -1,0 +1,43 @@
+Recording-date retention LIVE — controller1.2.62,date2026-11-02
+
+Authorized:fix15-day retention to use recording date instead of file timestamp.
+archive_maintenance now reads clips.captured_at, handles offsets/Z and legacy
+naive/date-only UTC values. Orders oldest recording first;keeps200-file batch
+limit and active-analysis protection. Invalid/missing/untracked capture dates
+are kept with a warning instead of falling back to potentially misleading mtime.
+Rechecks date under existing per-file playback mutation guard and transaction;
+later catalog date corrections win over scan. Learning archive commit/readback
+still required before video removal. No cloud deletion or learning rule change.
+
+40 unique isolated regression tests passed:7 new date tests plus cleanup,
+archive-failure/failed-unlink preservation,settings and evaluation holdouts.
+Windows restricted runner stalled initializing asyncio; rerun outside restriction
+passed in~6s. No live helper process terminated;only our stalled test runner.
+
+Read-only dry run:only25398 newly expired by recording date,3229149bytes.
+All cataloged local capture dates valid. Live View inactive;recording idle before
+restart. Backed up2installedsources,helperconfig and coherent catalog to
+/home/dan/BlinkDVR/bai-evaluation/recording-date-retention-20261102/backup.
+Never restore this older database over later reviews.
+
+Normal controller poll at10:44:46CST used recording-date rule;10:44:51logged
+one expired video removed.25398original and ordinary catalog row now absent;
+backup confirms zero human-confirmed detections/no-visible confirmations on25398.
+Exact protected signatures of global confirmations,confirmed crops/views,
+identities,identity/type samples,photos,exclusions and evaluation labels unchanged.
+Confirmed-reference/learning preservation tests pass independently of this
+unconfirmed live clip. No overdue cataloged local videos at final verification.
+
+Cleanup conservatively kept11untracked/undated video files;these do not appear
+as overdue catalog rows. No guessed dates assigned or unauthorized deletion.
+
+All108PC/Pisourcepins match;inference contract/assets unchanged for this
+controller maintenance-only update. BothPCslots andPiidentityservice remain
+running;noAIworkerrestart.Windows1.1.65/helper1.0.6 unchanged.PC-onlyreviewpilot
+enabled;Pi extra linking remains off;Stubby/crop experiments remain paused.
+Eight29703,29699,29700,29702,29678,29682,29689,29698 remain excluded withzero
+identity/type learning samples. No reanalysis,training or identification change.
+
+Artifacts:preflight.json,tests.json,test-log.txt,deployment.json,verification.json.
+Regression sources:tests/test_recording_date_retention.py and updated
+tests/test_archive_maintenance.py. No commit/push requested or performed.

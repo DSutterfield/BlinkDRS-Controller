@@ -66,11 +66,19 @@ def attach(conn,rows):
         return
     active={r[0]:r[1] for r in conn.execute("SELECT identity_id,name FROM identities WHERE active=1 AND subject_type='Dog'")}
     excluded={r[0] for r in conn.execute('SELECT detection_id FROM subject_analysis_exclusions')}
-    queued={r[0] for r in conn.execute('SELECT detection_id FROM dog_review_requests')}
+    eligible={r[0] for r in conn.execute('''SELECT d.detection_id FROM clip_detections d
+        JOIN identity_evidence e USING(detection_id) WHERE d.subject_type='Dog' AND d.confirmed=0
+        AND e.embedding IS NOT NULL
+        AND NOT EXISTS(SELECT 1 FROM subject_analysis_exclusions s WHERE s.detection_id=d.detection_id)
+        AND NOT EXISTS(SELECT 1 FROM clip_unknown_motion n WHERE n.catalog_id=d.catalog_id)
+        AND d.detection_id IN ('''+','.join('?' for _ in dogs)+')',[r['detection_id'] for r in dogs])}
+    revisions={cid:identity_revision(conn,cid) for cid in {r['catalog_id'] for r in dogs}}
     for row in dogs:
-        row['refresh_pending']=row['detection_id'] in queued and row['detection_id'] not in excluded
         hint,epoch=cached.get(row['detection_id'],({},-1));iid=hint.get('suggested_identity_id')
-        if epoch!=identity_revision(conn,row['catalog_id']) or iid not in active or row['detection_id'] in excluded:continue
+        # Missing/stale scores are not a completed Unknown result. A fresh empty
+        # cache is an explicit abstention and must stop the checking state.
+        row['refresh_pending']=row['detection_id'] in eligible and epoch!=revisions[row['catalog_id']]
+        if epoch!=revisions[row['catalog_id']] or iid not in active or row['detection_id'] in excluded:continue
         row.update(suggested_identity_id=iid,suggested_name=active[iid],suggestion_tier=hint['suggestion_tier'],review_required=True)
 
 

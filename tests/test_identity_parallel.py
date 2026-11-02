@@ -44,7 +44,7 @@ class ParallelTests(unittest.TestCase):
         pool.fill()
         self.assertEqual([j['catalog_id'] for j in pool.active.values()], [2, 3, 4])
 
-    @patch('identity_parallel.finish_job')
+    @patch('identity_parallel.record_job_error')
     @patch('identity_parallel.claim_job')
     def test_failed_clip_does_not_discard_other_inflight_job(self, claim, finish):
         claim.side_effect = [{'catalog_id': 1}, {'catalog_id': 2}]
@@ -53,7 +53,7 @@ class ParallelTests(unittest.TestCase):
         first = next(iter(pool.active))
         first.set_exception(ValueError('broken video'))
         pool.collect()
-        finish.assert_called_once_with('db', 1, 'failed', 'broken video')
+        self.assertEqual(finish.call_args.args[:2],('db',1));self.assertIsInstance(finish.call_args.args[2],ValueError)
         self.assertEqual([j['catalog_id'] for j in pool.active.values()], [2])
 
     @patch('identity_parallel.finish_job')

@@ -1,0 +1,27 @@
+BlinkDRS processing/storage repair — controller 1.2.58 — 2026-11-01
+
+Live repair, identification rules unchanged. Windows app remains 1.1.63; PC background helper remains1.0.5, with matching source pins.
+Cause: Pi SD/system partition /dev/mmcblk0p2 had zero available space. Helper outgoing copies occupied26,599,682,161bytes; incoming46,114,957bytes. PC logs explicitly show SFTP upload failure and Errno28 No space left on device. 31351/31353 also failed on SQLite lock contention; the old supervisor treated temporary busy errors as terminal.
+
+Moved all1717 helper-workspace files (26,645,807,518bytes) to /home/dan/BlinkDVR/pc-helper-transfer on /dev/sda1. Copied with metadata, fsynced, SHA256 verified before each redundant source unlink. Old /home/dan/.local/share/BlinkDRS/pc-helper now aliases new root via verified symlink. Configuration/permissions retained. No original recording or live reference file moved/deleted. About26.65GB now available on SD.
+
+Processing-only code changes:
+- pc_helper_bridge: bounded inactive-transfer cleanup on claims, returns, cancellation, and reference-change rejection. Exact known lease tokens and transport filenames only. Active leases, unknown files and links protected. Concurrent cleanup idempotent.
+- identity_analysis: retry publication on SQLITE_BUSY/LOCKED with fresh connections and unchanged observations/scoring; bounded three automatic job retries for genuine SQLite busy errors. Manual retry resets counter. Nonbusy/bad-video errors remain failures.
+- identity_parallel: record errors through retry policy, retain completed future if status cannot yet be recorded, log full traceback.
+- identity_worker: same policy for single-worker execution.
+- release_info:1.2.58 date2026-11-01.
+AST checked identical for match_identity, prepare_detections, publish_prepared, learn_confirmed, analyze_video, process_one. Detector/models/crop rules/thresholds/voting/conflict/preservation rules unchanged. Background experiment is withdrawn and not included.
+
+47 core regressions +40 helper regressions passed. Includes two-slot concurrent cleanup, ownership, duplicate acknowledgements, holdouts, saved confirmations/learning archive, bounded busy retry. One previously known unrelated obsolete helper expectation excluded from helper suite (empty identity profile creation expected to cancel inference; unchanged baseline also fails that expectation).
+
+Deployment: Live View/recording idle guards. Stopped workers and controller, backed up catalog628MB, independent learning archive19.2MB, affected sources and config. Exact signatures of all confirmations, confirmed images/views, identities, identity/Type samples, photos, exclusions and holdout records matched before API resumed. Three original video hashes unchanged. All8 holdouts registered, zero identity/Type samples. All106 Pi and PC source pins verified. No Windows UI replacement.
+Requested31349,31351,31353 explicitly requeued; interrupted31355 recovered so its work was not discarded. PC slots resumed first, then Pi3-worker service restored. Both services active. Sign-in startup retained.
+Latest target states:
+31349: running PC helper analyzing
+31351: running PC helper analyzing
+31353: running 
+All three were observed running after resume:31349/31351 on PC,31353 on Pi. New transfer downloads succeeded for both PC jobs. No target failures at this check. Two older failed jobs31041/31052 were intentionally not retried by this task.
+Automatic cleanup verified: remaining outgoing transport files1258 (from1376 originally, including new active files), active two leases preserved; root device /dev/sda1. All recordings still match hashes, all8 training counts remainzero.
+
+Backup/evidence: /home/dan/BlinkDVR/bai-evaluation/processing-retry-fix-20261101 (backup/, migration manifests, preservation signatures, recordings-before.json, deployment.json). Local outputs/processing-retry-fix holds read-only audits and verification snapshots. work/processing-retry-fix holds staged source, scripts and PC/native backups.

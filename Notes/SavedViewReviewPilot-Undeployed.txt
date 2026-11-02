@@ -1,0 +1,15 @@
+Superseded by SavedViewReviewPilot-1.2.60.txt: pilot is now live on PC helper only.
+
+Saved-view review pilot — integrated, disabled, NOT DEPLOYED (2026-11-01)
+
+Scope: reuse saved appearance views and narrowly constrain ambiguous associations. Detection rows and crops remain separate. Only temporary scoring copies pool views; original evidence/training provenance never receives borrowed crops. Existing confirmations, rejected/No Identifiable sources, provisional names and accepted Types are preserved. Published new proposals require review; no automatic confirmation or learning.
+
+Default: both flags unset/off. BLINK_SAVED_VIEW_REVIEW_PILOT=1 permits review scoring. Extra video work additionally requires BLINK_SAVED_VIEW_REVIEW_INFERENCE=1. Recommendation for first live pilot, IF authorized later: enable extra inference on PC helper only; keep Pi AI inference flag off. Controller review scoring may be enabled separately. No installed flags have been changed.
+
+Performance: same frozen core regained correct earlier Levi and Lola associations on PC. Pi offline evaluation retained Lola but hit the soft20-second budget on Levi. Cache holds at most32 grayscale frames; sequential16-frame reads limit seeks. Budget/cancellation/decoding failure safely preserves separate original observations. This is not a sustained throughput test.
+
+Integration: identity_worker captures original source boxes per retained view; cleanup preserves them. Grouping happens after existing detection/type/crop steps, does not delete or merge originals, and travels as bounded validated optional helper metadata. Controller builds temporary pooled scoring views only after checking exact fingerprinted source keys against confirmations, rejections and subject exclusions. Database publication writes original views only. No new learning table or API/UI schema.
+
+Validation artifacts and detailed findings: C:/Users/DanSu/Documents/Codex/2026-10-24/good-moring/outputs/pilot-integration. Gold clips29703,29699,29700,29702,29678,29682,29689,29698 remain scoring-only and excluded from training.
+
+Before any future deployment: inspect current user changes, bump affected controller/helper version/date, regenerate shared source contract/helper package including both new modules, verify role flags, check active recording/live view and application state per AGENTS.md, back up installed files, stage and verify checksums. No install, service restart, reanalysis queue or flag activation has occurred in this task. Stubby experiments remain paused.

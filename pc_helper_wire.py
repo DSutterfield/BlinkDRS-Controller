@@ -46,11 +46,35 @@ def decode(data):
         for view in views:
             item['views'].append(dict(seconds=number(view.get('seconds')),crop_jpeg=jpeg(view.get('crop_jpeg')),embedding=vector(view.get('embedding')),embedding_model=text(view.get('embedding_model')),quality_score=number(view.get('quality_score'),0,1)))
             if item['views'][-1]['embedding'] is None:raise ValueError('Missing view vector')
+        if '_review_link_keys' in row:
+            links=row['_review_link_keys']
+            if not isinstance(links,list) or not 2<=len(links)<=8:raise ValueError('Invalid review links')
+            item['_review_link_keys']=[text(k) for k in links]
+            if 'crop_seconds' in row:
+                item['crop_seconds']=number(row['crop_seconds'],first,last)
         observations.append(item)
+    validate_review_links(observations)
     return packet,observations
 def encode(manifest,observations):
     def image(data):return base64.b64encode(data).decode('ascii')
     rows=[]
     for row in observations:
-        item={k:row.get(k) for k in ['key','subject_type','confidence','first_seen_seconds','last_seen_seconds','detector_model','embedding','embedding_model','quality_score']};item['crop_jpeg']=image(row['crop_jpeg']);item['views']=[dict(seconds=v['seconds'],crop_jpeg=image(v['crop_jpeg']),embedding=v['embedding'],embedding_model=v['embedding_model'],quality_score=v['quality_score']) for v in row.get('views',[])[:4]];rows.append(item)
+        item={k:row.get(k) for k in ['key','subject_type','confidence','first_seen_seconds','last_seen_seconds','detector_model','embedding','embedding_model','quality_score']};item['crop_jpeg']=image(row['crop_jpeg']);item['views']=[dict(seconds=v['seconds'],crop_jpeg=image(v['crop_jpeg']),embedding=v['embedding'],embedding_model=v['embedding_model'],quality_score=v['quality_score']) for v in row.get('views',[])[:4]]
+        if row.get('_review_link_keys') is not None:
+            item['_review_link_keys']=row['_review_link_keys']
+            if row.get('crop_seconds') is not None:item['crop_seconds']=row['crop_seconds']
+        rows.append(item)
     data=canonical(dict(schema=1,token=manifest['token'],manifest_sha256=sha(canonical(manifest)),video_sha256=manifest['video_sha256'],contract=manifest['contract'],observations=rows));decode(data);return data
+
+
+def validate_review_links(observations):
+    by_key={r['key']:r for r in observations}
+    for row in observations:
+        links=row.get('_review_link_keys')
+        if links is None:continue
+        if len(set(links))!=len(links) or links!=sorted(links) or row['key'] not in links:raise ValueError('Invalid review group')
+        if any(k not in by_key for k in links):raise ValueError('Unknown review group member')
+        members=[by_key[k] for k in links]
+        if row['subject_type'] not in ('Cat','Dog') or any(m['subject_type']!=row['subject_type'] or m.get('_review_link_keys')!=links for m in members):raise ValueError('Inconsistent review group')
+        spans=sorted((m['first_seen_seconds'],m['last_seen_seconds']) for m in members)
+        if any(a[1]>=b[0] for a,b in zip(spans,spans[1:])):raise ValueError('Concurrent review group')

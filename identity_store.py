@@ -180,6 +180,14 @@ def mark_unknown_motion(db_path, catalog_id):
 def get_clip_identities(db_path, catalog_id):
     with connect(db_path) as conn:
         require_clip(conn, catalog_id)
+        # Detailed playback/editor reads prioritize stale hints, without scoring
+        # or reanalyzing recordings on this request. List reads remain read-only.
+        from dog_review_config import enabled as dog_pilot
+        if dog_pilot():
+            from dog_review_cache import request_review
+            request_review(conn, catalog_id)
+        from name_first_review import request_review as request_name_first
+        request_name_first(conn, catalog_id)
         return clip_identities(conn, catalog_id)
 
 

@@ -1,0 +1,46 @@
+BlinkDRS label refresh timing — 2026-11-02
+
+Reported:31404 Playback initially Stubby, then Unknown Dog, then Stubby in editor.
+Evidence:22590 remains one unconfirmed Dog, analysis done2026-11-02 02:09:11UTC;
+no morning reanalysis. Recent Dog confirmations changed reference revisions;
+Dog hint refreshed13:27:32UTC(07:27:32CST). Sequence is consistent with cached
+name invalidation and asynchronous refresh; exact historical responses unavailable.
+
+Cause in source:Dog attach withdrew stale cache but flagged pending only after
+explicit queue insertion. Missing/stale cache before request was displayed as
+completed Unknown. Playback initially used list snapshot and did not request
+fresh detailed identities; opening editor requested background refresh.
+
+Live fix:controller1.2.61/Windows1.1.65, date2026-11-02.
+Dog cache pending reflects missing/stale eligible score, independently of request
+queue. Fresh empty cache remains a completed Unknown. Confirmed/excluded/no-visible
+and featureless crops not flagged pending. Detailed identity reads queue bounded
+refresh only, without API scoring. Opening playback requests a fresh snapshot;
+newer list/editor snapshots, navigation and close supersede late responses.
+Shared pending label:Checking Dog identity — requires review.
+Fresh names and human confirmations retain precedence.
+
+Validation:95 backend tests pass, including new isolated pending-state cases,
+name-first, helper queue and review-link regressions. Windows build0warnings/errors.
+Staged and installed offline STA/WPF harness passes actual HTTP routing through
+mock handlers, pending/ready captions, sticky choices, confirmation precedence,
+list/playback/editor propagation and delayed-response fences. No live recordings
+used for training. Cached identity outputs on8baselineclips plus31404 unchanged
+under old/new attachment code against coherent pre-deployment backup. This is
+cache/output equivalence, not a new inference accuracy benchmark.
+
+Deployment:app closed and checked before install;installed binaries hash verified.
+Controller restart guarded by idle Live View/recording checks. Pi backup on
+recording drive:/home/dan/BlinkDVR/bai-evaluation/label-timing-20261102/backup.
+Local backups:work/label-timing/windows-backup and pc-backup.
+All108PC/Pisourcepins verified;inference contract/assets unchanged for this
+cache-presentation/request-only patch. Helper1.0.6 unchanged;PC/PiAIworkers not
+restarted. No recording file mutation, retraining, naming threshold change,
+tracking/crop experiment or extra Pi linking enablement. Exact hashes of current
+confirmations, confirmed crops/views, identities, samples, photos, exclusions and
+holdout records matched across controller restart;8heldouts remain protected,
+zeroidentity/type training samples. Both controller/identity services active.
+
+Artifacts:audit.json,tests.json,installed-ui-tests.txt,deployment.json,
+verification.json,installation.json in this directory. Durable regression source:
+controller/tests/test_dog_pending.py;Windows Tests/IdentityLabelSync/Program.cs.

@@ -1,0 +1,13 @@
+Saved-view review pilot LIVE — controller1.2.60 / PC helper1.0.6,2026-11-01
+
+Authorized live activation completed. PC config saved_view_review_pilot=true persists through sign-in/background startup; both PC slots set review scoring and extra-inference flags. Pi .saved-view-review-pilot.json enables review scoring only. Normal Pi analysis service/capacity unchanged; Pi inference flag remains unset/off in actual worker environment. This pilot does not physically merge/delete crops or detections. All new suggestions remain unconfirmed and require human review; pooled views are scoring-only and never stored as borrowed learning samples. Existing confirmations/rejections/No Identifiable exclusions and provisional names preserved.
+
+Controller and identity services healthy.108 matching source pins under a new shared controller/helper contract; model assets unchanged. First live updated-helper job31412 accepted and done,three unreviewed appearances ready for review; pilot executed and found no eligible group for that clip. Zero failed jobs at verification. No claim of recognition improvement in this first clip. Earlier frozen validation showed a new review-required Lola hint and retained Levi's earlier clear association.
+
+Recordings and protected copies hashed unchanged. Confirmations, confirmed images/views, identities, learning samples/photos/exclusions and holdout answers exactly matched before resuming services. All eight holdouts29703,29699,29700,29702,29678,29682,29689,29698 remain excluded with zero identity/type training samples. Stubby experiments paused; no further crop, wider-motion or midpoint tests started. Existing recording-retention/training operation unchanged.
+
+Backups:Pi /home/dan/BlinkDVR/bai-evaluation/saved-view-pilot-live-20261101/backup;PC C:/Users/DanSu/Documents/Codex/2026-10-24/good-moring/work/pilot-live/pc-backup. Do not restore an old database over later user confirmations; normal rollback should coordinate source/config/contract changes on both hosts with idle-recording checks.
+
+Evidence:C:/Users/DanSu/Documents/Codex/2026-10-24/good-moring/outputs/pilot-live. Controller release/about1.2.60 dated2026-11-01;helper background/status1.0.6. Windows UI binaries unchanged; no app close required. Sign-in startup remains the existing scheduled task. No commit/push performed in this activation.
+
+Next:review newly analyzed clips normally. Do not resume Stubby experiments, train on heldouts, broaden linking thresholds or enable Pi extra linking without a new request.

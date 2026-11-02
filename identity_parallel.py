@@ -3,7 +3,7 @@ import signal
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 
-from identity_analysis import claim_job, finish_job
+from identity_analysis import claim_job, finish_job, record_job_error, is_database_busy
 
 _models = None
 
@@ -39,11 +39,16 @@ class ParallelClips:
         for future, job in list(self.active.items()):
             if not future.done():
                 continue
-            del self.active[future]
             try:
                 future.result()
             except Exception as exc:
-                finish_job(self.db_path, job['catalog_id'], 'failed', str(exc))
+                import logging
+                logging.exception('Clip %s analysis failed',job['catalog_id'])
+                try:record_job_error(self.db_path,job['catalog_id'],exc)
+                except Exception as save_exc:
+                    if is_database_busy(save_exc):continue  # Keep the completed future until its status can be recorded.
+                    raise
+            del self.active[future]
 
     def fill(self):
         while len(self.active) < self.workers:

@@ -1,0 +1,49 @@
+Tracking experiments PAUSED at Dan's request —2026-11-02
+
+No further tracking/crop/anchor/threshold experiments authorized to continue
+automatically. Existing live PC-only review pilot stays enabled;do not interpret
+this pause as authorization to disable live analysis. No deployment requested.
+
+Recommendation:keep current saved-view pooling and narrower ambiguity handling
+live on PC helper only,all suggestions requiring human review. Pi extra linking
+off. These pool existing evidence for provisional scoring without deleting or
+physically merging stored crops. Limited demonstrated gains:offlineLola31336
+later22293fromnohinttoProbableLola;clearLevi30869earlier20275/20279association
+retainedwhilelaterambiguousassociationstaysseparate;copied27702Lola10original
+fragments->9logicaltracks underexistingpilot,Kushkastaysseparate.
+
+New0.20s verified partial-velocity fallback:offlinecandidate only,notreadyfor
+deployment recommendation. One additionalcorrectlink9172->9173in27702extends
+9171/9172group to3views,10original->8logicalLolatracks versus9withcurrentrule.
+Samegeometry/appearance/competitorchecksretained.10additionalclips87saved
+observations(68namedanimalobservations):same2correctexistinggroups,zeroextra
+acceptedlinks,zeroknownwrongorunscorablegroups. Fourshortermeasurementsin3clips
+stillblockedbyotherendpoint,size,location,orcompetitorbarriers. No successful
+newcrossing/occlusionrecoveryestablished. Keepcandidate/reportsoffline;do not
+weakenremaininggates toforcepositiveoutcomes.
+
+Jiminy31030/20973tail/rear-onlycropcannotserveasfullbodysizeanchor;20974whole
+catmakes~4xareachange.Midpoint12.58sshowspartialrearoverlapwithseatedcat;
+stoppedasrequested. Stubbywidersearch/midpointrecoverypreviouslyfailedandremains
+paused. No new motion search or detector/crop rework recommended now.
+
+Eight-clip saved-observation/videoregressionreplays:13originaltracks unchanged,
+no newlinks,3emptycasesremainempty,fixturehashesunchanged. Previousfixed-gallery
+nameparityunchanged. Thesearepreservationchecks,not broadrecall/accuracygains.
+
+Read-only pause verification:controller1.2.62,helper1.0.6(twoPCslotsalive),
+Windows1.1.65unchanged.Pilotsettings enabled/review_required/PChelperonly;
+actualPiworkerextra-inferenceflagoff;allsourcepinsmatch. Bothidentity/type
+samplecounts0on29703,29699,29700,29702,29678,29682,29689,29698.
+Recenttestpreservationcheckscomparealloriginalhashes/confirmations exactly;
+no live writes/training/deploymentforthissummary. Alloriginalcropretention,
+confirmations,referencesandordinaryreviewworkflowpreserved.
+
+Whenresuming:readthisnoteandlatesttestreportsfirst.No newtrackingchangeis
+recommendedforliveinstallationtoday. Letexistingpilotandnormalreviewsprovide
+evidence;onlyresumeexperimentsonnewexplicitrequest. Candidate0.20s wouldneed
+productionintegration/safetytests andstrongerindependentbenefitbeforeliveuse.
+
+Evidence:outputs/lola-fragments-27702,outputs/lola-020-fallback,
+outputs/lola-020-expanded,outputs/31030-midpoint,outputs/pilot-integration,
+outputs/pilot-assessment/pause-status.json. No commit/push performed.

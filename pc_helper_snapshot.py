@@ -2,16 +2,20 @@
 import sqlite3
 from contextlib import closing
 from pc_helper_queue import context,Conflict,ReferenceChanged
-def export_references(db,snapshot,cid,expected_context,expected_revision=None):
+def export_references(db,snapshot,cid,expected_context,expected_revision=None,expected_clip_context=None):
     with closing(sqlite3.connect(db,timeout=30)) as source,closing(sqlite3.connect(snapshot)) as target:
         from pc_helper_revisions import inference_revision
         source.row_factory=sqlite3.Row
+        source.execute('BEGIN')
         epoch=inference_revision(source,cid)
-        if expected_revision is None or epoch!=tuple(expected_revision):
+        if expected_clip_context is not None:
+            from pc_helper_inputs import clip_context
+            from pc_helper_queue import ReviewChanged
+            if clip_context(source,cid)!=expected_clip_context:raise ReviewChanged('This clip was reviewed before snapshot copy')
+        if expected_clip_context is None and (expected_revision is None or epoch!=tuple(expected_revision)):
             if context(source,cid)!=expected_context:raise ReferenceChanged('Analysis inputs changed before snapshot')
         selected_ids=[r[0] for r in source.execute("SELECT d.detection_id FROM clip_detections d WHERE d.catalog_id NOT IN (SELECT catalog_id FROM evaluation_excluded_clips) AND d.detection_id NOT IN (SELECT detection_id FROM subject_analysis_exclusions) AND (d.detection_id IN (SELECT detection_id FROM subject_type_samples) OR (d.catalog_id=? AND d.confirmed=1 AND d.subject_type='Cat' AND d.model_version='manual-crop:v1'))",(cid,))]
-        source.execute('BEGIN')
-        if inference_revision(source,cid)!=epoch:raise ReferenceChanged('Analysis inputs changed before snapshot copy')
+        # All selected rows and policies are copied from the same read snapshot.
         definitions=list(source.execute("SELECT type,name,sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%' ORDER BY rowid"))
         for row in definitions:
             if row['type']=='table':target.execute(row['sql'])

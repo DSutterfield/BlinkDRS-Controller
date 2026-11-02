@@ -75,8 +75,8 @@ class HelperQueueTests(unittest.TestCase):
         m=self.lease();(self.archive/'1.mp4').write_bytes(b'changed');self.assertRaises(Conflict,self.q.commit,self.packet(m));self.assertEqual(self.row('SELECT COUNT(*) FROM clip_detections')[0],0)
     def test_motion_zone_change_rejected(self):
         m=self.lease();self.zones['revision']='new';self.assertRaises(Conflict,self.q.commit,self.packet(m))
-    def test_reference_change_rejected(self):
-        m=self.lease();create_identity(self.db,'New cat','Cat');self.assertRaises(Conflict,self.q.commit,self.packet(m))
+    def test_new_identity_profile_does_not_restart_inference(self):
+        m=self.lease();create_identity(self.db,'New cat','Cat');self.assertEqual(self.q.commit(self.packet(m))['status'],'accepted')
     def test_human_confirmation_wins(self):
         identity=create_identity(self.db,'Gus','Cat');m=self.lease();assign_identity(self.db,1,identity['identity_id'],'Cat');before=self.row('SELECT identity_id,confirmed FROM clip_detections');self.assertRaises(Conflict,self.q.commit,self.packet(m));self.assertEqual(self.row('SELECT identity_id,confirmed FROM clip_detections'),before)
     def test_partial_evidence_failure_restores_previous_evidence(self):

@@ -31,6 +31,9 @@ def defer_when_busy(function):
 
 def ensure_analysis(conn):
     conn.executescript("""
+    CREATE TABLE IF NOT EXISTS analysis_transient_retries (
+        catalog_id INTEGER PRIMARY KEY REFERENCES clips(id) ON DELETE CASCADE,
+        attempts INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE IF NOT EXISTS identity_analysis_jobs (
         catalog_id INTEGER PRIMARY KEY REFERENCES clips(id) ON DELETE CASCADE,
         state TEXT NOT NULL CHECK(state IN ('queued','running','done','failed')),
@@ -98,6 +101,7 @@ def queue_clip(db_path, catalog_id):
         conn.execute("""INSERT INTO identity_analysis_jobs(catalog_id,state,updated_at) VALUES(?,'queued',?)
             ON CONFLICT(catalog_id) DO UPDATE SET state='queued',message='',updated_at=excluded.updated_at
             WHERE identity_analysis_jobs.state IN ('queued','done','failed')""", (catalog_id,slot.isoformat(sep=' ')))
+        conn.execute("DELETE FROM analysis_transient_retries WHERE catalog_id=? AND EXISTS(SELECT 1 FROM identity_analysis_jobs WHERE catalog_id=? AND state='queued')",(catalog_id,catalog_id))
         return dict(conn.execute('SELECT * FROM identity_analysis_jobs WHERE catalog_id=?', (catalog_id,)).fetchone())
 
 
@@ -222,10 +226,16 @@ def match_identity(conn, subject_type, model, vector, threshold, margin):
     return best_id, best
 
 
-def prepare_detections(conn, catalog_id, observations):
+def prepare_detections(conn, catalog_id, observations, fingerprint=None):
     prepared = []
     if conn.execute('SELECT 1 FROM clip_unknown_motion WHERE catalog_id=?', (catalog_id,)).fetchone():
         return prepared
+    from review_link_pilot import enabled as link_pilot, scoring_item
+    review_pilot = link_pilot()
+    review_observations = observations
+    if review_pilot:
+        from review_link_pilot import publication_sources
+        review_observations = publication_sources(conn,catalog_id,fingerprint,observations)
     for item in observations:
         if item['subject_type'] == 'Unknown':
             iid, similarity = None, None
@@ -246,14 +256,16 @@ def prepare_detections(conn, catalog_id, observations):
             from identity_candidates import rank_candidates
             ranks = rank_candidates(conn, item['subject_type'], item.get('embedding_model'), item.get('embedding'), catalog_id)
         item = dict(item)
+        review_source = next((t for t in review_observations if t['key']==item['key']),item)
+        review_item = scoring_item(review_source,review_observations) if review_pilot else item
         if item['subject_type'] == 'Cat':
             from cat_review_evidence import recommend
-            item['_cat_review'] = recommend(conn,item,catalog_id,ranks)
+            item['_cat_review'] = recommend(conn,review_item,catalog_id,ranks)
         elif item['subject_type']=='Dog':
             from dog_review_config import enabled as dog_pilot
             if dog_pilot():
                 from dog_review_evidence import recommend
-                item['_dog_review']=recommend(conn,item,catalog_id,ranks)
+                item['_dog_review']=recommend(conn,review_item,catalog_id,ranks)
                 item['_dog_review_revision']=dog_epoch
         prepared.append((item, iid, similarity, ranks))
     return prepared
@@ -313,12 +325,19 @@ def publish_prepared(conn, catalog_id, fingerprint, observations, prepared):
 
 def publish_detections(db_path, catalog_id, fingerprint, observations):
     """Preserve confirmed labels and removed evidence on every retry."""
-    with connect(db_path, timeout=30) as conn:
-        require_clip(conn, catalog_id)
-        prepared = prepare_detections(conn, catalog_id, observations)
-    with connect(db_path, timeout=30) as conn:
-        conn.execute('BEGIN IMMEDIATE')
-        publish_prepared(conn, catalog_id, fingerprint, observations, prepared)
+    import time
+    for attempt in range(3):
+        try:
+            with connect(db_path, timeout=30) as conn:
+                require_clip(conn, catalog_id)
+                prepared = prepare_detections(conn, catalog_id, observations, fingerprint=fingerprint)
+            with connect(db_path, timeout=30) as conn:
+                conn.execute('BEGIN IMMEDIATE')
+                publish_prepared(conn, catalog_id, fingerprint, observations, prepared)
+            return
+        except sqlite3.OperationalError as exc:
+            if not is_database_busy(exc) or attempt==2:raise
+            time.sleep(.25*(attempt+1))
 
 
 def learn_confirmed(conn, detection_id):
@@ -363,3 +382,18 @@ def rebuild_reference(db_path, correction, vector, model, quality):
                      (row['subject_type'],json.dumps(normalized(vector)) if vector is not None else None,model,quality,correction['detection_id']))
         conn.execute('DELETE FROM identity_samples WHERE detection_id=?',(correction['detection_id'],))
         learn_confirmed(conn,correction['detection_id'])
+
+
+def record_job_error(db_path,catalog_id,exc):
+    """Transient SQLite contention gets bounded retries; damaged inputs still fail."""
+    from pc_helper_queue import transaction
+    with transaction(db_path) as c:
+        row=c.execute('SELECT state FROM identity_analysis_jobs WHERE catalog_id=?',(catalog_id,)).fetchone()
+        if row is None or row[0]!='running':return
+        if is_database_busy(exc):
+            c.execute('INSERT INTO analysis_transient_retries VALUES(?,1) ON CONFLICT(catalog_id) DO UPDATE SET attempts=attempts+1',(catalog_id,))
+            n=c.execute('SELECT attempts FROM analysis_transient_retries WHERE catalog_id=?',(catalog_id,)).fetchone()[0]
+            state='queued' if n<=3 else 'failed'
+            message=f'Temporary database contention; retry {n}/3' if n<=3 else 'Database remained busy after three automatic retries'
+        else:state,message='failed',str(exc)
+        c.execute('UPDATE identity_analysis_jobs SET state=?,message=?,updated_at=CURRENT_TIMESTAMP WHERE catalog_id=?',(state,message[:1000],catalog_id))

@@ -6,6 +6,7 @@ import stat
 import time
 from contextlib import closing, nullcontext
 from pathlib import Path
+from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
 
@@ -101,9 +102,24 @@ def reconcile_local_presence(db_path, archive_dir, mutation_guard=None):
     return len(missing)+len(restored)
 
 
+def recording_timestamp(captured_at):
+    """Catalog capture time is UTC when legacy values omit an offset.
+
+    An absent/invalid date is not permission to delete an original. File copy,
+    restore and playback times must never determine recording retention.
+    """
+    try:
+        stamp = datetime.fromisoformat(captured_at.replace('Z', '+00:00'))
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=timezone.utc)
+        return stamp.timestamp()
+    except (AttributeError, TypeError, ValueError, OverflowError, OSError):
+        return None
+
+
 def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_delete=200, mutation_guard=None):
     started = time.monotonic()
-    log.info('Local retention cleanup started (%s days); playback protected per file', retention_days)
+    log.info('Local retention cleanup started (%s days from recording date); playback protected per file', retention_days)
     guard = mutation_guard or nullcontext
     reconcile_local_presence(db_path, archive_dir, mutation_guard=guard)
     if retention_days <= 0:
@@ -111,18 +127,34 @@ def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_de
     cutoff = (time.time() if now is None else now) - retention_days * 86400
     count = 0
     try:
-        for video in sorted(Path(archive_dir).glob('*.mp4'), key=lambda p: (p.stat().st_mtime, p.name)):
+        with closing(sqlite3.connect(db_path)) as reader:
+            dates = {name: recording_timestamp(date) for name, date in
+                     reader.execute('SELECT filename,captured_at FROM clips')}
+        candidates = []
+        unknown_dates = 0
+        for video in Path(archive_dir).glob('*.mp4'):
+            recorded = dates.get(video.name)
+            if recorded is None:
+                unknown_dates += 1
+            elif recorded < cutoff:
+                candidates.append((recorded, video))
+        if unknown_dates:
+            log.warning('Retention kept %s videos without a valid catalog recording date', unknown_dates)
+        for recorded, video in sorted(candidates, key=lambda item: (item[0], item[1].name)):
             if count >= max_delete:
                 break
-            if video.stat().st_mtime >= cutoff:
-                continue
             # Validate all paths before removing the original.
             artifacts = clip_artifact_paths(Path(archive_dir).parent, video.name)
             with guard(), closing(sqlite3.connect(db_path, timeout=30)) as conn:
                 conn.execute('PRAGMA foreign_keys=ON')
                 with conn:
                     conn.execute('BEGIN IMMEDIATE')
-                    row = conn.execute('SELECT id FROM clips WHERE filename=?', (video.name,)).fetchone()
+                    row = conn.execute('SELECT id,captured_at FROM clips WHERE filename=?', (video.name,)).fetchone()
+                    # Recheck under the same lock as preservation/removal: a
+                    # corrected recording date or removed row wins over scan.
+                    current = recording_timestamp(row[1]) if row else None
+                    if current is None or current >= cutoff:
+                        continue
                     if row:
                         jobs = conn.execute("SELECT 1 FROM sqlite_master WHERE name='identity_analysis_jobs'").fetchone()
                         if jobs and conn.execute("SELECT 1 FROM identity_analysis_jobs WHERE catalog_id=? AND state='running'", (row[0],)).fetchone():
@@ -141,5 +173,5 @@ def cleanup_expired_clips(db_path, archive_dir, retention_days, now=None, max_de
     finally:
         reconcile_local_presence(db_path, archive_dir, mutation_guard=guard)
     if count:
-        log.info('Local retention (%s days) removed %s expired videos in %.3fs; confirmed learning preserved',retention_days,count,time.monotonic()-started)
+        log.info('Local retention (%s days from recording date) removed %s expired videos in %.3fs; confirmed learning preserved',retention_days,count,time.monotonic()-started)
     return count
